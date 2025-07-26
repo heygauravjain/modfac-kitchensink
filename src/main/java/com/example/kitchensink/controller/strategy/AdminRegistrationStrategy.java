@@ -27,7 +27,7 @@ public class AdminRegistrationStrategy implements RegistrationStrategy {
         redirectAttributes.addFlashAttribute("registrationError", true);
         redirectAttributes.addFlashAttribute("errorMessage",
             "Member already registered with this email!");
-        return "redirect:/members";
+        return "redirect:/admin/home";
       }
       memberService.registerMember(member);
       redirectAttributes.addFlashAttribute("registrationSuccess", true);
@@ -40,7 +40,7 @@ public class AdminRegistrationStrategy implements RegistrationStrategy {
       redirectAttributes.addFlashAttribute("registrationError", true);
       redirectAttributes.addFlashAttribute("errorMessage", errorMessage);
     }
-    return "redirect:/members";
+    return "redirect:/admin/home";
   }
 
   public String getRootErrorMessage(Exception e) {

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="403 Forbidden - Access Denied">
+  <title>403 Forbidden</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: #f5f5f5;
+      font-family: Arial, sans-serif;
+      color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    h1 {
+      font-size: 80px;
+      margin: 0;
+      color: #d9534f;
+    }
+
+    h2 {
+      font-size: 24px;
+      margin: 10px 0;
+    }
+
+    p {
+      font-size: 16px;
+      margin: 20px 0;
+    }
+
+    a {
+      display: inline-block;
+      padding: 10px 20px;
+      margin-top: 20px;
+      background: #0275d8;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 5px;
+      transition: background 0.3s ease;
+    }
+
+    a:hover {
+      background: #025aa5;
+    }
+
+    .error-image {
+      width: 150px;
+      height: 150px;
+      background-image: url('https://i.imgur.com/qIufhof.png'); /* Link to a 403 error icon */
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      margin-bottom: 30px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="error-image"></div>
+  <h1>403</h1>
+  <h2>Access Denied</h2>
+  <p>Sorry, you do not have permission to access this page.</p>
+  <a href="/">Return to Home</a>
+</div>
+</body>
+</html>

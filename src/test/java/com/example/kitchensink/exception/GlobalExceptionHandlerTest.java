@@ -1,61 +1,90 @@
 package com.example.kitchensink.exception;
 
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.example.kitchensink.controller.RestService;
-import com.example.kitchensink.service.MemberService;
+import com.example.kitchensink.security.JwtRequestFilter;
+import com.example.kitchensink.security.JwtTokenUtil;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.request.WebRequest;
 
-@WebMvcTest(controllers = {RestService.class, GlobalExceptionHandler.class})
+@WebMvcTest(GlobalExceptionHandler.class)
 class GlobalExceptionHandlerTest {
 
-  @Autowired
   private MockMvc mockMvc;
 
+  @InjectMocks
+  private GlobalExceptionHandler globalExceptionHandler;
+
+  @Mock
+  private WebRequest webRequest;
+
   @MockBean
-  private MemberService memberService;
+  private JwtTokenUtil jwtTokenUtil;
+
+  @MockBean
+  private JwtRequestFilter jwtRequestFilter;
 
   @BeforeEach
   void setUp() {
+    mockMvc = MockMvcBuilders.standaloneSetup(
+            new RestService(null)) // Initialize mockMvc with any controller
+        .setControllerAdvice(globalExceptionHandler) // Register the exception handler with mockMvc
+        .build();
+
+    // Mock the request description
+    when(webRequest.getDescription(false)).thenReturn("Mock request description");
+  }
+  @Test
+  void handleResourceNotFoundException_WithCustomMessage() {
+    // Arrange: Create a custom ResourceNotFoundException
+    ResourceNotFoundException ex = new ResourceNotFoundException("Custom not found message");
+
+    // Act: Call the exception handler directly
+    ResponseEntity<Object> response = globalExceptionHandler.handleResourceNotFoundException(ex,
+        webRequest);
+
+    // Assert: Verify the response status and message
+    assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    assertNotNull(response.getBody());
+    assertTrue(response.getBody() instanceof Map);
+    Map<String, Object> body = (Map<String, Object>) response.getBody();
+    assertEquals("Custom not found message", body.get("message"));
+    assertEquals("Mock request description", body.get("details"));
   }
 
   @Test
-  @WithMockUser(username = "admin", roles = {"ADMIN"})
-    // Simulate an ADMIN user
-  void testHandleResourceNotFoundException() throws Exception {
-    // Arrange: Mock the service to throw ResourceNotFoundException
-    when(memberService.findById("123")).thenThrow(
-        new ResourceNotFoundException("Member with ID 123 not found."));
+  void handleAllExceptions_WithDefaultMessage() {
+    // Arrange: Create a general exception with a specific message
+    Exception ex = new Exception("Test exception message");
 
-    // Act & Assert: Make a GET request to a member endpoint that triggers ResourceNotFoundException
-    mockMvc.perform(get("/rest/members/123"))
-        .andExpect(status().isNotFound()) // Expect 404 status
-        .andExpect(jsonPath("$.message").value("Member with ID 123 not found."))
-        .andExpect(jsonPath("$.details").exists())
-        .andExpect(jsonPath("$.timestamp").exists());
-  }
+    // Act: Call the exception handler directly
+    ResponseEntity<Object> response = globalExceptionHandler.handleAllExceptions(ex, webRequest);
 
-  @Test
-  @WithMockUser(username = "admin", roles = {"ADMIN"})
-    // Simulate an ADMIN user
-  void testHandleAllExceptions() throws Exception {
-    // Arrange: Mock the service to throw a general exception
-    when(memberService.getAllMembers()).thenThrow(new RuntimeException("Unexpected error"));
-
-    // Act & Assert: Make a GET request that triggers a general exception
-    mockMvc.perform(get("/rest/members"))
-        .andExpect(status().isInternalServerError()) // Expect 500 status
-        .andExpect(jsonPath("$.message").value("An unexpected error occurred"))
-        .andExpect(jsonPath("$.details").value("Unexpected error"))
-        .andExpect(jsonPath("$.timestamp").exists());
+    // Assert: Verify the response status and message
+    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    assertNotNull(response.getBody());
+    assertTrue(response.getBody() instanceof Map);
+    Map<String, Object> body = (Map<String, Object>) response.getBody();
+    assertEquals("An unexpected error occurred", body.get("message"));
+    assertEquals("Test exception message", body.get("details"));
   }
 }

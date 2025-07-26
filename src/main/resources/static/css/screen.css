@@ -1,9 +1,4 @@
-/*
- * JBoss, Home of Professional Open Source
- * Copyright 2015, Red Hat, Inc.
- */
-‰
-  /* Core styles for the page */
+/* Core styles for the page */
 body {
   margin: 0;
   padding: 0;
@@ -178,7 +173,7 @@ input {
 }
 
 .simpletablestyle th {
-  background: url('/static/gfx/bkg-blkheader.png') black repeat-x top left;
+  background: black;
   font-size: 12px;
   font-weight: normal;
   padding: 0 10px 0 5px;
@@ -186,7 +181,7 @@ input {
 }
 
 .simpletablestyle thead {
-  background: url('/static/gfx/bkg-blkheader.png') black repeat-x top left;
+  background: black;
   height: 31px;
   font-size: 10px;
   font-weight: bold;
@@ -232,45 +227,6 @@ input {
   text-decoration: none;
 }
 
-.tooltip {
-  position: relative;
-  display: inline-block;
-  cursor: pointer;
-  color: blue;
-  text-decoration: underline;
-}
-
-.tooltip .tooltiptext {
-  visibility: hidden;
-  width: 200px;
-  background-color: #555;
-  color: #fff;
-  text-align: center;
-  border-radius: 5px;
-  padding: 5px 10px;
-  position: absolute;
-  z-index: 1;
-  bottom: 125%; /* Position the tooltip above the text */
-  left: 50%;
-  margin-left: -100px; /* Center the tooltip */
-  opacity: 0;
-}
-
-.tooltip .tooltiptext::after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  margin-left: -5px;
-  border-width: 5px;
-  border-style: solid;
-  border-color: #555 transparent transparent transparent;
-}
-
-.tooltip:hover .tooltiptext {
-  visibility: visible;
-  opacity: 1;
-}
 
 .valid {
   background-color: #d4edda;
@@ -330,6 +286,7 @@ table th {
   font-size: 16px;
   color: #333;
 }
+
 /* Align radio button section */
 .role-section {
   display: flex;
@@ -357,28 +314,6 @@ table th {
 /* Styling for the radio button label */
 .radio-option label {
   cursor: pointer;
-}
-
-/* Tooltip styling */
-.tooltip {
-  position: relative;
-  display: inline-block;
-  cursor: pointer;
-}
-
-.tooltip:hover::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  bottom: 30px;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: #333;
-  color: #fff;
-  padding: 5px;
-  border-radius: 5px;
-  font-size: 12px;
-  white-space: nowrap;
-  z-index: 10;
 }
 
 /* Radio button styling */
@@ -695,3 +630,287 @@ iframe {
   flex-grow: 1;
 }
 
+.edit-button, .save-link, .cancel-button, .delete-link {
+  cursor: pointer;
+  text-decoration: none;
+  border: none;
+  background: none;
+  font-size: 18px;
+  margin: 0 5px;
+  padding: 0;
+}
+
+.edit-button {
+  color: #0275d8;
+}
+
+.save-link {
+  color: #5cb85c;
+}
+
+.cancel-button {
+  color: #d9534f;
+}
+
+.delete-link {
+  color: #d9534f;
+}
+
+.edit-mode {
+  background-color: #f9f9f9;
+}
+
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  padding: 5px;
+}
+
+.icon-button:hover {
+  background-color: #eaeaea;
+  border-radius: 50%;
+}
+
+.table-container {
+  margin-top: 20px;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #F1F1F1;
+  font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+  font-size: 0.9em;
+  color: #363636;
+}
+
+#container {
+  margin: 0 auto;
+  padding: 20px;
+  max-width: 1000px;
+  background: #FFFFFF;
+  box-shadow: 3px 3px 15px #d5d5d5;
+  border-radius: 10px;
+}
+
+#header {
+  background-color: #4a5d75;
+  color: #fff;
+  padding: 15px 30px;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+#header h1 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.logout-button {
+  background-color: #d9534f;
+  color: #fff;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  text-decoration: none;
+  font-weight: bold;
+  transition: background-color 0.3s, box-shadow 0.3s;
+  display: inline-block;
+}
+
+.logout-button:hover {
+  background-color: #c9302c;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+#footer {
+  padding: 15px;
+  color: #666666;
+  font-size: 14px;
+  background-color: #f1f1f1;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+  margin-top: 30px;
+  text-align: center;
+}
+
+/* Form container styling */
+.form-container {
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+  align-items: flex-start;
+}
+
+.form-group label {
+  font-weight: bold;
+  color: #4a5d75;
+  margin-bottom: 5px;
+}
+
+.form-group input {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 16px;
+  width: 100%;
+  max-width: 500px;
+  box-sizing: border-box;
+}
+
+.form-group input:focus {
+  border-color: #2196f3;
+  outline: none;
+  box-shadow: 0 0 8px rgba(33, 150, 243, 0.2);
+}
+
+/* Styling for success and error messages */
+.valid, .invalid {
+  border-radius: 5px;
+  padding: 15px;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto 15px;
+  text-align: left;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.valid {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.invalid {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+/* Table container styling */
+.table-container {
+  max-width: 100%;
+  margin: 20px auto;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  overflow-x: auto; /* Allow horizontal scrolling */
+}
+
+.simpletablestyle {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: auto; /* Adjust table to fit within container */
+}
+
+.simpletablestyle th, .simpletablestyle td {
+  padding: 15px;
+  border: 1px solid #ddd;
+  text-align: left;
+  word-wrap: break-word; /* Ensure text wraps within the cell */
+}
+
+.simpletablestyle th {
+  background-color: #4a5d75;
+  color: #fff;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.simpletablestyle td {
+  text-align: center; /* Center align text in table cells */
+}
+
+.simpletablestyle tr:nth-child(odd) {
+  background-color: #f4f4f4;
+}
+
+/* Button styling */
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  padding: 5px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+  text-decoration: none;
+}
+
+.icon-button:hover {
+  background-color: #eaeaea;
+  border-radius: 50%;
+}
+
+/* Style for Edit, Save, Cancel, and Delete buttons */
+.edit-button {
+  color: #0275d8;
+}
+
+.save-link {
+  color: #5cb85c;
+}
+
+.cancel-button {
+  color: #d9534f;
+}
+
+.delete-link {
+  color: #d9534f;
+}
+
+.tooltip-container {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltip-container .tooltip-text {
+  visibility: hidden;
+  width: 120px;
+  background-color: #555;
+  color: #fff;
+  text-align: center;
+  border-radius: 5px;
+  padding: 5px;
+  position: absolute;
+  z-index: 1;
+  bottom: 125%; /* Position above the input */
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.tooltip-container:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
+
+.tooltip-container .tooltip-text::after {
+  content: "";
+  position: absolute;
+  top: 100%; /* Position arrow below the tooltip */
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #555 transparent transparent transparent;
+}

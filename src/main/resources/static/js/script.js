@@ -122,3 +122,122 @@ function loadInFrame(url) {
 
   return false;
 }
+
+function editMember(button) {
+  const row = button.closest('tr');
+  const fields = row.querySelectorAll('.editable-field');
+  fields.forEach(field => {
+    field.disabled = false;
+    field.classList.add('edit-mode');
+  });
+
+  // Show Save and Cancel links, hide Edit button
+  const saveLink = row.querySelector('.save-link');
+  const cancelButton = row.querySelector('.cancel-button');
+  saveLink.style.display = 'inline';
+  cancelButton.style.display = 'inline';
+  button.style.display = 'none';
+
+  // Store original values in data attributes to restore on cancel
+  row.setAttribute('data-original-name', fields[0].value);
+  row.setAttribute('data-original-email', fields[1].value);
+  row.setAttribute('data-original-phone', fields[2].value);
+  row.setAttribute('data-original-role', fields[3].value);
+}
+
+// Function to cancel edit mode and restore original values
+function cancelEdit(button) {
+  const row = button.closest('tr');
+  const fields = row.querySelectorAll('.editable-field');
+
+  // Restore original values
+  fields[0].value = row.getAttribute('data-original-name');
+  fields[1].value = row.getAttribute('data-original-email');
+  fields[2].value = row.getAttribute('data-original-phone');
+  fields[3].value = row.getAttribute('data-original-role');
+
+  // Disable fields and remove edit-mode styling
+  fields.forEach(field => {
+    field.disabled = true;
+    field.classList.remove('edit-mode');
+  });
+
+  // Hide Save and Cancel links, show Edit button again
+  const saveLink = row.querySelector('.save-link');
+  const editButton = row.querySelector('.edit-button');
+  saveLink.style.display = 'none';
+  button.style.display = 'none';
+  editButton.style.display = 'inline';
+}
+
+// Function to delete a member
+function deleteMember(anchor, url) {
+  if (confirm("Are you sure you want to delete this member?")) {
+    fetch(url, {
+      method: 'DELETE'
+    })
+    .then(response => {
+      if (response.ok) {
+        alert("Member deleted successfully!");
+        anchor.closest('tr').remove(); // Remove the table row
+      } else {
+        alert("Failed to delete member.");
+      }
+    })
+    .catch(error => console.error('Error deleting member:', error));
+  }
+}
+
+// Function to save updated member information
+function saveMember(anchor, url) {
+  const row = anchor.closest('tr');
+  const fields = row.querySelectorAll('.editable-field');
+
+  // Get updated field values
+  const updatedMember = {
+    name: fields[0].value,
+    email: fields[1].value,
+    phoneNumber: fields[2].value,
+    role: fields[3].value
+  };
+
+  // Send the updated member data to the server using the URL
+  fetch(url, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(updatedMember)
+  })
+  .then(response => {
+    if (response.ok) {
+      alert("Member updated successfully!");
+
+      // Disable fields again after saving
+      fields.forEach(field => {
+        field.disabled = true;
+        field.classList.remove('edit-mode');
+      });
+
+      // Show Edit button and hide Save/Cancel links
+      const editButton = row.querySelector('.edit-button');
+      const cancelButton = row.querySelector('.cancel-button');
+      anchor.style.display = 'none';
+      cancelButton.style.display = 'none';
+      editButton.style.display = 'inline';
+    } else {
+      // Extract error message from response and display it in the alert
+      response.json().then(errorMessage => {
+        alert(`Failed to update member. Error: ${errorMessage.message || "Unknown error"}`);
+      });
+    }
+  })
+  .catch(error => {
+    console.error('Error updating member:', error);
+    alert(`Failed to update member. Error: ${error.message}`);
+  });
+}
+
+
+
+

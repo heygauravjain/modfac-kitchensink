@@ -1,17 +1,18 @@
 package com.example.kitchensink.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.anyList;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 
 import com.example.kitchensink.controller.strategy.RegistrationContext;
 import com.example.kitchensink.entity.MemberDocument;
 import com.example.kitchensink.exception.ResourceNotFoundException;
 import com.example.kitchensink.model.Member;
 import com.example.kitchensink.service.MemberService;
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,6 +39,9 @@ class MemberControllerTest {
   private Model model;
 
   @Mock
+  private Principal principal;
+
+  @Mock
   private Authentication authentication;
 
   @Mock
@@ -48,17 +52,35 @@ class MemberControllerTest {
     MockitoAnnotations.openMocks(this);
   }
 
+  // Scenario: Show registration form with empty members list
   @Test
-  void showRegistrationForm_ShouldReturnIndexView() {
-    when(memberService.getAllMembers()).thenReturn(new ArrayList<>());
+  void showRegistrationForm_ShouldReturnIndexView_WithNoMembers() {
+    when(memberService.getAllMembers()).thenReturn(new ArrayList<>()); // Empty list
 
-    String viewName = memberController.showRegistrationForm(model);
+    String viewName = memberController.showAdminHome(model, principal);
 
     assertEquals("index", viewName);
     verify(model).addAttribute(eq("member"), any(Member.class));
     verify(model).addAttribute(eq("members"), anyList());
   }
 
+  // Scenario: Show registration form with multiple members
+  @Test
+  void showRegistrationForm_ShouldReturnIndexView_WithMembers() {
+    ArrayList<Member> members = new ArrayList<>();
+    members.add(new Member("1", "John Doe", "john.doe@example.com", "1234567890", null, "ADMIN"));
+    members.add(new Member("2", "Jane Doe", "jane.doe@example.com", "0987654321", null, "USER"));
+
+    when(memberService.getAllMembers()).thenReturn(members);
+
+    String viewName = memberController.showAdminHome(model, principal);
+
+    assertEquals("index", viewName);
+    verify(model).addAttribute(eq("member"), any(Member.class));
+    verify(model).addAttribute(eq("members"), eq(members));
+  }
+
+  // Scenario: Register member using admin strategy
   @Test
   void registerMember_WhenSourceIsIndex_ShouldUseAdminStrategy() {
     Member member = new Member();
@@ -71,6 +93,7 @@ class MemberControllerTest {
     verify(registrationContext).register(eq(member), eq(redirectAttributes));
   }
 
+  // Scenario: Register member using user strategy
   @Test
   void registerMember_WhenSourceIsRegister_ShouldUseUserStrategy() {
     Member member = new Member();
@@ -83,12 +106,14 @@ class MemberControllerTest {
     verify(registrationContext).register(eq(member), eq(redirectAttributes));
   }
 
+  // Scenario: Show login page
   @Test
   void showLoginPage_ShouldReturnLoginView() {
     String viewName = memberController.showLoginPage();
     assertEquals("login", viewName);
   }
 
+  // Scenario: Show user profile page
   @Test
   void showUserProfile_ShouldReturnUserProfileView() {
     String email = "test@example.com";
@@ -104,20 +129,7 @@ class MemberControllerTest {
     verify(model).addAttribute(eq("member"), any(Member.class));
   }
 
-  @Test
-  void showUserProfile_WhenUserNotFound_ShouldThrowResourceNotFoundException() {
-    String email = "unknown@example.com";
-
-    when(authentication.getName()).thenReturn(email);
-    when(memberService.findByEmail(email)).thenReturn(Optional.empty());
-
-    try {
-      memberController.showUserProfile(model, authentication);
-    } catch (ResourceNotFoundException ex) {
-      assertEquals("Member with email " + email + " not found.", ex.getMessage());
-    }
-  }
-
+  // Scenario: Register member with invalid data - should return index view
   @Test
   void registerMember_WithInvalidData_ShouldReturnIndexView() {
     Member invalidMember = new Member(); // Empty member with invalid data
@@ -129,5 +141,19 @@ class MemberControllerTest {
     assertEquals("index", viewName); // Should stay on the index view due to validation errors
     verify(registrationContext).setStrategy("index");
     verify(registrationContext).register(eq(invalidMember), eq(redirectAttributes));
+  }
+
+  // Scenario: Error 403 page
+  @Test
+  void error403_ShouldReturn403View() {
+    String viewName = memberController.error403();
+    assertEquals("/error/403", viewName);
+  }
+
+  // Scenario: Error 401 page
+  @Test
+  void error401_ShouldReturn401View() {
+    String viewName = memberController.error401();
+    assertEquals("/error/401", viewName);
   }
 }

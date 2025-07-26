@@ -6,6 +6,7 @@ import com.example.kitchensink.mapper.MemberMapper;
 import com.example.kitchensink.model.Member;
 import com.example.kitchensink.service.MemberService;
 import jakarta.validation.Valid;
+import java.security.Principal;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -36,8 +37,10 @@ public class MemberController {
   /**
    * Displays the registration form and the list of registered members.
    */
-  @GetMapping("/members")
-  public String showRegistrationForm(Model model) {
+  @GetMapping("/admin/home")
+  public String showAdminHome(Model model, Principal principal) {
+    String loggedInUserName = principal.getName();
+    model.addAttribute("loggedInUser", loggedInUserName);
     model.addAttribute("member", new Member());
     model.addAttribute("members", memberService.getAllMembers());
     return "index";
@@ -56,11 +59,10 @@ public class MemberController {
     return registrationContext.register(member, redirectAttributes);
   }
 
-
   /**
    * Displays the login page.
    */
-  @GetMapping("/login")
+  @GetMapping({"/", "/login"})
   public String showLoginPage() {
     return "login";
   }
@@ -78,4 +80,13 @@ public class MemberController {
     return "user-profile";
   }
 
+  @GetMapping("/403")
+  public String error403() {
+    return "/error/403";
+  }
+
+  @GetMapping("/401")
+  public String error401() {
+    return "/error/401";
+  }
 }

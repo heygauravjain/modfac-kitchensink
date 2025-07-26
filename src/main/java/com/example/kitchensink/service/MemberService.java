@@ -24,23 +24,28 @@ public class MemberService {
 
   /**
    * Registers a new member by saving the member document in the database.
-   * Throws IllegalArgumentException if the member is null or invalid.
    */
-  public void registerMember(Member member) {
-    if (member == null) {
-      log.error("Attempted to register a null member.");
-      throw new IllegalArgumentException("Member cannot be null.");
-    }
-
-    // Check for missing required fields
-    if (!StringUtils.hasText(member.getName()) || !StringUtils.hasText(member.getEmail())) {
-      log.error("Attempted to register a member with missing required fields: {}", member);
-      throw new IllegalArgumentException("Member name and email cannot be empty.");
-    }
-
-    log.info("Registering {}", member);
+  public Member registerMember(Member member) {
+    log.info("Registering member: {}", member);
     MemberDocument memberDocument = memberMapper.memberToMemberEntity(member);
     memberRepository.save(memberDocument);
+
+    return memberMapper.memberEntityToMember(memberDocument);
+  }
+
+  public Member updateMember(Member existingMember, Member updatedMember) {
+    log.info("Updating member: {}", updatedMember);
+
+    // Update the existing member's details with new values
+    existingMember.setName(updatedMember.getName());
+    existingMember.setEmail(updatedMember.getEmail());
+    existingMember.setPhoneNumber(updatedMember.getPhoneNumber());
+    existingMember.setRole(updatedMember.getRole());
+
+    MemberDocument memberDocument = memberMapper.memberToMemberEntity(existingMember);
+    memberRepository.save(memberDocument);
+
+    return memberMapper.memberEntityToMember(memberDocument);
   }
 
   /**
@@ -56,14 +61,8 @@ public class MemberService {
    *
    * @param email the email of the member to search for.
    * @return an Optional containing the found member or an empty Optional if no member is found.
-   * @throws IllegalArgumentException if the provided email is null or empty.
    */
   public Optional<MemberDocument> findByEmail(String email) {
-    if (!StringUtils.hasText(email)) {
-      log.error("Attempted to find a member with a null or empty email.");
-      throw new IllegalArgumentException("Email cannot be null or empty.");
-    }
-
     return memberRepository.findByEmail(email);
   }
 
@@ -72,15 +71,17 @@ public class MemberService {
    *
    * @param id the ID of the member to search for.
    * @return the found member, or null if no member is found.
-   * @throws IllegalArgumentException if the provided ID is null or empty.
    */
   public Member findById(String id) {
+    MemberDocument memberDocument = memberRepository.findById(id).orElse(null);
+    return memberDocument != null ? memberMapper.memberEntityToMember(memberDocument) : null;
+  }
+
+  public void deleteById(String id) {
     if (!StringUtils.hasText(id)) {
       log.error("Attempted to find a member with a null or empty ID.");
       throw new IllegalArgumentException("ID cannot be null or empty.");
     }
-
-    MemberDocument memberDocument = memberRepository.findById(id).orElse(null);
-    return memberDocument != null ? memberMapper.memberEntityToMember(memberDocument) : null;
+    memberRepository.deleteById(id);
   }
 }

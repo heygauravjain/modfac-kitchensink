@@ -12,7 +12,7 @@
 <body>
 <div id="container">
   <div id="header">
-    <h1>Kitchensink - Admin portal</h1>
+    <h1>Kitchensink - Admin Home</h1>
     <a th:href="@{/logout}" class="logout-button">Logout</a>
   </div>
 
@@ -32,20 +32,23 @@
     <form th:action="@{/register}" th:object="${member}" method="post">
       <fieldset>
         <legend>Member Registration</legend>
-        <div class="form-group">
+        <div class="form-group tooltip-container">
           <label for="name">Name:</label>
           <input type="text" id="name" th:field="*{name}" placeholder="Enter your name" required
                  pattern="[^0-9]*"/>
+          <span class="tooltip-text">Your full name (no numbers).</span>
         </div>
-        <div class="form-group">
+        <div class="form-group tooltip-container">
           <label for="email">Email:</label>
           <input type="email" id="email" th:field="*{email}" placeholder="Enter your email"
                  required/>
+          <span class="tooltip-text">e.g., user@example.com</span>
         </div>
-        <div class="form-group">
+        <div class="form-group tooltip-container">
           <label for="phoneNumber">Phone:</label>
           <input type="text" id="phoneNumber" th:field="*{phoneNumber}"
-                 placeholder="Enter your phone number" required pattern="\d{10,12}"/>
+                 placeholder="Enter your phone number" required/>
+          <span class="tooltip-text">Your phone number (10-12 digits).</span>
         </div>
         <div class="role-section">
           <label>Role:</label>
@@ -54,7 +57,7 @@
             <label for="roleAdmin">ADMIN</label>
           </div>
           <div class="radio-option">
-            <input type="radio" id="roleUser" name="role" value="USER"/>
+            <input type="radio" id="roleUser" name="role" value="USER" checked/>
             <label for="roleUser">USER</label>
           </div>
         </div>
@@ -76,6 +79,7 @@
       <table class="simpletablestyle">
         <thead>
         <tr>
+          <th>Actions</th>
           <th>Id</th>
           <th>Name</th>
           <th>Email</th>
@@ -86,26 +90,54 @@
         </thead>
         <tbody>
         <tr th:each="member : ${members}">
+          <td>
+            <!-- Cancel Button (X) (Hidden Initially) -->
+            <button type="button" class="cancel-button icon-button" style="display:none;"
+                    onclick="cancelEdit(this)">❌
+            </button>
+            <!-- Save Link (Hidden Initially) -->
+            <a th:href="@{/admin/members/{id}(id=${member.id})}" class="save-link icon-button"
+               onclick="saveMember(this, this.href); return false;" style="display:none;">💾</a>
+            <!-- Edit Button Icon -->
+            <!-- Only show Edit button if the current member is not the logged-in user -->
+            <button type="button" class="edit-button icon-button"
+                    th:if="${loggedInUser != member.email}"
+                    onclick="editMember(this)">✏️
+            </button>
+            <!-- Delete Button Icon -->
+            <a th:href="@{/admin/members/{id}(id=${member.id})}" class="delete-link icon-button"
+               th:if="${loggedInUser != member.email}"
+               onclick="deleteMember(this, this.href); return false;">🗑️</a>
+          </td>
           <td th:text="${member.id}"></td>
-          <td th:text="${member.name}"></td>
-          <td th:text="${member.email}"></td>
-          <td th:text="${member.phoneNumber}"></td>
-          <td th:text="${member.role}"></td>
-          <td><a th:href="@{/rest/members/{id}(id=${member.id})}"
-                 onclick="return loadInFrame(this.href)">/rest/members/<span
-              th:text="${member.id}"></span></a></td>
+          <td><input type="text" th:value="${member.name}" disabled class="editable-field"/></td>
+          <td><input type="email" th:value="${member.email}" disabled class="editable-field"/></td>
+          <td><input type="text" th:value="${member.phoneNumber}" disabled class="editable-field"/>
+          </td>
+          <td>
+            <select disabled class="editable-field">
+              <option value="ADMIN" th:selected="${member.role == 'ADMIN'}">ADMIN</option>
+              <option value="USER" th:selected="${member.role == 'USER'}">USER</option>
+            </select>
+          </td>
+          <td>
+            <a th:href="@{/admin/members/{id}(id=${member.id})}"
+               onclick="return loadInFrame(this.href)">
+              /admin/members/<span th:text="${member.id}"></span>
+            </a>
+          </td>
         </tr>
         </tbody>
       </table>
-      <div>Rest url for all members: <a href="/rest/members"
-                                        onclick="return loadInFrame(this.href)">/rest/members</a>
+      <div>Rest URL for all members: <a href="/admin/members"
+                                        onclick="return loadInFrame(this.href)">/admin/members</a>
       </div>
     </div>
   </div>
 
   <!-- Footer Section -->
   <div id="footer">
-    This project was generated using Spring Boot with Thymeleaf
+    This project was generated using Spring Boot with Thymeleaf and MongoDB
   </div>
 </div>
 </body>

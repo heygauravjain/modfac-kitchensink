@@ -3,10 +3,10 @@ package com.example.kitchensink.security;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer.FrameOptionsConfig;
@@ -15,20 +15,29 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
+@Slf4j
 public class SecurityConfig {
 
   private final CustomUserDetailsService customUserDetailsService;
   private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
+  private final JwtRequestFilter jwtRequestFilter;
+
+
+  private final JwtTokenUtil jwtTokenUtil;
   private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
   public SecurityConfig(CustomUserDetailsService customUserDetailsService,
       CustomAuthenticationEntryPoint customAuthenticationEntryPoint,
+      JwtRequestFilter jwtRequestFilter, JwtTokenUtil jwtTokenUtil,
       CustomAccessDeniedHandler customAccessDeniedHandler) {
     this.customUserDetailsService = customUserDetailsService;
     this.customAuthenticationEntryPoint = customAuthenticationEntryPoint;
+    this.jwtRequestFilter = jwtRequestFilter;
+    this.jwtTokenUtil = jwtTokenUtil;
     this.customAccessDeniedHandler = customAccessDeniedHandler;
   }
 
@@ -36,14 +45,13 @@ public class SecurityConfig {
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http
         .headers(headers -> headers
-            .frameOptions(FrameOptionsConfig::sameOrigin) //Set X-Frame-Options to same origin
+            .frameOptions(FrameOptionsConfig::sameOrigin)
         )
         .csrf(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/login", "/register")
-            .permitAll()
-            .requestMatchers("/members").hasRole("ADMIN")
-            .requestMatchers("/rest/members/**").hasRole("ADMIN")
+            .requestMatchers("/", "/login", "/register", "/401").permitAll()
+            .requestMatchers("/admin/home").hasRole("ADMIN")
+            .requestMatchers("/admin/members/**").hasRole("ADMIN")
             .requestMatchers("/user-profile").hasRole("USER")
             .anyRequest().authenticated()
         )
@@ -60,8 +68,9 @@ public class SecurityConfig {
             .logoutUrl("/logout")
             .logoutSuccessUrl("/login")
             .permitAll()
-        ).httpBasic(Customizer.withDefaults());
-    ;
+        )
+        .addFilterBefore(jwtRequestFilter,
+            UsernamePasswordAuthenticationFilter.class); // Add JWT filter
 
     return http.build();
   }
@@ -91,9 +100,17 @@ public class SecurityConfig {
           throws IOException {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
+        // Generate JWT token using the authenticated user's username
+        String jwtToken = jwtTokenUtil.generateToken(userDetails.getUsername());
+
+        // Add the JWT token to the response header
+        response.setHeader("Authorization", "Bearer " + jwtToken);
+
+        log.info("token-----{}", jwtToken);
+
         // Check if the user has the ADMIN role and redirect accordingly
         if (userDetails.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"))) {
-          response.sendRedirect("/members");
+          response.sendRedirect("/admin/home");
         } else if (userDetails.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_USER"))) {
           response.sendRedirect("/user-profile"); // Redirect to user profile page for USER
         } else {

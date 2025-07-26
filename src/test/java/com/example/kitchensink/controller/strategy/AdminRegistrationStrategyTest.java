@@ -47,8 +47,8 @@ class AdminRegistrationStrategyTest {
     String result = adminRegistrationStrategy.register(member, redirectAttributes);
 
     // Assert
-    assertEquals("redirect:/members", result,
-        "Should redirect to /members if member already exists.");
+    assertEquals("redirect:/admin/home", result,
+        "Should redirect to /admin/home if member already exists.");
 
     // Verify that the correct redirect attributes were set
     verify(redirectAttributes).addFlashAttribute("registrationError", true);
@@ -72,8 +72,8 @@ class AdminRegistrationStrategyTest {
     String result = adminRegistrationStrategy.register(member, redirectAttributes);
 
     // Assert
-    assertEquals("redirect:/members", result,
-        "Should redirect to /members after successful registration.");
+    assertEquals("redirect:/admin/home", result,
+        "Should redirect to /admin/home after successful registration.");
 
     // Capture the member object that was registered
     ArgumentCaptor<Member> memberCaptor = ArgumentCaptor.forClass(Member.class);
@@ -101,8 +101,8 @@ class AdminRegistrationStrategyTest {
     String result = adminRegistrationStrategy.register(member, redirectAttributes);
 
     // Assert
-    assertEquals("redirect:/members", result,
-        "Should redirect to /members even if an exception occurs.");
+    assertEquals("redirect:/admin/home", result,
+        "Should redirect to /admin/home even if an exception occurs.");
 
     // Verify that the correct redirect attributes were set for error handling
     verify(redirectAttributes).addFlashAttribute("registrationError", true);

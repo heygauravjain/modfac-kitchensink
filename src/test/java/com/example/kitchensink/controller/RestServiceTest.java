@@ -3,6 +3,7 @@ package com.example.kitchensink.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
@@ -35,16 +36,14 @@ class RestServiceTest {
     MockitoAnnotations.openMocks(this);
   }
 
+  // List All Members Scenarios
   @Test
   void testListAllMembers_ReturnsMemberList() {
-    // Arrange: Mock the service to return a list of members
     List<Member> mockMembers = Arrays.asList(new Member(), new Member());
     when(memberService.getAllMembers()).thenReturn(mockMembers);
 
-    // Act: Call the listAllMembers method
     ResponseEntity<List<Member>> response = restService.listAllMembers();
 
-    // Assert: Verify that the response status is OK and the list matches the mock list
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertNotNull(response.getBody());
     assertEquals(2, response.getBody().size(), "The list should contain 2 members.");
@@ -53,31 +52,25 @@ class RestServiceTest {
 
   @Test
   void testListAllMembers_ReturnsEmptyList() {
-    // Arrange: Mock the service to return an empty list
     when(memberService.getAllMembers()).thenReturn(List.of());
 
-    // Act: Call the listAllMembers method
     ResponseEntity<List<Member>> response = restService.listAllMembers();
 
-    // Assert: Verify that the response status is OK and the list is empty
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertNotNull(response.getBody());
     assertEquals(0, response.getBody().size(), "The list should be empty.");
     verify(memberService, times(1)).getAllMembers();
   }
 
+  // Lookup Member by ID Scenarios
   @Test
   void testLookupMemberById_Found() {
-    // Arrange: Mock the service to return a specific member
-    Member mockMember = new Member();
-    mockMember.setId("123");
-    mockMember.setEmail("test@example.com");
+    Member mockMember = new Member("123", "John Doe", "john.doe@example.com", "1234567890", null,
+        "USER");
     when(memberService.findById("123")).thenReturn(mockMember);
 
-    // Act: Call the lookupMemberById method
     ResponseEntity<Member> response = restService.lookupMemberById("123");
 
-    // Assert: Verify that the response is OK and the body matches the mock member
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertNotNull(response.getBody());
     assertEquals(mockMember.getId(), response.getBody().getId());
@@ -87,10 +80,8 @@ class RestServiceTest {
 
   @Test
   void testLookupMemberById_NotFound() {
-    // Arrange: Mock the service to return null when looking up an ID
     when(memberService.findById("123")).thenReturn(null);
 
-    // Act & Assert: Call the lookupMemberById method and expect a ResourceNotFoundException
     try {
       restService.lookupMemberById("123");
     } catch (ResourceNotFoundException ex) {
@@ -99,17 +90,15 @@ class RestServiceTest {
     }
   }
 
+  // Create Member Scenarios
   @Test
   void testCreateMember_Success() {
-    // Arrange: Mock the service to do nothing when registering a member
-    doNothing().when(memberService).registerMember(any(Member.class));
-
-    // Act: Call the createMember method with a mock member object
     Member mockMember = new Member();
     mockMember.setEmail("newuser@example.com");
-    ResponseEntity<Member> response = restService.createMember(mockMember);
+    when(memberService.registerMember(any(Member.class))).thenReturn(mockMember);
 
-    // Assert: Verify that the response status is CREATED and the body matches the member
+    ResponseEntity<Member> response = restService.registerMember(mockMember);
+
     assertEquals(HttpStatus.CREATED, response.getStatusCode());
     assertNotNull(response.getBody());
     assertEquals(mockMember.getEmail(), response.getBody().getEmail());
@@ -118,18 +107,112 @@ class RestServiceTest {
 
   @Test
   void testCreateMember_ThrowsException() {
-    // Arrange: Mock the service to throw an exception when registering a member
     doThrow(new RuntimeException("Registration failed")).when(memberService)
         .registerMember(any(Member.class));
 
-    // Act & Assert: Call the createMember method and expect the exception
     try {
       Member mockMember = new Member();
       mockMember.setEmail("newuser@example.com");
-      restService.createMember(mockMember);
+      restService.registerMember(mockMember);
     } catch (RuntimeException ex) {
       assertEquals("Registration failed", ex.getMessage());
       verify(memberService, times(1)).registerMember(any(Member.class));
+    }
+  }
+
+  // Update Member Scenarios
+  @Test
+  void testUpdateMember_Success() {
+    Member existingMember = new Member("123", "John Doe", "john.doe@example.com", "1234567890",
+        null, "USER");
+    Member updatedMember = new Member("123", "John Doe Updated", "john.doe@example.com",
+        "1234567890", null, "ADMIN");
+
+    when(memberService.findById("123")).thenReturn(existingMember);
+    when(memberService.updateMember(eq(existingMember), eq(updatedMember))).thenReturn(
+        updatedMember);
+
+    ResponseEntity<Member> response = restService.updateMember(updatedMember, "123");
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertNotNull(response.getBody());
+    assertEquals("John Doe Updated", response.getBody().getName());
+    assertEquals("ADMIN", response.getBody().getRole());
+    verify(memberService, times(1)).findById("123");
+    verify(memberService, times(1)).updateMember(existingMember, updatedMember);
+  }
+
+  @Test
+  void testUpdateMember_NotFound() {
+    when(memberService.findById("123")).thenReturn(null);
+
+    ResponseEntity<Member> response = restService.updateMember(new Member(), "123");
+
+    assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    verify(memberService, times(1)).findById("123");
+    verify(memberService, times(0)).updateMember(any(Member.class), any(Member.class));
+  }
+
+  @Test
+  void testUpdateMember_ThrowsException() {
+    Member existingMember = new Member("123", "John Doe", "john.doe@example.com", "1234567890",
+        null, "USER");
+    Member updatedMember = new Member("123", "John Doe Updated", "john.doe@example.com",
+        "1234567890", null, "ADMIN");
+
+    when(memberService.findById("123")).thenReturn(existingMember);
+    doThrow(new RuntimeException("Update failed")).when(memberService)
+        .updateMember(any(Member.class), any(Member.class));
+
+    ResponseEntity<Member> response = restService.updateMember(updatedMember, "123");
+
+    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    verify(memberService, times(1)).findById("123");
+    verify(memberService, times(1)).updateMember(existingMember, updatedMember);
+  }
+
+  // Delete Member Scenarios
+  @Test
+  void testDeleteMemberById_Success() {
+    Member existingMember = new Member("123", "John Doe", "john.doe@example.com", "1234567890",
+        null, "USER");
+    when(memberService.findById("123")).thenReturn(existingMember);
+    doNothing().when(memberService).deleteById("123");
+
+    ResponseEntity<String> response = restService.deleteMemberById("123");
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals("Member deleted successfully", response.getBody());
+    verify(memberService, times(1)).findById("123");
+    verify(memberService, times(1)).deleteById("123");
+  }
+
+  @Test
+  void testDeleteMemberById_NotFound() {
+    when(memberService.findById("123")).thenReturn(null);
+
+    try {
+      restService.deleteMemberById("123");
+    } catch (ResourceNotFoundException ex) {
+      assertEquals("Member with ID 123 not found.", ex.getMessage());
+      verify(memberService, times(1)).findById("123");
+      verify(memberService, times(0)).deleteById("123");
+    }
+  }
+
+  @Test
+  void testDeleteMemberById_ThrowsException() {
+    Member existingMember = new Member("123", "John Doe", "john.doe@example.com", "1234567890",
+        null, "USER");
+    when(memberService.findById("123")).thenReturn(existingMember);
+    doThrow(new RuntimeException("Delete failed")).when(memberService).deleteById("123");
+
+    try {
+      restService.deleteMemberById("123");
+    } catch (RuntimeException ex) {
+      assertEquals("Delete failed", ex.getMessage());
+      verify(memberService, times(1)).findById("123");
+      verify(memberService, times(1)).deleteById("123");
     }
   }
 }
