@@ -6,7 +6,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.example.kitchensink.entity.MemberEntity;
+import com.example.kitchensink.entity.MemberDocument;
 import com.example.kitchensink.model.Member;
 import com.example.kitchensink.service.MemberService;
 import java.util.Optional;
@@ -41,7 +41,7 @@ class AdminRegistrationStrategyTest {
     member.setEmail("existing@example.com");
 
     // Mock the memberService to return an existing member
-    when(memberService.findByEmail(member.getEmail())).thenReturn(Optional.of(new MemberEntity()));
+    when(memberService.findByEmail(member.getEmail())).thenReturn(Optional.of(new MemberDocument()));
 
     // Act
     String result = adminRegistrationStrategy.register(member, redirectAttributes);

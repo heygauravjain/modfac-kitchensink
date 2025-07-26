@@ -1,6 +1,6 @@
 package com.example.kitchensink.controller.strategy;
 
-import com.example.kitchensink.entity.MemberEntity;
+import com.example.kitchensink.entity.MemberDocument;
 import com.example.kitchensink.model.Member;
 import com.example.kitchensink.repository.MemberRepository;
 import com.example.kitchensink.service.MemberService;
@@ -28,18 +28,18 @@ public class UserRegistrationStrategy implements RegistrationStrategy {
 
   @Override
   public String register(Member member, RedirectAttributes redirectAttributes) {
-    Optional<MemberEntity> existingMember = memberService.findByEmail(member.getEmail());
+    Optional<MemberDocument> existingMember = memberService.findByEmail(member.getEmail());
 
     if (existingMember.isPresent()) {
-      MemberEntity existingMemberEntity = existingMember.get();
-      if (Objects.isNull(existingMemberEntity.getPassword())) {
+      MemberDocument existingMemberDocument = existingMember.get();
+      if (Objects.isNull(existingMemberDocument.getPassword())) {
 
         /*
           TODO: This should be extended to set Password feature (1st time user).
                   Currently directly updating here for the sake of simplicity & time
          */
-        existingMemberEntity.setPassword(passwordEncoder.encode(member.getPassword()));
-        memberRepository.save(existingMemberEntity);
+        existingMemberDocument.setPassword(passwordEncoder.encode(member.getPassword()));
+        memberRepository.save(existingMemberDocument);
 
         redirectAttributes.addFlashAttribute("registrationSuccess", true);
         redirectAttributes.addFlashAttribute("successMessage", "Password updated successfully!");

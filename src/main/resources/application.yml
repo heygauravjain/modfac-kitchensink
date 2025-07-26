@@ -1,0 +1,16 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb+srv://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOST}/?retryWrites=true&w=majority&appName=kitchensink
+      database: ${MONGO_DATABASE}
+      auto-index-creation: true
+
+  thymeleaf:
+    mode: HTML
+    suffix: .html
+
+logging:
+  level:
+    org:
+      springframework:
+        security: DEBUG

@@ -1,6 +1,6 @@
 package com.example.kitchensink.mapper;
 
-import com.example.kitchensink.entity.MemberEntity;
+import com.example.kitchensink.entity.MemberDocument;
 import com.example.kitchensink.model.Member;
 import java.util.List;
 import org.mapstruct.Mapper;
@@ -12,12 +12,12 @@ public interface MemberMapper {
 
   MemberMapper INSTANCE = Mappers.getMapper(MemberMapper.class);
 
-  MemberEntity memberToMemberEntity(Member member);
+  MemberDocument memberToMemberEntity(Member member);
 
-  List<Member> memberEntityListToMemberList(List<MemberEntity> memberEntities);
+  List<Member> memberEntityListToMemberList(List<MemberDocument> memberEntities);
 
   // Map single MemberEntity to Member with password set to null
   @Mapping(target = "password", ignore = true)
-  Member memberEntityToMember(MemberEntity memberEntity);
+  Member memberEntityToMember(MemberDocument memberDocument);
 
 }

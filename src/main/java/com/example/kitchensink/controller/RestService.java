@@ -45,6 +45,8 @@ public class RestService {
   // REST endpoint for creating a new member
   @PostMapping
   public ResponseEntity<Member> createMember(@Valid @RequestBody Member member) {
+
+    member.setPassword(null);
     memberService.registerMember(member);
     return new ResponseEntity<>(member, HttpStatus.CREATED);
   }

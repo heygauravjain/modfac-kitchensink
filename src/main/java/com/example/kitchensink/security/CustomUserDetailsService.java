@@ -1,6 +1,6 @@
 package com.example.kitchensink.security;
 
-import com.example.kitchensink.entity.MemberEntity;
+import com.example.kitchensink.entity.MemberDocument;
 import com.example.kitchensink.repository.MemberRepository;
 import java.util.Collections;
 import java.util.Set;
@@ -29,19 +29,19 @@ public class CustomUserDetailsService implements UserDetailsService {
     System.out.println("Attempting to authenticate email: " + email);
 
     // Find user by email
-    MemberEntity memberEntity = memberRepository.findByEmail(email)
+    MemberDocument memberDocument = memberRepository.findByEmail(email)
         .orElseThrow(
-            () -> new UsernameNotFoundException("User not found with username: " + email));
+            () -> new UsernameNotFoundException("User not found with email: " + email));
 
-    System.out.println("User found: " + memberEntity.getEmail());
-    System.out.println("User role: " + memberEntity.getRole());
+    System.out.println("User found: " + memberDocument.getEmail());
+    System.out.println("User role: " + memberDocument.getRole());
 
     // Convert the single role to a Set of GrantedAuthority
     Set<GrantedAuthority> authorities = Collections.singleton(
-        new SimpleGrantedAuthority("ROLE_" + memberEntity.getRole()));
+        new SimpleGrantedAuthority("ROLE_" + memberDocument.getRole()));
 
     // Return a UserDetails object with member information
-    return new User(memberEntity.getEmail(), memberEntity.getPassword(), authorities);
+    return new User(memberDocument.getEmail(), memberDocument.getPassword(), authorities);
 
   }
 }

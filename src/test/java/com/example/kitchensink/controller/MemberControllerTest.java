@@ -18,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.security.core.Authentication;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 class MemberControllerTest {
@@ -96,5 +97,10 @@ class MemberControllerTest {
 
     // Then
     assertEquals("login", viewName);
+  }
+
+  @Test
+  public void showMembersPage_ShouldReturnMembersView() {
+
   }
 }

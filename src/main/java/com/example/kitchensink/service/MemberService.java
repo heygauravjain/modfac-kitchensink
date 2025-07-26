@@ -1,6 +1,6 @@
 package com.example.kitchensink.service;
 
-import com.example.kitchensink.entity.MemberEntity;
+import com.example.kitchensink.entity.MemberDocument;
 import com.example.kitchensink.mapper.MemberMapper;
 import com.example.kitchensink.model.Member;
 import com.example.kitchensink.repository.MemberRepository;
@@ -24,23 +24,23 @@ public class MemberService {
 
   public void registerMember(Member member) {
     log.info("Registering {}", member);
-    MemberEntity memberEntity = memberMapper.memberToMemberEntity(member);
-    memberRepository.save(memberEntity);
+    MemberDocument memberDocument = memberMapper.memberToMemberEntity(member);
+    memberRepository.save(memberDocument);
   }
 
   public List<Member> getAllMembers() {
-    List<MemberEntity> memberEntities = memberRepository.findAllOrderedByName();
+    List<MemberDocument> memberEntities = memberRepository.findAllOrderedByName();
     return memberMapper.memberEntityListToMemberList(memberEntities);
   }
 
-  public Optional<MemberEntity> findByEmail(String email) {
+  public Optional<MemberDocument> findByEmail(String email) {
     return memberRepository.findByEmail(email);
   }
 
   public Member findById(String id) {
-    MemberEntity memberEntity = memberRepository.findById(id).orElse(null);
-    if (memberEntity != null) {
-      return memberMapper.memberEntityToMember(memberEntity);
+    MemberDocument memberDocument = memberRepository.findById(id).orElse(null);
+    if (memberDocument != null) {
+      return memberMapper.memberEntityToMember(memberDocument);
     } else {
       return null;
     }

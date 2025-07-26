@@ -12,7 +12,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "members")
 @AllArgsConstructor
 @NoArgsConstructor
-public class MemberEntity implements Serializable {
+public class MemberDocument implements Serializable {
 
   @Id
   private String id;

@@ -1,29 +1,112 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8"/>
-    <title>kitchensink</title>
-    <!-- Include the CSS stylesheet -->
-    <link th:href="@{/css/screen.css}" rel="stylesheet"/>
-    <!-- Include the JavaScript file -->
-    <script th:src="@{/js/script.js}"></script>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kitchensink</title>
+  <!-- Include the CSS stylesheet -->
+  <link th:href="@{/css/screen.css}" rel="stylesheet"/>
+  <!-- Include the JavaScript file -->
+  <script th:src="@{/js/script.js}"></script>
 </head>
 <body>
 <div id="container">
-    <a th:href="@{/logout}" class="btn btn-danger">Logout</a>
-    <div class="dualbrand">
-        <!-- Include the logo image -->
-        <img th:src="@{/gfx/spring.png}" width="300" height="175" alt="Spring Boot + Mongo DB logo"/>
+  <div id="header">
+    <h1>Kitchensink - Admin portal</h1>
+    <a th:href="@{/logout}" class="logout-button">Logout</a>
+  </div>
+
+  <!-- Registration Form Section -->
+  <div class="form-container">
+    <!-- Success Message -->
+    <div th:if="${registrationSuccess}">
+      <div th:text="${successMessage}" class="valid"></div>
     </div>
-    <div id="content">
-        <!-- Include the content fragment here -->
-        <div th:replace="~{fragments/index-content :: content}"></div>
+
+    <!-- Error Message -->
+    <div th:if="${registrationError}">
+      <div th:text="${errorMessage}" class="invalid"></div>
     </div>
-    <div id="footer">
-        <p>
-            This project was generated using Spring Boot with Thymeleaf<br/>
-        </p>
+
+    <!-- Registration Form -->
+    <form th:action="@{/register}" th:object="${member}" method="post">
+      <fieldset>
+        <legend>Member Registration</legend>
+        <div class="form-group">
+          <label for="name">Name:</label>
+          <input type="text" id="name" th:field="*{name}" placeholder="Enter your name" required
+                 pattern="[^0-9]*"/>
+        </div>
+        <div class="form-group">
+          <label for="email">Email:</label>
+          <input type="email" id="email" th:field="*{email}" placeholder="Enter your email"
+                 required/>
+        </div>
+        <div class="form-group">
+          <label for="phoneNumber">Phone:</label>
+          <input type="text" id="phoneNumber" th:field="*{phoneNumber}"
+                 placeholder="Enter your phone number" required pattern="\d{10,12}"/>
+        </div>
+        <div class="role-section">
+          <label>Role:</label>
+          <div class="radio-option">
+            <input type="radio" id="roleAdmin" name="role" value="ADMIN"/>
+            <label for="roleAdmin">ADMIN</label>
+          </div>
+          <div class="radio-option">
+            <input type="radio" id="roleUser" name="role" value="USER"/>
+            <label for="roleUser">USER</label>
+          </div>
+        </div>
+        <input type="hidden" name="sourcePage" value="index"/>
+        <div class="button-container">
+          <button type="submit" class="register-button">Register</button>
+        </div>
+      </fieldset>
+    </form>
+  </div>
+
+  <!-- Members Table Section -->
+  <div class="table-container">
+    <h2>Members</h2>
+    <div th:if="${#lists.isEmpty(members)}">
+      <em>No registered Members.</em>
     </div>
+    <div th:if="${!#lists.isEmpty(members)}">
+      <table class="simpletablestyle">
+        <thead>
+        <tr>
+          <th>Id</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Phone #</th>
+          <th>Role</th>
+          <th>REST URL</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="member : ${members}">
+          <td th:text="${member.id}"></td>
+          <td th:text="${member.name}"></td>
+          <td th:text="${member.email}"></td>
+          <td th:text="${member.phoneNumber}"></td>
+          <td th:text="${member.role}"></td>
+          <td><a th:href="@{/rest/members/{id}(id=${member.id})}"
+                 onclick="return loadInFrame(this.href)">/rest/members/<span
+              th:text="${member.id}"></span></a></td>
+        </tr>
+        </tbody>
+      </table>
+      <div>Rest url for all members: <a href="/rest/members"
+                                        onclick="return loadInFrame(this.href)">/rest/members</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer Section -->
+  <div id="footer">
+    This project was generated using Spring Boot with Thymeleaf
+  </div>
 </div>
 </body>
 </html>

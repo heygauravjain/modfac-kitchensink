@@ -7,7 +7,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.example.kitchensink.entity.MemberEntity;
+import com.example.kitchensink.entity.MemberDocument;
 import com.example.kitchensink.model.Member;
 import com.example.kitchensink.repository.MemberRepository;
 import com.example.kitchensink.service.MemberService;
@@ -50,7 +50,7 @@ class UserRegistrationStrategyTest {
     member.setEmail("test@example.com");
     member.setPassword("newPassword");
 
-    MemberEntity existingMember = new MemberEntity();
+    MemberDocument existingMember = new MemberDocument();
     existingMember.setEmail("test@example.com");
     existingMember.setPassword(null);
 
@@ -80,7 +80,7 @@ class UserRegistrationStrategyTest {
     Member member = new Member();
     member.setEmail("test@example.com");
 
-    MemberEntity existingMember = new MemberEntity();
+    MemberDocument existingMember = new MemberDocument();
     existingMember.setEmail("test@example.com");
     existingMember.setPassword("existingPassword");
 
@@ -93,7 +93,7 @@ class UserRegistrationStrategyTest {
     assertEquals("redirect:/login", result);
 
     // Verify that no updates were made to the existing member
-    verify(memberRepository, never()).save(any(MemberEntity.class));
+    verify(memberRepository, never()).save(any(MemberDocument.class));
 
     // Verify that the redirect attributes were set correctly
     verify(redirectAttributes).addFlashAttribute("registrationError", true);
