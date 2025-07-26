@@ -32,7 +32,7 @@ public class SecurityConfig {
         )
         .csrf(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/login", "/user-register")
+            .requestMatchers("/login", "/register")
             .permitAll()
             .requestMatchers("/members").hasRole("ADMIN")
             .requestMatchers("/rest/members/**").hasRole("ADMIN")
@@ -81,7 +81,7 @@ public class SecurityConfig {
         if (userDetails.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"))) {
           response.sendRedirect("/members");
         } else {
-          //TODO: extend this functionality for USER role. Show only logged in user's detail here
+          //TODO: extend this functionality for USER role. Currently redirecting to login for simplicity/time
           response.sendRedirect("/login");
         }
       }

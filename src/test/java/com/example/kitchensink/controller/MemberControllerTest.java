@@ -1,134 +1,100 @@
-/*
 package com.example.kitchensink.controller;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.anyList;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
+import com.example.kitchensink.controller.strategy.RegistrationContext;
 import com.example.kitchensink.model.Member;
-import com.example.kitchensink.service.MemberRegistrationService;
+import com.example.kitchensink.service.MemberService;
 import java.util.ArrayList;
-import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.ui.Model;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-public class MemberControllerTest {
-
-  private MockMvc mockMvc;
+class MemberControllerTest {
 
   @Mock
-  private MemberRegistrationService memberRegistrationService;
+  private MemberService memberService;
 
   @Mock
-  private Authentication authentication;
+  private RegistrationContext registrationContext;
 
   @InjectMocks
   private MemberController memberController;
 
+  @Mock
+  private Model model;
+
+  @Mock
+  private Authentication authentication;
+
+  @Mock
+  private RedirectAttributes redirectAttributes;
+
   @BeforeEach
-  public void setup() {
+  void setUp() {
     MockitoAnnotations.openMocks(this);
-    mockMvc = MockMvcBuilders.standaloneSetup(memberController).build();
   }
 
   @Test
-  public void testShowRegistrationForm_UnauthenticatedUser() throws Exception {
-    // Mock that user is not authenticated
-    when(authentication.isAuthenticated()).thenReturn(false);
+  void showRegistrationForm_ShouldReturnIndexView() {
+    // Given
+    when(memberService.getAllMembers()).thenReturn(new ArrayList<>());
 
-    mockMvc.perform(get("/members").principal(authentication))
-        .andExpect(status().is3xxRedirection())
-        .andExpect(redirectedUrl("/login"));
+    // When
+    String viewName = memberController.showRegistrationForm(model, authentication);
+
+    // Then
+    assertEquals("index", viewName);
+    verify(model).addAttribute(eq("member"), any(Member.class));
+    verify(model).addAttribute(eq("members"), anyList());
   }
 
   @Test
-  public void testShowRegistrationForm_NotAdminUser() throws Exception {
-    // Mock an authenticated user without ADMIN role
-    UserDetails userDetails = new User("user", "password",
-        List.of(new SimpleGrantedAuthority("ROLE_USER")));
-    when(authentication.isAuthenticated()).thenReturn(true);
-    when(authentication.getPrincipal()).thenReturn(userDetails);
-
-    mockMvc.perform(get("/members").principal(authentication))
-        .andExpect(status().is3xxRedirection())
-        .andExpect(redirectedUrl("/"));
-  }
-
-  @Test
-  public void testShowRegistrationForm_AdminUser() throws Exception {
-    // Mock an authenticated user with ADMIN role
-    UserDetails userDetails = new User("admin", "password",
-        List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
-    when(authentication.isAuthenticated()).thenReturn(true);
-    when(authentication.getPrincipal()).thenReturn(userDetails);
-
-    // Mock the service call to return a list of members
-    List<Member> members = new ArrayList<>();
-    members.add(new Member());
-    when(memberRegistrationService.getAllMembers()).thenReturn(members);
-
-    mockMvc.perform(get("/members").principal(authentication))
-        .andExpect(status().isOk())
-        .andExpect(view().name("index"))
-        .andExpect(model().attributeExists("member"))
-        .andExpect(model().attributeExists("members"));
-  }
-
-  @Test
-  public void testRegisterMember_Success() throws Exception {
-    // Prepare a valid member object
+  void registerMember_WhenSourceIsIndex_ShouldUseAdminStrategy() {
+    // Given
     Member member = new Member();
-    member.setName("John Doe");
-    member.setEmail("john@example.com");
+    when(registrationContext.register(eq(member), eq(redirectAttributes))).thenReturn("index");
 
-    mockMvc.perform(post("/register")
-            .flashAttr("member", member))
-        .andExpect(status().is3xxRedirection())
-        .andExpect(redirectedUrl("/members"));
+    // When
+    String viewName = memberController.registerMember(member, "index", redirectAttributes);
 
-    verify(memberRegistrationService, times(1)).registerMember(any(Member.class));
+    // Then
+    assertEquals("index", viewName);
+    verify(registrationContext).setStrategy("index");
+    verify(registrationContext).register(eq(member), eq(redirectAttributes));
   }
 
   @Test
-  public void testRegisterMember_Failure() throws Exception {
-    // Prepare a member object and simulate an exception during registration
+  void registerMember_WhenSourceIsRegister_ShouldUseUserStrategy() {
+    // Given
     Member member = new Member();
-    member.setName("John Doe");
-    member.setEmail("john@example.com");
+    when(registrationContext.register(eq(member), eq(redirectAttributes))).thenReturn("register");
 
-    doThrow(new RuntimeException("Registration failed")).when(memberRegistrationService)
-        .registerMember(any(Member.class));
+    // When
+    String viewName = memberController.registerMember(member, "register", redirectAttributes);
 
-    mockMvc.perform(post("/register")
-            .flashAttr("member", member))
-        .andExpect(status().is3xxRedirection())
-        .andExpect(redirectedUrl("/members"));
-
-    verify(memberRegistrationService, times(1)).registerMember(any(Member.class));
+    // Then
+    assertEquals("register", viewName);
+    verify(registrationContext).setStrategy("register");
+    verify(registrationContext).register(eq(member), eq(redirectAttributes));
   }
 
   @Test
-  public void testShowLoginPage() throws Exception {
-    mockMvc.perform(get("/login"))
-        .andExpect(status().isOk())
-        .andExpect(view().name("login"));
+  void showLoginPage_ShouldReturnLoginView() {
+    // When
+    String viewName = memberController.showLoginPage();
+
+    // Then
+    assertEquals("login", viewName);
   }
 }
-*/

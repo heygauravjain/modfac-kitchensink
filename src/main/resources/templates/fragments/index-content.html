@@ -46,26 +46,26 @@
       <div>
         <label for="phoneNumber">Phone #:</label>
         <div class="tooltip">
-          <input type="text" id="phoneNumber" th:field="*{phoneNumber}" required pattern="\d{10,12}"/>
+          <input type="text" id="phoneNumber" th:field="*{phoneNumber}" required
+                 pattern="\d{10,12}"/>
           <span class="tooltiptext">Enter a valid phone number (10 to 12 digits).</span>
         </div>
       </div>
 
-      <!-- Role Selection Radio Buttons -->
-      <div>
-        <label>Role:</label>
-        <div class="tooltip">
+      <label>Role Selection:</label>
+      <div class="role-radio-group">
+        <div class="tooltip" data-tooltip="Select this for admin privileges">
           <input type="radio" id="roleAdmin" name="role" th:field="*{role}" value="ADMIN"/>
           <label for="roleAdmin">ADMIN</label>
-
+        </div>
+        <div class="tooltip" data-tooltip="Select this for regular user access">
           <input type="radio" id="roleUser" name="role" th:field="*{role}" value="USER"/>
           <label for="roleUser">USER</label>
-          <span class="tooltiptext">Select the role for the user.</span>
         </div>
       </div>
-
+      <input type="hidden" name="sourcePage" value="index"/>
       <!-- Submit Button -->
-      <div>
+      <div class="button-container">
         <button type="submit" class="register">Register</button>
       </div>
     </fieldset>
@@ -97,7 +97,9 @@
         <td th:text="${member.role}"></td>
         <td>
           <!-- Updated link to open in a pop-up frame -->
-          <a th:href="@{/rest/members/{id}(id=${member.id})}" onclick="return loadInFrame(this.href)">/rest/members/<span th:text="${member.id}"></span></a>
+          <a th:href="@{/rest/members/{id}(id=${member.id})}"
+             onclick="return loadInFrame(this.href)">/rest/members/<span
+              th:text="${member.id}"></span></a>
         </td>
       </tr>
       </tbody>

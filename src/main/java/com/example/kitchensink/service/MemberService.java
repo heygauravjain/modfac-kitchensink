@@ -5,6 +5,7 @@ import com.example.kitchensink.mapper.MemberMapper;
 import com.example.kitchensink.model.Member;
 import com.example.kitchensink.repository.MemberRepository;
 import java.util.List;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -32,8 +33,8 @@ public class MemberService {
     return memberMapper.memberEntityListToMemberList(memberEntities);
   }
 
-  public MemberEntity findByEmail(String email) {
-    return memberRepository.findByEmail(email).orElse(null);
+  public Optional<MemberEntity> findByEmail(String email) {
+    return memberRepository.findByEmail(email);
   }
 
   public Member findById(String id) {

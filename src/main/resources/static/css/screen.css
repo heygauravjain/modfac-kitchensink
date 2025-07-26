@@ -118,9 +118,45 @@ input {
   margin-bottom: 8px;
 }
 
+/* Container for the button */
+.button-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+/* Button styling */
 .register {
-  float: left;
-  margin-left: 85px;
+  background-color: #4CAF50; /* Green background */
+  color: white; /* White text */
+  padding: 12px 24px; /* Padding */
+  border: none; /* Remove default border */
+  border-radius: 5px; /* Rounded corners */
+  font-size: 10px; /* Font size */
+  font-weight: bold; /* Font weight */
+  cursor: pointer; /* Pointer cursor */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  transition: background-color 0.3s, box-shadow 0.3s; /* Smooth transition */
+}
+
+/* Hover effect */
+.register:hover {
+  background-color: #45a049; /* Slightly darker green */
+  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2); /* Increase shadow on hover */
+}
+
+/* Active button state */
+.register:active {
+  background-color: #3e8e41; /* Darker green */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Reduce shadow */
+  transform: translateY(2px); /* Slight button press effect */
+}
+
+/* Disabled button styling */
+.register:disabled {
+  background-color: #cccccc; /* Grey background */
+  cursor: not-allowed; /* Show not-allowed cursor */
+  box-shadow: none; /* Remove shadow */
 }
 
 /* Table styles */
@@ -274,5 +310,70 @@ table th, table td {
 
 table th {
   background-color: #f4f4f4;
+}
+
+/* Container styling */
+.role-selection-container {
+  margin: 20px 0;
+  padding: 15px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  max-width: 300px;
+}
+
+/* Label styling */
+.role-selection-container label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 8px;
+  font-size: 16px;
+  color: #333;
+}
+
+/* Radio button container styling */
+.role-radio-group {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+/* Tooltip styling */
+.tooltip {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.tooltip:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #333;
+  color: #fff;
+  padding: 5px;
+  border-radius: 5px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 10;
+}
+
+/* Radio button styling */
+.role-radio-group input[type="radio"] {
+  margin-right: 8px;
+}
+
+.role-radio-group label {
+  font-weight: normal;
+  cursor: pointer;
+}
+
+/* Styling for selected state */
+.role-radio-group input[type="radio"]:checked + label {
+  color: #2196F3;
+  font-weight: bold;
 }
 
