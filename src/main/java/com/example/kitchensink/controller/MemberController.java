@@ -17,17 +17,34 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
+/**
+ * The Class MemberController.
+ *
+ * @author Gaurav Jain
+ */
 @Controller
 @Slf4j
 public class MemberController {
 
+   /** The member service */
   private final MemberService memberService;
 
+  /** The registration context */
   private final RegistrationContext registrationContext;
 
+  /** The member mapper */
   private final MemberMapper memberMapper = MemberMapper.INSTANCE;
 
+     /**
+     * Member controller constructor
+     *
+     * @param memberService
+     * @param registrationContext
+     */
   @Autowired
   public MemberController(MemberService memberService, RegistrationContext registrationContext) {
     this.memberService = memberService;
@@ -35,8 +52,18 @@ public class MemberController {
   }
 
   /**
-   * Displays the registration form and the list of registered members.
+   * Displays the admin home page.
+   *
+   * @param model the model
+   * @param principal the principal
+   * @return the admin home page view
    */
+  @Operation(summary = "Show Admin Home Page")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved admin home page"),
+      @ApiResponse(responseCode = "403", description = "Access denied"),
+      @ApiResponse(responseCode = "500", description = "Internal server error")
+  })
   @GetMapping("/admin/home")
   public String showAdminHome(Model model, Principal principal) {
     String loggedInUserName = principal.getName();
@@ -47,8 +74,16 @@ public class MemberController {
   }
 
   /**
-   * Handles the registration of a new member.
+   * Displays the registration page.
+   *
+   * @param model the model
+   * @return the registration page view
    */
+  @Operation(summary = "Show Registration Page")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved registration page"),
+      @ApiResponse(responseCode = "500", description = "Internal server error")
+  })
   @PostMapping("/register")
   public String registerMember(
       @Valid @ModelAttribute("member") Member member,
@@ -61,6 +96,8 @@ public class MemberController {
 
   /**
    * Displays the login page.
+   *
+   * @return the login page view
    */
   @GetMapping({"/", "/login"})
   public String showLoginPage() {
@@ -68,8 +105,18 @@ public class MemberController {
   }
 
   /**
-   * Displays the user profile page for the logged-in user.
+   * Displays the user profile page.
+   *
+   * @param model the model
+   * @param authentication the authentication object
+   * @return the user profile page view
    */
+  @Operation(summary = "Show User Profile Page")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved user profile page"),
+      @ApiResponse(responseCode = "403", description = "Access denied"),
+      @ApiResponse(responseCode = "500", description = "Internal server error")
+  })
   @GetMapping("/user-profile")
   public String showUserProfile(Model model, Authentication authentication) {
     String email = authentication.getName();
@@ -80,11 +127,21 @@ public class MemberController {
     return "user-profile";
   }
 
+  /**
+   * Displays the 403 error page.
+   *
+   * @return the 403 error page view
+   */
   @GetMapping("/403")
   public String error403() {
     return "/error/403";
   }
 
+  /**
+   * Displays the 401 error page.
+   *
+   * @return the 401 error page view
+   */
   @GetMapping("/401")
   public String error401() {
     return "/error/401";

@@ -3,6 +3,11 @@ package com.example.kitchensink.controller;
 import com.example.kitchensink.exception.ResourceNotFoundException;
 import com.example.kitchensink.model.Member;
 import com.example.kitchensink.service.MemberService;
+
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Objects;
@@ -18,6 +23,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * The Class MemberController.
+ *
+ * @author Gaurav Jain
+ */
 @RestController
 @RequestMapping("/admin/members")
 @Slf4j
@@ -29,14 +39,33 @@ public class RestService {
     this.memberService = memberService;
   }
 
-  // Get a list of all members
+  /** 
+   * REST endpoint for listing all members.
+   *
+   * @return the list of members
+   */
+  @Operation(summary = "List All Members")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved list of members"),
+      @ApiResponse(responseCode = "500", description = "Internal server error")
+  })
   @GetMapping
   public ResponseEntity<List<Member>> listAllMembers() {
     List<Member> members = memberService.getAllMembers();
     return ResponseEntity.ok(members);
   }
 
-  // Get member by ID
+  /** 
+   * REST endpoint for looking up a member by ID.
+   * @param id the member ID
+   * @return the member details
+  */
+  @Operation(summary = "Lookup Member by ID")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved member details"),
+      @ApiResponse(responseCode = "404", description = "Member not found"),
+      @ApiResponse(responseCode = "500", description = "Internal server error")
+  })
   @GetMapping("/{id}")
   public ResponseEntity<Member> lookupMemberById(@PathVariable("id") String id) {
     Member member = memberService.findById(id);
@@ -46,7 +75,17 @@ public class RestService {
     return ResponseEntity.ok(member);
   }
 
-  // REST endpoint for creating a new member
+  /** 
+   * REST endpoint for registering a new member.
+   * @param member the member details
+   * @return the registered member
+   */
+  @Operation(summary = "Register New Member")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "201", description = "Successfully registered new member"),
+      @ApiResponse(responseCode = "400", description = "Invalid member data"),
+      @ApiResponse(responseCode = "500", description = "Internal server error")
+  })
   @PostMapping
   public ResponseEntity<Member> registerMember(@Valid @RequestBody Member member) {
 
@@ -57,6 +96,17 @@ public class RestService {
     return new ResponseEntity<>(registeredMember, HttpStatus.CREATED);
   }
 
+  /** 
+   * REST endpoint for deleting a member by ID.
+   * @param id the member ID
+   * @return success message
+   */
+  @Operation(summary = "Delete Member by ID")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Successfully deleted member"),
+      @ApiResponse(responseCode = "404", description = "Member not found"),
+      @ApiResponse(responseCode = "500", description = "Internal server error")
+  })
   @DeleteMapping("/{id}")
   public ResponseEntity<String> deleteMemberById(@PathVariable("id") String id) {
     Member member = memberService.findById(id);
@@ -67,6 +117,18 @@ public class RestService {
     return new ResponseEntity<>("Member deleted successfully", HttpStatus.OK);
   }
 
+  /** 
+   * REST endpoint for updating a member's details.
+   * @param updatedMember the updated member details
+   * @param id the member ID
+   * @return the updated member
+   */
+  @Operation(summary = "Update Member Details")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Successfully updated member"),
+      @ApiResponse(responseCode = "404", description = "Member not found"),
+      @ApiResponse(responseCode = "500", description = "Internal server error")
+  })
   @PutMapping("/{id}")
   public ResponseEntity<Member> updateMember(@Valid @RequestBody Member updatedMember,
       @PathVariable("id") String id) {
