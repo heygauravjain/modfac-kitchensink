@@ -1,6 +1,8 @@
 package com.example.kitchensink.controller;
 
 import com.example.kitchensink.controller.strategy.RegistrationContext;
+import com.example.kitchensink.entity.MemberDocument;
+import com.example.kitchensink.mapper.MemberMapper;
 import com.example.kitchensink.model.Member;
 import com.example.kitchensink.service.MemberService;
 import jakarta.validation.Valid;
@@ -23,6 +25,8 @@ public class MemberController {
 
   private final RegistrationContext registrationContext;
 
+  private final MemberMapper memberMapper = MemberMapper.INSTANCE;
+
   @Autowired
   public MemberController(MemberService memberService, RegistrationContext registrationContext) {
     this.memberService = memberService;
@@ -33,7 +37,7 @@ public class MemberController {
    * Displays the registration form and the list of registered members.
    */
   @GetMapping("/members")
-  public String showRegistrationForm(Model model, Authentication authentication) {
+  public String showRegistrationForm(Model model) {
     model.addAttribute("member", new Member());
     model.addAttribute("members", memberService.getAllMembers());
     return "index";
@@ -61,5 +65,17 @@ public class MemberController {
     return "login";
   }
 
+  /**
+   * Displays the user profile page for the logged-in user.
+   */
+  @GetMapping("/user-profile")
+  public String showUserProfile(Model model, Authentication authentication) {
+    String email = authentication.getName();
+    MemberDocument memberDocument = memberService.findByEmail(email).orElse(null);
+
+    // Add the memberDocument details to the model to display in the user profile
+    model.addAttribute("member", memberMapper.memberEntityToMember(memberDocument));
+    return "user-profile";
+  }
 
 }

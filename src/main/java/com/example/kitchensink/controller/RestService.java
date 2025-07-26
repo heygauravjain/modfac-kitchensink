@@ -46,6 +46,8 @@ public class RestService {
   @PostMapping
   public ResponseEntity<Member> createMember(@Valid @RequestBody Member member) {
 
+    // setting password null right now, But this needs to be updated as per requirements. We can
+    // use encoder here as well and take password as input
     member.setPassword(null);
     memberService.registerMember(member);
     return new ResponseEntity<>(member, HttpStatus.CREATED);

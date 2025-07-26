@@ -44,6 +44,7 @@ public class SecurityConfig {
             .permitAll()
             .requestMatchers("/members").hasRole("ADMIN")
             .requestMatchers("/rest/members/**").hasRole("ADMIN")
+            .requestMatchers("/user-profile").hasRole("USER")
             .anyRequest().authenticated()
         )
         .exceptionHandling(exceptionHandling -> exceptionHandling
@@ -59,7 +60,8 @@ public class SecurityConfig {
             .logoutUrl("/logout")
             .logoutSuccessUrl("/login")
             .permitAll()
-        ).httpBasic(Customizer.withDefaults());;
+        ).httpBasic(Customizer.withDefaults());
+    ;
 
     return http.build();
   }
@@ -92,9 +94,10 @@ public class SecurityConfig {
         // Check if the user has the ADMIN role and redirect accordingly
         if (userDetails.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"))) {
           response.sendRedirect("/members");
+        } else if (userDetails.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_USER"))) {
+          response.sendRedirect("/user-profile"); // Redirect to user profile page for USER
         } else {
-          //TODO: extend this functionality for USER role. Currently redirecting to login for simplicity/time
-          response.sendRedirect("/login");
+          response.sendRedirect("/login"); // Default redirect for other roles (or no roles)
         }
       }
     };

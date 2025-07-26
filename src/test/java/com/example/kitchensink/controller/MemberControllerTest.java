@@ -8,9 +8,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.example.kitchensink.controller.strategy.RegistrationContext;
+import com.example.kitchensink.entity.MemberDocument;
+import com.example.kitchensink.exception.ResourceNotFoundException;
 import com.example.kitchensink.model.Member;
 import com.example.kitchensink.service.MemberService;
 import java.util.ArrayList;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -18,7 +21,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.security.core.Authentication;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 class MemberControllerTest {
@@ -48,13 +50,10 @@ class MemberControllerTest {
 
   @Test
   void showRegistrationForm_ShouldReturnIndexView() {
-    // Given
     when(memberService.getAllMembers()).thenReturn(new ArrayList<>());
 
-    // When
-    String viewName = memberController.showRegistrationForm(model, authentication);
+    String viewName = memberController.showRegistrationForm(model);
 
-    // Then
     assertEquals("index", viewName);
     verify(model).addAttribute(eq("member"), any(Member.class));
     verify(model).addAttribute(eq("members"), anyList());
@@ -62,14 +61,11 @@ class MemberControllerTest {
 
   @Test
   void registerMember_WhenSourceIsIndex_ShouldUseAdminStrategy() {
-    // Given
     Member member = new Member();
     when(registrationContext.register(eq(member), eq(redirectAttributes))).thenReturn("index");
 
-    // When
     String viewName = memberController.registerMember(member, "index", redirectAttributes);
 
-    // Then
     assertEquals("index", viewName);
     verify(registrationContext).setStrategy("index");
     verify(registrationContext).register(eq(member), eq(redirectAttributes));
@@ -77,14 +73,11 @@ class MemberControllerTest {
 
   @Test
   void registerMember_WhenSourceIsRegister_ShouldUseUserStrategy() {
-    // Given
     Member member = new Member();
     when(registrationContext.register(eq(member), eq(redirectAttributes))).thenReturn("register");
 
-    // When
     String viewName = memberController.registerMember(member, "register", redirectAttributes);
 
-    // Then
     assertEquals("register", viewName);
     verify(registrationContext).setStrategy("register");
     verify(registrationContext).register(eq(member), eq(redirectAttributes));
@@ -92,15 +85,49 @@ class MemberControllerTest {
 
   @Test
   void showLoginPage_ShouldReturnLoginView() {
-    // When
     String viewName = memberController.showLoginPage();
-
-    // Then
     assertEquals("login", viewName);
   }
 
   @Test
-  public void showMembersPage_ShouldReturnMembersView() {
+  void showUserProfile_ShouldReturnUserProfileView() {
+    String email = "test@example.com";
+    MemberDocument memberDocument = new MemberDocument("1", "John Doe", email, "1234567890",
+        "password", "USER");
 
+    when(authentication.getName()).thenReturn(email);
+    when(memberService.findByEmail(email)).thenReturn(Optional.of(memberDocument));
+
+    String viewName = memberController.showUserProfile(model, authentication);
+
+    assertEquals("user-profile", viewName);
+    verify(model).addAttribute(eq("member"), any(Member.class));
+  }
+
+  @Test
+  void showUserProfile_WhenUserNotFound_ShouldThrowResourceNotFoundException() {
+    String email = "unknown@example.com";
+
+    when(authentication.getName()).thenReturn(email);
+    when(memberService.findByEmail(email)).thenReturn(Optional.empty());
+
+    try {
+      memberController.showUserProfile(model, authentication);
+    } catch (ResourceNotFoundException ex) {
+      assertEquals("Member with email " + email + " not found.", ex.getMessage());
+    }
+  }
+
+  @Test
+  void registerMember_WithInvalidData_ShouldReturnIndexView() {
+    Member invalidMember = new Member(); // Empty member with invalid data
+    when(registrationContext.register(eq(invalidMember), eq(redirectAttributes))).thenReturn(
+        "index");
+
+    String viewName = memberController.registerMember(invalidMember, "index", redirectAttributes);
+
+    assertEquals("index", viewName); // Should stay on the index view due to validation errors
+    verify(registrationContext).setStrategy("index");
+    verify(registrationContext).register(eq(invalidMember), eq(redirectAttributes));
   }
 }
