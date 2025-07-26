@@ -21,4 +21,9 @@ public class MemberEntity implements Serializable {
   private String email;
 
   private String phoneNumber;
+
+  private String password;
+
+  private String role;
+
 }

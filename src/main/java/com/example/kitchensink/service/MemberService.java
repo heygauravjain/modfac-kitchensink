@@ -10,13 +10,13 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
-public class MemberRegistrationService {
+public class MemberService {
 
   private final MemberMapper memberMapper = MemberMapper.INSTANCE;
 
   private final MemberRepository memberRepository;
 
-  public MemberRegistrationService(
+  public MemberService(
       MemberRepository memberRepository) {
     this.memberRepository = memberRepository;
   }
@@ -30,5 +30,18 @@ public class MemberRegistrationService {
   public List<Member> getAllMembers() {
     List<MemberEntity> memberEntities = memberRepository.findAllOrderedByName();
     return memberMapper.memberEntityListToMemberList(memberEntities);
+  }
+
+  public MemberEntity findByEmail(String email) {
+    return memberRepository.findByEmail(email).orElse(null);
+  }
+
+  public Member findById(String id) {
+    MemberEntity memberEntity = memberRepository.findById(id).orElse(null);
+    if (memberEntity != null) {
+      return memberMapper.memberEntityToMember(memberEntity);
+    } else {
+      return null;
+    }
   }
 }

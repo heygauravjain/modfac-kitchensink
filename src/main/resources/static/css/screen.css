@@ -13,6 +13,22 @@ body {
   color: #363636;
 }
 
+#container {
+  margin: 0 auto;
+  padding: 0 20px 10px 20px;
+  border-top: 5px solid #000000;
+  border-left: 5px solid #8c8f91;
+  border-right: 5px solid #8c8f91;
+  border-bottom: 25px solid #8c8f91;
+  width: 865px; /* subtract 40px from banner width for padding */
+  background: #FFFFFF;
+  /* Update image path for Thymeleaf static resources */
+  background-image: url('/static/gfx/headerbkg.png');
+  background-repeat: repeat-x;
+  padding-top: 30px;
+  box-shadow: 3px 3px 15px #d5d5d5;
+}
+
 #content {
   float: left;
   width: 500px;

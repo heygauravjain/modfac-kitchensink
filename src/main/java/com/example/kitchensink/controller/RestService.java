@@ -1,13 +1,14 @@
 package com.example.kitchensink.controller;
 
-import com.example.kitchensink.entity.MemberEntity;
+import com.example.kitchensink.mapper.MemberMapper;
 import com.example.kitchensink.model.Member;
 import com.example.kitchensink.repository.MemberRepository;
-import com.example.kitchensink.service.MemberRegistrationService;
+import com.example.kitchensink.service.MemberService;
 import jakarta.validation.Valid;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,28 +24,30 @@ public class RestService {
 
   private final MemberRepository repository;
 
-  private final MemberRegistrationService memberRegistrationService;
+  private final MemberService memberService;
+
+  private final MemberMapper memberMapper = MemberMapper.INSTANCE;
 
   public RestService(MemberRepository repository,
-      MemberRegistrationService memberRegistrationService) {
+      MemberService memberService) {
     this.repository = repository;
-    this.memberRegistrationService = memberRegistrationService;
+    this.memberService = memberService;
   }
 
   // Get a list of all members
   @GetMapping
   public List<Member> listAllMembers() {
-    return memberRegistrationService.getAllMembers();
+    return memberService.getAllMembers();
   }
 
   // Get member by ID
   @GetMapping("/{id}")
-  public ResponseEntity<MemberEntity> lookupMemberById(@PathVariable("id") String id) {
-    MemberEntity memberEntity = repository.findById(id).orElse(null);
-    if (memberEntity == null) {
+  public ResponseEntity<Member> lookupMemberById(@PathVariable("id") String id) {
+    Member member = memberService.findById(id);
+    if (Objects.isNull(member)) {
       return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
-    return ResponseEntity.ok(memberEntity);
+    return ResponseEntity.ok(member);
   }
 
   // REST endpoint for creating a new member
@@ -52,7 +55,7 @@ public class RestService {
   public ResponseEntity<?> createMember(@Valid @RequestBody Member member) {
     try {
       // Register the new member
-      memberRegistrationService.registerMember(member);
+      memberService.registerMember(member);
 
       // Return success response
       return new ResponseEntity<>(HttpStatus.OK);

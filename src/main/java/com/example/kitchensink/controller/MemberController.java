@@ -1,7 +1,7 @@
 package com.example.kitchensink.controller;
 
 import com.example.kitchensink.model.Member;
-import com.example.kitchensink.service.MemberRegistrationService;
+import com.example.kitchensink.service.MemberService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,11 +19,11 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Slf4j
 public class MemberController {
 
-  private final MemberRegistrationService memberRegistrationService;
+  private final MemberService memberService;
 
   @Autowired
-  public MemberController(MemberRegistrationService memberRegistrationService) {
-    this.memberRegistrationService = memberRegistrationService;
+  public MemberController(MemberService memberService) {
+    this.memberService = memberService;
   }
 
   /**
@@ -38,11 +38,11 @@ public class MemberController {
     // Check if the user has the ADMIN role
     UserDetails userDetails = (UserDetails) authentication.getPrincipal();
     if (!userDetails.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"))) {
-      return "redirect:/";
+      return "redirect:/login";
     }
 
     model.addAttribute("member", new Member());
-    model.addAttribute("members", memberRegistrationService.getAllMembers());
+    model.addAttribute("members", memberService.getAllMembers());
     return "index";
   }
 
@@ -54,7 +54,7 @@ public class MemberController {
       @Valid @ModelAttribute("member") Member member,
       RedirectAttributes redirectAttributes) {
     try {
-      memberRegistrationService.registerMember(member);
+      memberService.registerMember(member);
       redirectAttributes.addFlashAttribute("registrationSuccess", true);
       redirectAttributes.addFlashAttribute("successMessage", "Member successfully registered!");
 
@@ -67,6 +67,7 @@ public class MemberController {
     }
     return "redirect:/members";
   }
+
 
   /**
    * Displays the login page.

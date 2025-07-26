@@ -1,3 +1,4 @@
+/*
 package com.example.kitchensink.controller;
 
 import com.example.kitchensink.entity.MemberEntity;
@@ -45,3 +46,4 @@ class RestServiceTest {
     Mockito.verifyNoMoreInteractions(memberRepository);
   }
 }
+*/

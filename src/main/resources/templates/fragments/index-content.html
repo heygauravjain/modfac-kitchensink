@@ -51,6 +51,19 @@
         </div>
       </div>
 
+      <!-- Role Selection Radio Buttons -->
+      <div>
+        <label>Role:</label>
+        <div class="tooltip">
+          <input type="radio" id="roleAdmin" name="role" th:field="*{role}" value="ADMIN"/>
+          <label for="roleAdmin">ADMIN</label>
+
+          <input type="radio" id="roleUser" name="role" th:field="*{role}" value="USER"/>
+          <label for="roleUser">USER</label>
+          <span class="tooltiptext">Select the role for the user.</span>
+        </div>
+      </div>
+
       <!-- Submit Button -->
       <div>
         <button type="submit" class="register">Register</button>
@@ -71,6 +84,7 @@
         <th>Name</th>
         <th>Email</th>
         <th>Phone #</th>
+        <th>Role</th>
         <th>REST URL</th>
       </tr>
       </thead>
@@ -80,6 +94,7 @@
         <td th:text="${member.name}"></td>
         <td th:text="${member.email}"></td>
         <td th:text="${member.phoneNumber}"></td>
+        <td th:text="${member.role}"></td>
         <td>
           <!-- Updated link to open in a pop-up frame -->
           <a th:href="@{/rest/members/{id}(id=${member.id})}" onclick="return loadInFrame(this.href)">/rest/members/<span th:text="${member.id}"></span></a>
@@ -88,7 +103,7 @@
       </tbody>
     </table>
     <div>
-      REST URL for all members: <a href="/rest/members" onclick="return loadInFrame(this.href)">/rest/members</a>
+      Rest url for all members: <a href="/rest/members" onclick="return loadInFrame(this.href)">/rest/members</a>
     </div>
   </div>
 </div>
