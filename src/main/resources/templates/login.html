@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Login Page</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f8f9fa;
+    }
+    .login-container {
+      background-color: #ffffff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      width: 300px;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .input-group {
+      margin-bottom: 15px;
+    }
+    .input-group label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    .input-group input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .input-group input:focus {
+      outline: none;
+      border-color: #007bff;
+    }
+    .button-group {
+      display: flex;
+      justify-content: center;
+    }
+    .button-group button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .button-group button:hover {
+      background-color: #0056b3;
+    }
+    .error-message {
+      color: red;
+      text-align: center;
+      margin-bottom: 15px;
+    }
+    .logout-message {
+      color: green;
+      text-align: center;
+      margin-bottom: 15px;
+    }
+  </style>
+</head>
+<body>
+<div class="login-container">
+  <h2>Login</h2>
+  <form th:action="@{/login}" method="post">
+    <div class="input-group">
+      <label for="username">Username:</label>
+      <input type="text" id="username" name="username" required>
+    </div>
+    <div class="input-group">
+      <label for="password">Password:</label>
+      <input type="password" id="password" name="password" required>
+    </div>
+    <div class="button-group">
+      <button type="submit">Login</button>
+    </div>
+    <div th:if="${param.error}" class="error-message">
+      <p>Invalid username or password.</p>
+    </div>
+    <div th:if="${param.logout}" class="logout-message">
+      <p>You have been logged out successfully.</p>
+    </div>
+  </form>
+</div>
+</body>
+</html>

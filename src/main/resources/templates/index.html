@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>kitchensink</title>
+    <!-- Include the CSS stylesheet -->
+    <link th:href="@{/css/screen.css}" rel="stylesheet"/>
+    <!-- Include the JavaScript file -->
+    <script th:src="@{/js/script.js}"></script>
+</head>
+<body>
+<div id="container">
+    <a th:href="@{/logout}" class="btn btn-danger">Logout</a>
+    <div class="dualbrand">
+        <!-- Include the logo image -->
+        <img th:src="@{/gfx/spring.png}" width="300" height="175" alt="Spring Boot + Mongo DB logo"/>
+    </div>
+    <div id="content">
+        <!-- Include the content fragment here -->
+        <div th:replace="~{fragments/index-content :: content}"></div>
+    </div>
+    <div id="footer">
+        <p>
+            This project was generated using Spring Boot with Thymeleaf<br/>
+        </p>
+    </div>
+</div>
+</body>
+</html>
