@@ -20,9 +20,16 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 public class SecurityConfig {
 
   private final CustomUserDetailsService customUserDetailsService;
+  private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
-  public SecurityConfig(CustomUserDetailsService customUserDetailsService) {
+  private final CustomAccessDeniedHandler customAccessDeniedHandler;
+
+  public SecurityConfig(CustomUserDetailsService customUserDetailsService,
+      CustomAuthenticationEntryPoint customAuthenticationEntryPoint,
+      CustomAccessDeniedHandler customAccessDeniedHandler) {
     this.customUserDetailsService = customUserDetailsService;
+    this.customAuthenticationEntryPoint = customAuthenticationEntryPoint;
+    this.customAccessDeniedHandler = customAccessDeniedHandler;
   }
 
   @Bean
@@ -38,6 +45,10 @@ public class SecurityConfig {
             .requestMatchers("/members").hasRole("ADMIN")
             .requestMatchers("/rest/members/**").hasRole("ADMIN")
             .anyRequest().authenticated()
+        )
+        .exceptionHandling(exceptionHandling -> exceptionHandling
+            .authenticationEntryPoint(customAuthenticationEntryPoint)
+            .accessDeniedHandler(customAccessDeniedHandler)
         )
         .formLogin(form -> form
             .loginPage("/login")
