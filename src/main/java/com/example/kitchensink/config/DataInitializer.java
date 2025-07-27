@@ -28,7 +28,9 @@ public class DataInitializer {
                     admin.setEmail("admin@admin.com");
                     admin.setPhoneNumber("1234567890");
                     admin.setRole("ADMIN");
+                    admin.setPassword("admin123"); // Set a default password
                     memberRepository.save(admin);
+
                     log.info("Inserted default admin member.");
 
                     MemberDocument user = new MemberDocument();
@@ -36,6 +38,7 @@ public class DataInitializer {
                     user.setEmail("user@user.com");
                     user.setPhoneNumber("0987654321");  
                     user.setRole("USER");
+                    user.setPassword("user123"); // Set a default password
                     memberRepository.save(user);
                     log.info("Inserted default user member.");
                 } else {
