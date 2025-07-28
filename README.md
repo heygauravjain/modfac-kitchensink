@@ -145,19 +145,23 @@ java -jar target/kitchensink-0.0.1-SNAPSHOT.jar
 ## API Endpoints
 
 ### Authentication
-- `POST /api/auth/login` - User login
-- `POST /api/auth/register` - User registration
+- `POST /api/auth/login` - Authenticate user and get JWT token
+- `POST /api/auth/validate` - Validate JWT token
 
 ### Members
-- `GET /api/members` - Get all members
-- `GET /api/members/{id}` - Get member by ID
-- `POST /api/members` - Create new member
-- `PUT /api/members/{id}` - Update member
-- `DELETE /api/members/{id}` - Delete member
+- `GET /admin/members` - Get all members (requires ADMIN role)
+- `GET /admin/members/{id}` - Get member by ID (requires ADMIN role)
+- `POST /admin/members` - Create new member (requires ADMIN role)
+- `PUT /admin/members/{id}` - Update member (requires ADMIN role)
+- `DELETE /admin/members/{id}` - Delete member (requires ADMIN role)
 
 ### Health & Monitoring
 - `GET /actuator/health` - Application health status
 - `GET /actuator/info` - Application information
+
+### Swagger Documentation
+- **Swagger UI**: http://localhost:8080/swagger-ui.html
+- **API Docs**: http://localhost:8080/v3/api-docs
 
 ## Configuration
 

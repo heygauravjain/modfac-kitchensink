@@ -50,7 +50,7 @@ public class SecurityConfig {
         .csrf(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(auth -> auth
             .requestMatchers("/", "/login", "/register","/swagger-ui/**", "/swagger-ui.html",
-             "/v3/api-docs/**", "/v3/api-docs", "/v3/api-docs/swagger-config", "/401").permitAll()
+             "/v3/api-docs/**", "/v3/api-docs", "/v3/api-docs/swagger-config", "/401", "/api/auth/**").permitAll()
             .requestMatchers("/admin/home").hasRole("ADMIN")
             .requestMatchers("/admin/members/**").hasRole("ADMIN")
             .requestMatchers("/user-profile").hasRole("USER")
@@ -70,6 +70,7 @@ public class SecurityConfig {
             .logoutSuccessUrl("/login")
             .permitAll()
         )
+        .authenticationProvider(authenticationProvider())
         .addFilterBefore(jwtRequestFilter,
             UsernamePasswordAuthenticationFilter.class); // Add JWT filter
 

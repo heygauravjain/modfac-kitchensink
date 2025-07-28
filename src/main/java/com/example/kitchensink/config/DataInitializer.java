@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import com.example.kitchensink.entity.MemberDocument;
 import com.example.kitchensink.repository.MemberRepository;
@@ -16,18 +16,19 @@ public class DataInitializer {
 
     private static final Logger log = LoggerFactory.getLogger(DataInitializer.class);
 
-
     @Bean
     CommandLineRunner initDatabase(MemberRepository memberRepository) {
         return args -> {
             try {
+                BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+                
                 if (memberRepository.count() == 0) {
                     MemberDocument admin = new MemberDocument();
                     admin.setName("admin");
                     admin.setEmail("admin@admin.com");
                     admin.setPhoneNumber("1234567890");
                     admin.setRole("ADMIN");
-                    admin.setPassword("admin123"); // Set a default password
+                    admin.setPassword(passwordEncoder.encode("admin123")); // Encrypt password
                     memberRepository.save(admin);
 
                     log.info("Inserted default admin member.");
@@ -37,7 +38,7 @@ public class DataInitializer {
                     user.setEmail("user@user.com");
                     user.setPhoneNumber("0987654321");  
                     user.setRole("USER");
-                    user.setPassword("user123"); // Set a default password
+                    user.setPassword(passwordEncoder.encode("user123")); // Encrypt password
                     memberRepository.save(user);
                     log.info("Inserted default user member.");
                 } else {

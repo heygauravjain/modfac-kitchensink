@@ -64,7 +64,7 @@ public class JwtTokenUtil {
   }
 
   // Method to check if the token is expired
-  private boolean isTokenExpired(String token) {
+  public boolean isTokenExpired(String token) {
     return extractAllClaims(token).getExpiration().before(new Date());
   }
 }
