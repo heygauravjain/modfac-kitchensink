@@ -11,6 +11,7 @@ A Spring Boot application with MongoDB integration, featuring JWT authentication
 - **Thymeleaf** templates for web interface
 - **Docker** containerization with multi-stage builds
 - **Health checks** and monitoring endpoints
+- **MongoDB Express** web interface for database management
 
 ## Prerequisites
 
@@ -37,8 +38,9 @@ docker-compose up --build -d
 ### 2. Access the Application
 
 - **Web Application**: http://localhost:8080
+- **MongoDB Express**: http://localhost:8081 (admin/admin123)
 - **Health Check**: http://localhost:8080/actuator/health
-- **MongoDB**: localhost:27017 (root/example)
+- **MongoDB**: localhost:27017
 
 ### 3. Stop the Application
 
@@ -55,15 +57,62 @@ docker-compose down -v
 ### MongoDB Service
 - **Image**: mongo:7
 - **Port**: 27017
-- **Credentials**: root/example
 - **Database**: kitchensinkdb
 - **Persistence**: Docker volume `mongodb_data`
+- **Authentication**: Disabled for development simplicity
+
+### MongoDB Express Service
+- **Image**: mongo-express:latest
+- **Port**: 8081
+- **URL**: http://localhost:8081
+- **Credentials**: admin/admin123
+- **Features**: Web-based MongoDB management interface
 
 ### Application Service
 - **Port**: 8080
 - **Profile**: docker
 - **Dependencies**: MongoDB (with health check)
 - **Health Check**: Available at `/actuator/health`
+
+## MongoDB Data Access
+
+### Option 1: MongoDB Express (Web Interface) - Recommended
+1. Open your browser and navigate to: http://localhost:8081
+2. Login with credentials: `admin` / `admin123`
+3. Navigate to `kitchensinkdb` database
+4. Explore collections: `members` and `users`
+
+### Option 2: MongoDB Compass (Desktop GUI)
+1. Download MongoDB Compass from: https://www.mongodb.com/try/download/compass
+2. Install and open MongoDB Compass
+3. Connect using: `mongodb://localhost:27017`
+4. Navigate to `kitchensinkdb` database
+
+### Option 3: MongoDB Shell (Command Line)
+```bash
+# Connect to MongoDB shell
+docker exec -it mongodb mongosh kitchensinkdb
+
+# Useful commands:
+show collections                    # Show all collections
+db.members.find()                  # View all members
+db.users.find()                    # View all users
+db.members.find().pretty()         # Pretty print results
+db.members.countDocuments()        # Count documents
+db.members.find({email: "admin@admin.com"})  # Search by email
+```
+
+### Option 4: Direct Docker Commands
+```bash
+# View all containers
+docker-compose ps
+
+# View MongoDB logs
+docker-compose logs mongodb
+
+# Execute MongoDB commands
+docker exec -it mongodb mongosh --eval "db.members.find()"
+```
 
 ## Local Development
 
@@ -77,8 +126,6 @@ docker-compose down -v
 # Using Docker for MongoDB
 docker run -d --name mongodb \
   -p 27017:27017 \
-  -e MONGO_INITDB_ROOT_USERNAME=root \
-  -e MONGO_INITDB_ROOT_PASSWORD=example \
   -e MONGO_INITDB_DATABASE=kitchensinkdb \
   mongo:7
 ```
@@ -126,8 +173,35 @@ java -jar target/kitchensink-0.0.1-SNAPSHOT.jar
 ### Profiles
 
 - **default**: Uses MongoDB Atlas
-- **docker**: Uses local MongoDB container
+- **docker**: Uses local MongoDB container (no auth)
 - **test**: Test configuration
+
+## Database Schema
+
+### Members Collection
+```javascript
+{
+  "_id": ObjectId,
+  "name": String,
+  "email": String,
+  "phoneNumber": String,
+  "dateOfBirth": Date,
+  "createdAt": Date,
+  "updatedAt": Date
+}
+```
+
+### Users Collection
+```javascript
+{
+  "_id": ObjectId,
+  "email": String,
+  "password": String (encrypted),
+  "role": String ("ADMIN" or "USER"),
+  "enabled": Boolean,
+  "createdAt": Date
+}
+```
 
 ## Troubleshooting
 
@@ -160,11 +234,21 @@ java -jar target/kitchensink-0.0.1-SNAPSHOT.jar
    docker-compose down
    ```
 
+4. **MongoDB Express Not Accessible**
+   ```bash
+   # Check if mongo-express container is running
+   docker-compose ps mongo-express
+   
+   # Check mongo-express logs
+   docker-compose logs mongo-express
+   ```
+
 ### Health Checks
 
-The application includes health checks for both services:
+The application includes health checks for all services:
 
 - **MongoDB**: Checks if MongoDB is responding to ping commands
+- **MongoDB Express**: Web interface for database management
 - **Application**: Checks if the Spring Boot application is healthy
 
 ### Logs
@@ -175,6 +259,7 @@ docker-compose logs
 
 # View specific service logs
 docker-compose logs mongodb
+docker-compose logs mongo-express
 docker-compose logs kitchensink-app
 
 # Follow logs in real-time
@@ -230,6 +315,36 @@ docker-compose -f docker-compose.test.yml up --build
 ## Monitoring
 
 - Spring Boot Actuator endpoints
-- Health checks for both services
+- Health checks for all services
 - Application metrics
 - Logging with configurable levels
+- MongoDB Express for database monitoring
+
+## Data Management
+
+### Backup MongoDB Data
+```bash
+# Create backup
+docker exec mongodb mongodump --db kitchensinkdb --out /backup
+
+# Copy backup from container
+docker cp mongodb:/backup ./backup
+```
+
+### Restore MongoDB Data
+```bash
+# Copy backup to container
+docker cp ./backup mongodb:/backup
+
+# Restore data
+docker exec mongodb mongorestore --db kitchensinkdb /backup/kitchensinkdb
+```
+
+### Clear All Data
+```bash
+# Remove all containers and volumes
+docker-compose down -v
+
+# Rebuild and start fresh
+docker-compose up --build -d
+```
