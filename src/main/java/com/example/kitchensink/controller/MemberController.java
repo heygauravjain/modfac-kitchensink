@@ -58,12 +58,6 @@ public class MemberController {
    * @param principal the principal
    * @return the admin home page view
    */
-  @Operation(summary = "Show Admin Home Page")
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved admin home page"),
-      @ApiResponse(responseCode = "403", description = "Access denied"),
-      @ApiResponse(responseCode = "500", description = "Internal server error")
-  })
   @GetMapping("/admin/home")
   public String showAdminHome(Model model, Principal principal) {
     String loggedInUserName = principal.getName();
@@ -79,11 +73,6 @@ public class MemberController {
    * @param model the model
    * @return the registration page view
    */
-  @Operation(summary = "Show Registration Page")
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved registration page"),
-      @ApiResponse(responseCode = "500", description = "Internal server error")
-  })
   @PostMapping("/register")
   public String registerMember(
       @Valid @ModelAttribute("member") Member member,
@@ -111,12 +100,6 @@ public class MemberController {
    * @param authentication the authentication object
    * @return the user profile page view
    */
-  @Operation(summary = "Show User Profile Page")
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved user profile page"),
-      @ApiResponse(responseCode = "403", description = "Access denied"),
-      @ApiResponse(responseCode = "500", description = "Internal server error")
-  })
   @GetMapping("/user-profile")
   public String showUserProfile(Model model, Authentication authentication) {
     String email = authentication.getName();
