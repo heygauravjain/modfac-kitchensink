@@ -1,134 +1,235 @@
-# Kitchensink Application
+# Modernization Factory: Developer Candidate Challenge
 
-A modernized reimplementation of the classic **Kitchensink** application using **Spring Boot**, **MongoDB**, and **Thymeleaf**. Originally built on **JBoss** and **JSF**, this version leverages a contemporary tech stack for improved performance, scalability, and maintainability.
+A Spring Boot application with MongoDB integration, featuring JWT authentication, REST APIs, and a modern web interface.
 
-This full-stack web application offers user registration and role-based access management via a secure and intuitive interface. It includes a dedicated **Admin Portal**, login/logout functionality, and user profile support.
+## Features
 
----
+- **Spring Boot 3.2.5** with Java 21
+- **MongoDB** integration with Spring Data MongoDB
+- **JWT Authentication** with Spring Security
+- **RESTful APIs** with proper error handling
+- **Thymeleaf** templates for web interface
+- **Docker** containerization with multi-stage builds
+- **Health checks** and monitoring endpoints
 
-## 📌 Table of Contents
+## Prerequisites
 
-1. [Prerequisites](#prerequisites)  
-2. [Getting Started](#getting-started)  
-3. [Features](#features)  
-4. [API Endpoints](#api-endpoints)  
-5. [Technology Stack](#technology-stack)
-6. [Dummy Users](#dummy-users)
+- Docker and Docker Compose
+- Java 21 (for local development)
+- Maven (for local development)
 
----
+## Quick Start with Docker
 
-## ✅ Prerequisites
-
-Make sure the following tools are installed in your development environment:
-
-- **Java 21 JDK** – Required for compiling and running the application  
-- **Maven** – Used for building and managing project dependencies  
-- **MongoDB** – NoSQL database used for persistent storage  
-- **MongoDB Compass** *(optional)* – GUI tool for inspecting MongoDB data  
-- **Git** – To clone the repository  
-- **Thymeleaf** – Templating engine for dynamic frontend rendering  
-- **Spring Security** – For authentication and role-based access  
-
----
-
-## 🚀 Getting Started
-
-Follow these steps to run the project locally:
-
-### 1. Clone the Repository
+### 1. Build and Run with Docker Compose
 
 ```bash
-git clone git@github.com:heygauravjain/modfac-kitchensink.git
-````
+# Clone the repository
+git clone <repository-url>
+cd modfac-kitchensink
 
-### 2. Build the Application
+# Build and start all services
+docker-compose up --build
 
-Navigate to the project directory and build the application using Maven:
+# Or run in detached mode
+docker-compose up --build -d
+```
+
+### 2. Access the Application
+
+- **Web Application**: http://localhost:8080
+- **Health Check**: http://localhost:8080/actuator/health
+- **MongoDB**: localhost:27017 (root/example)
+
+### 3. Stop the Application
 
 ```bash
-mvn clean install
+# Stop all services
+docker-compose down
+
+# Stop and remove volumes (will delete MongoDB data)
+docker-compose down -v
 ```
 
-### 3. Configure Environment Variables
+## Docker Services
 
-Create a file named `creds.env` in the `src/main/resources` directory. Include the following:
+### MongoDB Service
+- **Image**: mongo:7
+- **Port**: 27017
+- **Credentials**: root/example
+- **Database**: kitchensinkdb
+- **Persistence**: Docker volume `mongodb_data`
 
-* MongoDB connection URI
-* JWT secret key
-* Any additional required environment variables
+### Application Service
+- **Port**: 8080
+- **Profile**: docker
+- **Dependencies**: MongoDB (with health check)
+- **Health Check**: Available at `/actuator/health`
 
-⚠️ Ensure the file is included in your run/debug configuration, but **excluded from version control**.
+## Local Development
 
-### 4. Run the Application
+### 1. Prerequisites
+- Java 21
+- Maven 3.6+
+- MongoDB (local or Docker)
 
-You can use your IDE or the following Maven command to run the app:
+### 2. Setup MongoDB
+```bash
+# Using Docker for MongoDB
+docker run -d --name mongodb \
+  -p 27017:27017 \
+  -e MONGO_INITDB_ROOT_USERNAME=root \
+  -e MONGO_INITDB_ROOT_PASSWORD=example \
+  -e MONGO_INITDB_DATABASE=kitchensinkdb \
+  mongo:7
+```
+
+### 3. Run Application
+```bash
+# Build the application
+./mvnw clean package
+
+# Run with default profile
+java -jar target/kitchensink-0.0.1-SNAPSHOT.jar
+
+# Or run with Maven
+./mvnw spring-boot:run
+```
+
+## API Endpoints
+
+### Authentication
+- `POST /api/auth/login` - User login
+- `POST /api/auth/register` - User registration
+
+### Members
+- `GET /api/members` - Get all members
+- `GET /api/members/{id}` - Get member by ID
+- `POST /api/members` - Create new member
+- `PUT /api/members/{id}` - Update member
+- `DELETE /api/members/{id}` - Delete member
+
+### Health & Monitoring
+- `GET /actuator/health` - Application health status
+- `GET /actuator/info` - Application information
+
+## Configuration
+
+### Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `SPRING_PROFILES_ACTIVE` | Active Spring profile | `default` |
+| `SPRING_DATA_MONGODB_URI` | MongoDB connection string | MongoDB Atlas (default profile) |
+| `JWT_SECRET_KEY` | JWT signing key | Generated key |
+| `JWT_TOKEN_EXPIRATION` | JWT expiration time | 3600000ms |
+
+### Profiles
+
+- **default**: Uses MongoDB Atlas
+- **docker**: Uses local MongoDB container
+- **test**: Test configuration
+
+## Troubleshooting
+
+### Common Issues
+
+1. **MongoDB Connection Failed**
+   ```bash
+   # Check if MongoDB container is running
+   docker-compose ps
+   
+   # Check MongoDB logs
+   docker-compose logs mongodb
+   ```
+
+2. **Application Won't Start**
+   ```bash
+   # Check application logs
+   docker-compose logs kitchensink-app
+   
+   # Rebuild the application
+   docker-compose up --build
+   ```
+
+3. **Port Already in Use**
+   ```bash
+   # Check what's using the port
+   netstat -tulpn | grep :8080
+   
+   # Stop conflicting services
+   docker-compose down
+   ```
+
+### Health Checks
+
+The application includes health checks for both services:
+
+- **MongoDB**: Checks if MongoDB is responding to ping commands
+- **Application**: Checks if the Spring Boot application is healthy
+
+### Logs
 
 ```bash
-mvn spring-boot:run
+# View all logs
+docker-compose logs
+
+# View specific service logs
+docker-compose logs mongodb
+docker-compose logs kitchensink-app
+
+# Follow logs in real-time
+docker-compose logs -f
 ```
 
-### 5. Access the Application
+## Development
 
-Open your browser and navigate to:
-
+### Project Structure
 ```
-http://localhost:8080/login
+src/
+├── main/
+│   ├── java/com/example/kitchensink/
+│   │   ├── config/          # Configuration classes
+│   │   ├── controller/       # REST controllers
+│   │   ├── entity/          # MongoDB entities
+│   │   ├── model/           # DTOs and models
+│   │   ├── repository/      # MongoDB repositories
+│   │   ├── security/        # JWT and security config
+│   │   └── service/         # Business logic
+│   └── resources/
+│       ├── static/          # Static assets
+│       ├── templates/       # Thymeleaf templates
+│       └── application.yml  # Application config
+└── test/                    # Unit and integration tests
 ```
 
-Log in using the Admin credentials.
+### Testing
 
-### 6. Admin Home Page
+```bash
+# Run all tests
+./mvnw test
 
-After logging in, you will be redirected to the Admin dashboard where you can:
+# Run tests with Docker
+docker-compose -f docker-compose.test.yml up --build
+```
 
-* Register new members
-* Edit or delete existing users
-* View detailed member information
+## Security
 
----
+- JWT-based authentication
+- Password encryption with BCrypt
+- Role-based access control
+- CORS configuration
+- Input validation and sanitization
 
-## 🧩 Features
+## Performance
 
-* Secure login/logout with JWT
-* Admin portal for managing members
-* Role-based access control (Admin/User)
-* User profile management
-* Clean, responsive UI using Thymeleaf
+- Multi-stage Docker builds for smaller images
+- JVM optimizations for containers
+- MongoDB connection pooling
+- Static resource caching
 
----
+## Monitoring
 
-## 📡 API Endpoints
-
-| Method   | Endpoint              | Description                     | Access |
-| -------- | --------------------- | ------------------------------- | ------ |
-| `GET`    | `/admin/members`      | Retrieve all registered members | ADMIN  |
-| `GET`    | `/admin/members/{id}` | Retrieve member by ID           | ADMIN  |
-| `POST`   | `/admin/members`      | Register a new member           | ADMIN  |
-| `PUT`    | `/admin/members/{id}` | Update member information       | ADMIN  |
-| `DELETE` | `/admin/members/{id}` | Delete a member by ID           | ADMIN  |
-| `GET`    | `/user-profile`       | View profile of logged-in user  | USER   |
-
----
-
-## 🛠️ Technology Stack
-
-* **Backend**: Spring Boot, Spring Security, Spring Data MongoDB
-* **Frontend**: Thymeleaf, HTML5, CSS3, JavaScript
-* **Database**: MongoDB
-* **Testing**: JUnit, Mockito
-* **Build Tool**: Maven
-* **Security**: JWT authentication, role-based authorization
-
-## 👥 Dummy Users
-#### 👩‍💼 Admin User
-- **Email:** `admin@admin.com`  
-- **Role:** `ADMIN`  
-- **Password:** `admin123`
-
-#### 👨‍💼 Regular User
-- **Email:** `user@user.com`  
-- **Role:** `USER`  
-- **Password:** `user123`
-
-
-> Feel free to contribute or raise issues via GitHub if you'd like to enhance the project!
+- Spring Boot Actuator endpoints
+- Health checks for both services
+- Application metrics
+- Logging with configurable levels

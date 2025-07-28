@@ -1,0 +1,38 @@
+spring:
+  data:
+    mongodb:
+      uri: ${SPRING_DATA_MONGODB_URI:mongodb://mongodb:27017/kitchensinkdb}
+      database: kitchensinkdb
+      auto-index-creation: true
+
+  thymeleaf:
+    mode: HTML
+    suffix: .html
+
+logging:
+  level:
+    org:
+      springframework:
+        security: DEBUG
+        web: DEBUG
+      mongodb:
+        driver: DEBUG
+    com:
+      example:
+        kitchensink: DEBUG
+
+jwt:
+  secret:
+    key: Srgl71VAmMhSVI+8Bb5eQB6HFr3HdUbidBb/xoTWZAM= # Replace with a generated key in prod
+  token:
+    expiration: 3600000 # Expiration time in milliseconds (1 hour)
+
+# Management endpoints for health checks
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized 

@@ -1,8 +1,8 @@
 spring:
   data:
     mongodb:
-      uri: mongodb+srv://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOST}/?retryWrites=true&w=majority&appName=kitchensink
-      database: ${MONGO_DATABASE}
+      uri: mongodb+srv://heygauravjain:gaurav124@cluster0.ynujrdv.mongodb.net/
+      database: kitchensink
       auto-index-creation: true
 
   thymeleaf:
@@ -15,9 +15,11 @@ logging:
     org:
       springframework:
         security: DEBUG
+        web: DEBUG
+        
 
 jwt:
   secret:
-    key: your_secret_key_your_secret_key_your_secret_key_1234 # Replace with a generated key in prod
+    key: Srgl71VAmMhSVI+8Bb5eQB6HFr3HdUbidBb/xoTWZAM= # Replace with a generated key in prod
   token:
     expiration: 3600000 # Expiration time in milliseconds (15 minutes)
