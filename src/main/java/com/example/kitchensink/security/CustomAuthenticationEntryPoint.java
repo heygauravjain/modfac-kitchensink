@@ -70,10 +70,8 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
     String userAgent = request.getHeader("User-Agent");
     String requestPath = request.getRequestURI();
     
-    // Check Accept header for JSON preference first (highest priority)
-    if (acceptHeader != null && 
-        (acceptHeader.contains("application/json") || 
-         acceptHeader.contains("*/*"))) {
+    // Only treat as API request if explicitly requesting JSON or using API tools
+    if (acceptHeader != null && acceptHeader.contains("application/json")) {
       return true;
     }
     
@@ -88,15 +86,15 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
       return true;
     }
     
-    // For admin paths, check if Accept header indicates HTML preference
-    if (requestPath != null && requestPath.startsWith("/admin/")) {
-      if (acceptHeader != null && acceptHeader.contains("text/html")) {
-        return false; // Treat as web request
-      }
-      // Default to API for admin paths unless HTML is explicitly requested
+    // Check if it's a Postman or similar API testing tool
+    if (userAgent != null && (userAgent.contains("Postman") || 
+        userAgent.contains("curl") || 
+        userAgent.contains("Insomnia") ||
+        userAgent.contains("RestClient"))) {
       return true;
     }
     
+    // Default to web request for everything else
     return false;
   }
 }

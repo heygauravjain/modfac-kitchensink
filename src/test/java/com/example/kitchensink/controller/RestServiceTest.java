@@ -2,6 +2,7 @@ package com.example.kitchensink.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
@@ -123,23 +124,50 @@ class RestServiceTest {
   // Update Member Scenarios
   @Test
   void testUpdateMember_Success() {
-    Member existingMember = new Member("123", "John Doe", "john.doe@example.com", "1234567890",
-        null, "USER");
-    Member updatedMember = new Member("123", "John Doe Updated", "john.doe@example.com",
-        "1234567890", null, "ADMIN");
+    // Given
+    Member existingMember = new Member("1", "John Doe", "john@example.com", "password123", "1234567890", "USER");
+    Member updatedMember = new Member("1", "Jane Doe", "jane@example.com", "newpassword123", "9876543210", "ADMIN");
 
-    when(memberService.findById("123")).thenReturn(existingMember);
-    when(memberService.updateMember(eq(existingMember), eq(updatedMember))).thenReturn(
-        updatedMember);
+    when(memberService.findById("1")).thenReturn(existingMember);
+    when(memberService.updateMember(existingMember, updatedMember)).thenReturn(updatedMember);
 
-    ResponseEntity<Member> response = restService.updateMember(updatedMember, "123");
+    // When
+    ResponseEntity<Member> response = restService.updateMember(updatedMember, "1");
 
+    // Then
     assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertNotNull(response.getBody());
-    assertEquals("John Doe Updated", response.getBody().getName());
-    assertEquals("ADMIN", response.getBody().getRole());
-    verify(memberService, times(1)).findById("123");
-    verify(memberService, times(1)).updateMember(existingMember, updatedMember);
+    assertEquals(updatedMember, response.getBody());
+    verify(memberService).findById("1");
+    verify(memberService).updateMember(existingMember, updatedMember);
+  }
+
+  @Test
+  void testLookupMemberByEmail_Success() {
+    // Given
+    Member member = new Member("1", "John Doe", "john@example.com", "password123", "1234567890", "USER");
+    when(memberService.findMemberByEmail("john@example.com")).thenReturn(member);
+
+    // When
+    ResponseEntity<Member> response = restService.lookupMemberByEmail("john@example.com");
+
+    // Then
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals(member, response.getBody());
+    verify(memberService).findMemberByEmail("john@example.com");
+  }
+
+  @Test
+  void testLookupMemberByEmail_NotFound() {
+    // Given
+    when(memberService.findMemberByEmail("nonexistent@example.com")).thenReturn(null);
+
+    // When & Then
+    ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+      restService.lookupMemberByEmail("nonexistent@example.com");
+    });
+
+    assertEquals("Member with email nonexistent@example.com not found.", exception.getMessage());
+    verify(memberService).findMemberByEmail("nonexistent@example.com");
   }
 
   @Test

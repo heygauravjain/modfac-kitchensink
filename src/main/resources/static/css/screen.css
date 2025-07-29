@@ -432,14 +432,25 @@ body, html {
   border: 1px solid #ddd;
   border-radius: 5px;
   font-size: 16px;
-  width: 80%;
-  max-width: 500px;
+  width: 300px; /* Fixed width for all inputs */
+  box-sizing: border-box;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .form-group input:focus {
   border-color: #2196f3;
   outline: none;
   box-shadow: 0 0 8px rgba(33, 150, 243, 0.2);
+}
+
+/* Ensure consistent spacing for all form elements */
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="password"],
+.form-group input[type="tel"] {
+  width: 300px;
+  height: 40px;
+  padding: 10px 12px;
 }
 
 /* Role section styling */
@@ -696,40 +707,48 @@ body {
 }
 
 #header {
-  background-color: #4a5d75;
-  color: #fff;
-  padding: 15px 30px;
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
+  background: linear-gradient(135deg, #4a5d75 0%, #2c3e50 100%);
+  color: white;
+  padding: 20px;
+  border-radius: 10px 10px 0 0;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.header-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  flex-wrap: wrap;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.header-logo {
+  height: 40px;
+  width: auto;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 #header h1 {
   margin: 0;
-  font-size: 24px;
+  font-size: 1.8em;
+  color: white;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
 }
 
-.logout-button {
-  background-color: #d9534f;
-  color: #fff;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 16px;
-  text-decoration: none;
-  font-weight: bold;
-  transition: background-color 0.3s, box-shadow 0.3s;
-  display: inline-block;
-}
 
-.logout-button:hover {
-  background-color: #c9302c;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
 
 #footer {
   padding: 15px;
@@ -770,9 +789,9 @@ body {
   border: 1px solid #ddd;
   border-radius: 5px;
   font-size: 16px;
-  width: 100%;
-  max-width: 500px;
+  width: 300px; /* Fixed width for all inputs */
   box-sizing: border-box;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .form-group input:focus {

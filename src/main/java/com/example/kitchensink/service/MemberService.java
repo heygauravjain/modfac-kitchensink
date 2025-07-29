@@ -91,6 +91,17 @@ public class MemberService {
   }
 
   /**
+   * Finds a member by their email and returns the Member model.
+   *
+   * @param email the email of the member to search for.
+   * @return the found member, or null if no member is found.
+   */
+  public Member findMemberByEmail(String email) {
+    Optional<MemberDocument> memberDocument = memberRepository.findByEmail(email);
+    return memberDocument.map(memberMapper::memberEntityToMember).orElse(null);
+  }
+
+  /**
    * Finds a member by their ID.
    *
    * @param id the ID of the member to search for.

@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -71,6 +72,26 @@ public class RestService {
     Member member = memberService.findById(id);
     if (Objects.isNull(member)) {
       throw new ResourceNotFoundException("Member with ID " + id + " not found.");
+    }
+    return ResponseEntity.ok(member);
+  }
+
+  /** 
+   * REST endpoint for looking up a member by email.
+   * @param email the member email
+   * @return the member details
+  */
+  @Operation(summary = "Lookup Member by Email")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved member details"),
+      @ApiResponse(responseCode = "404", description = "Member not found"),
+      @ApiResponse(responseCode = "500", description = "Internal server error")
+  })
+  @GetMapping("/search")
+  public ResponseEntity<Member> lookupMemberByEmail(@RequestParam("email") String email) {
+    Member member = memberService.findMemberByEmail(email);
+    if (Objects.isNull(member)) {
+      throw new ResourceNotFoundException("Member with email " + email + " not found.");
     }
     return ResponseEntity.ok(member);
   }
