@@ -907,10 +907,54 @@ body {
 .tooltip-container .tooltip-text::after {
   content: "";
   position: absolute;
-  top: 100%; /* Position arrow below the tooltip */
+  top: 100%;
   left: 50%;
   margin-left: -5px;
   border-width: 5px;
   border-style: solid;
   border-color: #555 transparent transparent transparent;
+}
+
+/* Table editing validation styles */
+.error-field {
+  border: 2px solid #ff4444 !important;
+  background-color: #fff5f5 !important;
+}
+
+.error-field:focus {
+  border-color: #ff6666 !important;
+  box-shadow: 0 0 5px rgba(255, 68, 68, 0.3) !important;
+}
+
+.field-error {
+  color: #ff4444;
+  font-size: 12px;
+  margin-top: 2px;
+  font-weight: bold;
+}
+
+/* Editable field styles */
+.editable-field {
+  border: 1px solid #ddd;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: border-color 0.3s ease;
+}
+
+.editable-field:disabled {
+  background-color: #f9f9f9;
+  color: #666;
+  cursor: not-allowed;
+}
+
+.editable-field:not(:disabled):focus {
+  border-color: #4a90e2;
+  outline: none;
+  box-shadow: 0 0 5px rgba(74, 144, 226, 0.3);
+}
+
+.edit-mode {
+  background-color: #fff !important;
+  color: #333 !important;
+  cursor: text !important;
 }

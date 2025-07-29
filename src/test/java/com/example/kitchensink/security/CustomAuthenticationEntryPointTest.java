@@ -7,6 +7,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -33,6 +34,9 @@ class CustomAuthenticationEntryPointTest {
   @Mock
   private SecurityContext securityContext;
 
+  @Mock
+  private ServletOutputStream outputStream;
+
   @InjectMocks
   private CustomAuthenticationEntryPoint authenticationEntryPoint;
 
@@ -42,6 +46,13 @@ class CustomAuthenticationEntryPointTest {
 
     // Set up mock SecurityContext
     SecurityContextHolder.setContext(securityContext);
+    
+    // Mock the response output stream
+    try {
+      when(response.getOutputStream()).thenReturn(outputStream);
+    } catch (IOException e) {
+      // This should not happen in tests, but handle it gracefully
+    }
   }
 
   @Test
@@ -51,6 +62,9 @@ class CustomAuthenticationEntryPointTest {
     when(authentication.getName()).thenReturn("testUser");
     when(request.getRequestURI()).thenReturn("/admin/protected-resource");
     when(request.getContextPath()).thenReturn("");
+    // Mock headers to ensure it's treated as a web request, not API
+    when(request.getHeader("Accept")).thenReturn("text/html,application/xhtml+xml,application/xml");
+    when(request.getHeader("User-Agent")).thenReturn("Mozilla/5.0");
 
     // Act: Call the commence method of the entry point
     authenticationEntryPoint.commence(request, response, null);
@@ -65,6 +79,9 @@ class CustomAuthenticationEntryPointTest {
     when(securityContext.getAuthentication()).thenReturn(null);
     when(request.getRequestURI()).thenReturn("/admin/protected-resource");
     when(request.getContextPath()).thenReturn("");
+    // Mock headers to ensure it's treated as a web request, not API
+    when(request.getHeader("Accept")).thenReturn("text/html,application/xhtml+xml,application/xml");
+    when(request.getHeader("User-Agent")).thenReturn("Mozilla/5.0");
 
     // Act: Call the commence method of the entry point
     authenticationEntryPoint.commence(request, response, null);
@@ -80,6 +97,9 @@ class CustomAuthenticationEntryPointTest {
     when(authentication.getName()).thenReturn("testUser");
     when(request.getRequestURI()).thenReturn("/admin/protected-resource");
     when(request.getContextPath()).thenReturn("");
+    // Mock headers to ensure it's treated as a web request, not API
+    when(request.getHeader("Accept")).thenReturn("text/html,application/xhtml+xml,application/xml");
+    when(request.getHeader("User-Agent")).thenReturn("Mozilla/5.0");
 
     // Simulate IOException when calling sendRedirect
     doThrow(new IOException("Test IOException")).when(response).sendRedirect(anyString());
@@ -95,6 +115,9 @@ class CustomAuthenticationEntryPointTest {
     when(securityContext.getAuthentication()).thenReturn(null);
     when(request.getRequestURI()).thenReturn("/admin/members");
     when(request.getContextPath()).thenReturn("");
+    // Mock headers to ensure it's treated as a web request, not API
+    when(request.getHeader("Accept")).thenReturn("text/html,application/xhtml+xml,application/xml");
+    when(request.getHeader("User-Agent")).thenReturn("Mozilla/5.0");
 
     // Act: Call the commence method of the entry point
     authenticationEntryPoint.commence(request, response, null);
@@ -110,6 +133,9 @@ class CustomAuthenticationEntryPointTest {
     when(authentication.getName()).thenReturn("testUser");
     when(request.getRequestURI()).thenReturn("/admin/members");
     when(request.getContextPath()).thenReturn("/app");
+    // Mock headers to ensure it's treated as a web request, not API
+    when(request.getHeader("Accept")).thenReturn("text/html,application/xhtml+xml,application/xml");
+    when(request.getHeader("User-Agent")).thenReturn("Mozilla/5.0");
 
     // Act: Call the commence method of the entry point
     authenticationEntryPoint.commence(request, response, null);

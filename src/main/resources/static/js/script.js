@@ -123,6 +123,94 @@ function loadInFrame(url) {
   return false;
 }
 
+// Validation functions for table editing
+function validateTableName(name) {
+  if (!name || name.trim() === '') {
+    return 'Name is required.';
+  }
+  if (/\d/.test(name)) {
+    return 'Name must not contain numbers.';
+  }
+  if (name.length > 25) {
+    return 'Name must be 25 characters or less.';
+  }
+  return null;
+}
+
+function validateTableEmail(email) {
+  if (!email || email.trim() === '') {
+    return 'Email is required.';
+  }
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return 'Please enter a valid email address.';
+  }
+  return null;
+}
+
+function validateTablePhone(phone) {
+  if (!phone || phone.trim() === '') {
+    return 'Phone number is required.';
+  }
+  const phoneRegex = /^\d{10,12}$/;
+  if (!phoneRegex.test(phone)) {
+    return 'Phone number must be 10-12 digits.';
+  }
+  return null;
+}
+
+function validateTableRole(role) {
+  if (!role || role.trim() === '') {
+    return 'Role is required.';
+  }
+  if (role !== 'ADMIN' && role !== 'USER') {
+    return 'Role must be either ADMIN or USER.';
+  }
+  return null;
+}
+
+// Real-time validation for table fields
+function validateTableField(field, fieldType) {
+  const value = field.value.trim();
+  let error = null;
+  
+  switch(fieldType) {
+    case 'name':
+      error = validateTableName(value);
+      break;
+    case 'email':
+      error = validateTableEmail(value);
+      break;
+    case 'phone':
+      error = validateTablePhone(value);
+      break;
+    case 'role':
+      error = validateTableRole(value);
+      break;
+  }
+  
+  // Remove existing error styling
+  field.classList.remove('error-field');
+  
+  // Remove existing error message
+  const existingError = field.parentNode.querySelector('.field-error');
+  if (existingError) {
+    existingError.remove();
+  }
+  
+  // Add error styling and message if there's an error
+  if (error) {
+    field.classList.add('error-field');
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'field-error';
+    errorDiv.style.color = 'red';
+    errorDiv.style.fontSize = '12px';
+    errorDiv.style.marginTop = '2px';
+    errorDiv.textContent = error;
+    field.parentNode.appendChild(errorDiv);
+  }
+}
+
 function editMember(button) {
   const row = button.closest('tr');
   const fields = row.querySelectorAll('.editable-field');
@@ -193,12 +281,37 @@ function saveMember(anchor, url) {
   const row = anchor.closest('tr');
   const fields = row.querySelectorAll('.editable-field');
 
-  // Get updated field values
+  // Validate all fields before sending update
+  const name = fields[0].value.trim();
+  const email = fields[1].value.trim();
+  const phone = fields[2].value.trim();
+  const role = fields[3].value;
+
+  // Perform validation
+  const nameError = validateTableName(name);
+  const emailError = validateTableEmail(email);
+  const phoneError = validateTablePhone(phone);
+  const roleError = validateTableRole(role);
+
+  // If there are validation errors, show them and don't proceed
+  if (nameError || emailError || phoneError || roleError) {
+    let errorMessage = 'Please fix the following errors:\n';
+    if (nameError) errorMessage += `• ${nameError}\n`;
+    if (emailError) errorMessage += `• ${emailError}\n`;
+    if (phoneError) errorMessage += `• ${phoneError}\n`;
+    if (roleError) errorMessage += `• ${roleError}\n`;
+    
+    alert(errorMessage);
+    return;
+  }
+
+  // Get updated field values (excluding password - password remains unchanged)
   const updatedMember = {
-    name: fields[0].value,
-    email: fields[1].value,
-    phoneNumber: fields[2].value,
-    role: fields[3].value
+    name: name,
+    email: email,
+    phoneNumber: phone,
+    role: role
+    // Password is not included - it will remain unchanged
   };
 
   // Send the updated member data to the server using the URL

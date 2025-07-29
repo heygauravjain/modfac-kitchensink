@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 class MemberServiceTest {
 
@@ -31,6 +32,9 @@ class MemberServiceTest {
 
   @Mock
   private MemberMapper memberMapper;
+
+  @Mock
+  private BCryptPasswordEncoder passwordEncoder;
 
   @InjectMocks
   private MemberService memberService;
@@ -42,11 +46,15 @@ class MemberServiceTest {
   void setUp() {
     MockitoAnnotations.openMocks(this);
 
+    // Mock password encoder
+    when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
+
     // Initialize sample data
     member = new Member();
     member.setId("1");
     member.setName("John Doe");
     member.setEmail("john.doe@example.com");
+    member.setPassword("testPassword123"); // Add password for testing
     member.setPhoneNumber("1234567890");
     member.setRole("USER");
 
@@ -54,6 +62,7 @@ class MemberServiceTest {
     memberDocument.setId("1");
     memberDocument.setName("John Doe");
     memberDocument.setEmail("john.doe@example.com");
+    memberDocument.setPassword("encodedPassword"); // Set encoded password
     memberDocument.setPhoneNumber("1234567890");
     memberDocument.setRole("USER");
   }
@@ -68,6 +77,7 @@ class MemberServiceTest {
     Member result = memberService.registerMember(member);
 
     verify(memberRepository, times(1)).save(memberDocument);
+    verify(passwordEncoder, times(1)).encode(anyString());
     assertThat(result).isNotNull();
     assertThat(result.getEmail()).isEqualTo(member.getEmail());
   }

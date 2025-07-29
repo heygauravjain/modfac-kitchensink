@@ -32,12 +32,13 @@ public class Member {
   @Email
   private String email;
 
+  @Size(min = 8, message = "Password must be at least 8 characters long")
+  private String password;
+
   @NotNull
   @Size(min = 10, max = 12)
   @Digits(fraction = 0, integer = 12)
   private String phoneNumber;
-
-  private String password;
 
   private String role = "USER";
 }

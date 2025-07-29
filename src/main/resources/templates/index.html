@@ -29,26 +29,36 @@
     </div>
 
     <!-- Registration Form -->
-    <form th:action="@{/register}" th:object="${member}" method="post">
+    <form th:action="@{/register}" th:object="${member}" method="post" id="registrationForm" onsubmit="return validateForm()">
       <fieldset>
         <legend>Member Registration</legend>
         <div class="form-group tooltip-container">
           <label for="name">Name:</label>
           <input type="text" id="name" th:field="*{name}" placeholder="Enter your name" required
-                 pattern="[^0-9]*"/>
+                 pattern="[^0-9]*" onblur="validateName()"/>
           <span class="tooltip-text">Your full name (no numbers).</span>
+          <div id="nameError" class="invalid" style="display: none;"></div>
         </div>
         <div class="form-group tooltip-container">
           <label for="email">Email:</label>
           <input type="email" id="email" th:field="*{email}" placeholder="Enter your email"
-                 required/>
+                 required onblur="validateEmail()"/>
           <span class="tooltip-text">e.g., user@example.com</span>
+          <div id="emailError" class="invalid" style="display: none;"></div>
+        </div>
+        <div class="form-group tooltip-container">
+          <label for="password">Password:</label>
+          <input type="password" id="password" th:field="*{password}" placeholder="Enter your password"
+                 required onblur="validatePassword()"/>
+          <span class="tooltip-text">Password must be at least 8 characters long.</span>
+          <div id="passwordError" class="invalid" style="display: none;"></div>
         </div>
         <div class="form-group tooltip-container">
           <label for="phoneNumber">Phone:</label>
           <input type="text" id="phoneNumber" th:field="*{phoneNumber}"
-                 placeholder="Enter your phone number" required/>
+                 placeholder="Enter your phone number" required onblur="validatePhone()"/>
           <span class="tooltip-text">Your phone number (10-12 digits).</span>
+          <div id="phoneError" class="invalid" style="display: none;"></div>
         </div>
         <div class="role-section">
           <label>Role:</label>
@@ -110,12 +120,12 @@
                onclick="deleteMember(this, this.href); return false;">🗑️</a>
           </td>
           <td th:text="${member.id}"></td>
-          <td><input type="text" th:value="${member.name}" disabled class="editable-field"/></td>
-          <td><input type="email" th:value="${member.email}" disabled class="editable-field"/></td>
-          <td><input type="text" th:value="${member.phoneNumber}" disabled class="editable-field"/>
+          <td><input type="text" th:value="${member.name}" disabled class="editable-field" onblur="validateTableField(this, 'name')"/></td>
+          <td><input type="email" th:value="${member.email}" disabled class="editable-field" onblur="validateTableField(this, 'email')"/></td>
+          <td><input type="text" th:value="${member.phoneNumber}" disabled class="editable-field" onblur="validateTableField(this, 'phone')"/>
           </td>
           <td>
-            <select disabled class="editable-field">
+            <select disabled class="editable-field" onblur="validateTableField(this, 'role')">
               <option value="ADMIN" th:selected="${member.role == 'ADMIN'}">ADMIN</option>
               <option value="USER" th:selected="${member.role == 'USER'}">USER</option>
             </select>
@@ -140,5 +150,112 @@
     This project was generated using Spring Boot with Thymeleaf and MongoDB
   </div>
 </div>
+
+<script>
+// Form validation functions
+function validateName() {
+  const nameInput = document.getElementById('name');
+  const nameError = document.getElementById('nameError');
+  const name = nameInput.value.trim();
+  
+  if (name === '') {
+    nameError.textContent = 'Name is required.';
+    nameError.style.display = 'block';
+    return false;
+  } else if (/\d/.test(name)) {
+    nameError.textContent = 'Name must not contain numbers.';
+    nameError.style.display = 'block';
+    return false;
+  } else if (name.length > 25) {
+    nameError.textContent = 'Name must be 25 characters or less.';
+    nameError.style.display = 'block';
+    return false;
+  } else {
+    nameError.style.display = 'none';
+    return true;
+  }
+}
+
+function validateEmail() {
+  const emailInput = document.getElementById('email');
+  const emailError = document.getElementById('emailError');
+  const email = emailInput.value.trim();
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  
+  if (email === '') {
+    emailError.textContent = 'Email is required.';
+    emailError.style.display = 'block';
+    return false;
+  } else if (!emailRegex.test(email)) {
+    emailError.textContent = 'Please enter a valid email address.';
+    emailError.style.display = 'block';
+    return false;
+  } else {
+    emailError.style.display = 'none';
+    return true;
+  }
+}
+
+function validatePassword() {
+  const passwordInput = document.getElementById('password');
+  const passwordError = document.getElementById('passwordError');
+  const password = passwordInput.value;
+  
+  if (password === '') {
+    passwordError.textContent = 'Password is required.';
+    passwordError.style.display = 'block';
+    return false;
+  } else if (password.length < 8) {
+    passwordError.textContent = 'Password must be at least 8 characters long.';
+    passwordError.style.display = 'block';
+    return false;
+  } else {
+    passwordError.style.display = 'none';
+    return true;
+  }
+}
+
+function validatePhone() {
+  const phoneInput = document.getElementById('phoneNumber');
+  const phoneError = document.getElementById('phoneError');
+  const phone = phoneInput.value.trim();
+  const phoneRegex = /^\d{10,12}$/;
+  
+  if (phone === '') {
+    phoneError.textContent = 'Phone number is required.';
+    phoneError.style.display = 'block';
+    return false;
+  } else if (!phoneRegex.test(phone)) {
+    phoneError.textContent = 'Phone number must be 10-12 digits.';
+    phoneError.style.display = 'block';
+    return false;
+  } else {
+    phoneError.style.display = 'none';
+    return true;
+  }
+}
+
+function validateForm() {
+  const isNameValid = validateName();
+  const isEmailValid = validateEmail();
+  const isPasswordValid = validatePassword();
+  const isPhoneValid = validatePhone();
+  
+  return isNameValid && isEmailValid && isPasswordValid && isPhoneValid;
+}
+
+// Add event listeners for real-time validation
+document.addEventListener('DOMContentLoaded', function() {
+  const nameInput = document.getElementById('name');
+  const emailInput = document.getElementById('email');
+  const passwordInput = document.getElementById('password');
+  const phoneInput = document.getElementById('phoneNumber');
+  
+  if (nameInput) nameInput.addEventListener('input', validateName);
+  if (emailInput) emailInput.addEventListener('input', validateEmail);
+  if (passwordInput) passwordInput.addEventListener('input', validatePassword);
+  if (phoneInput) phoneInput.addEventListener('input', validatePhone);
+});
+</script>
 </body>
 </html>

@@ -1,6 +1,7 @@
 package com.example.kitchensink.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -18,6 +19,13 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 public class CustomAccessDeniedHandler implements AccessDeniedHandler {
+
+  private final ObjectMapper objectMapper;
+
+  public CustomAccessDeniedHandler() {
+    this.objectMapper = new ObjectMapper();
+    this.objectMapper.registerModule(new JavaTimeModule());
+  }
 
   @Override
   public void handle(HttpServletRequest request, HttpServletResponse response,
@@ -47,8 +55,7 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
       errorResponse.put("message", "Access denied");
       errorResponse.put("path", request.getRequestURI());
       
-      ObjectMapper mapper = new ObjectMapper();
-      mapper.writeValue(response.getOutputStream(), errorResponse);
+      objectMapper.writeValue(response.getOutputStream(), errorResponse);
     } else {
       // Redirect to HTML page for web requests
       response.sendRedirect(request.getContextPath() + "/403");
@@ -63,14 +70,7 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
     String userAgent = request.getHeader("User-Agent");
     String requestPath = request.getRequestURI();
     
-    // Check if it's a Swagger/API request
-    if (requestPath.startsWith("/swagger-ui") || 
-        requestPath.startsWith("/v3/api-docs") ||
-        requestPath.startsWith("/admin/members")) {
-      return true;
-    }
-    
-    // Check Accept header for JSON preference
+    // Check Accept header for JSON preference first (highest priority)
     if (acceptHeader != null && 
         (acceptHeader.contains("application/json") || 
          acceptHeader.contains("*/*"))) {
@@ -79,6 +79,21 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
     
     // Check if it's a Swagger UI request
     if (userAgent != null && userAgent.contains("Swagger")) {
+      return true;
+    }
+    
+    // Check if it's a Swagger/API documentation request
+    if (requestPath != null && (requestPath.startsWith("/swagger-ui") || 
+        requestPath.startsWith("/v3/api-docs"))) {
+      return true;
+    }
+    
+    // For admin paths, check if Accept header indicates HTML preference
+    if (requestPath != null && requestPath.startsWith("/admin/")) {
+      if (acceptHeader != null && acceptHeader.contains("text/html")) {
+        return false; // Treat as web request
+      }
+      // Default to API for admin paths unless HTML is explicitly requested
       return true;
     }
     

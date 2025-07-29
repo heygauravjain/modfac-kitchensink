@@ -7,6 +7,7 @@ import com.example.kitchensink.repository.MemberRepository;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -17,9 +18,12 @@ public class MemberService {
   private final MemberMapper memberMapper = MemberMapper.INSTANCE;
 
   private final MemberRepository memberRepository;
+  
+  private final BCryptPasswordEncoder passwordEncoder;
 
-  public MemberService(MemberRepository memberRepository) {
+  public MemberService(MemberRepository memberRepository, BCryptPasswordEncoder passwordEncoder) {
     this.memberRepository = memberRepository;
+    this.passwordEncoder = passwordEncoder;
   }
 
   /**
@@ -28,6 +32,13 @@ public class MemberService {
   public Member registerMember(Member member) {
     log.info("Registering member: {}", member);
     MemberDocument memberDocument = memberMapper.memberToMemberEntity(member);
+    
+    // Encrypt the password before saving
+    if (memberDocument.getPassword() != null && !memberDocument.getPassword().isEmpty()) {
+      String encryptedPassword = passwordEncoder.encode(memberDocument.getPassword());
+      memberDocument.setPassword(encryptedPassword);
+    }
+    
     memberRepository.save(memberDocument);
 
     return memberMapper.memberEntityToMember(memberDocument);
@@ -41,8 +52,21 @@ public class MemberService {
     existingMember.setEmail(updatedMember.getEmail());
     existingMember.setPhoneNumber(updatedMember.getPhoneNumber());
     existingMember.setRole(updatedMember.getRole());
+    
+    // Only update password if a new password is explicitly provided
+    if (updatedMember.getPassword() != null && !updatedMember.getPassword().isEmpty()) {
+      existingMember.setPassword(updatedMember.getPassword());
+    }
 
     MemberDocument memberDocument = memberMapper.memberToMemberEntity(existingMember);
+    
+    // Only encrypt the password if it was updated (new password provided)
+    if (updatedMember.getPassword() != null && !updatedMember.getPassword().isEmpty()) {
+      String encryptedPassword = passwordEncoder.encode(memberDocument.getPassword());
+      memberDocument.setPassword(encryptedPassword);
+    }
+    // If no new password was provided, the existing encrypted password remains unchanged
+    
     memberRepository.save(memberDocument);
 
     return memberMapper.memberEntityToMember(memberDocument);

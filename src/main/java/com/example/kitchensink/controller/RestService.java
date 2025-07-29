@@ -88,10 +88,6 @@ public class RestService {
   })
   @PostMapping
   public ResponseEntity<Member> registerMember(@Valid @RequestBody Member member) {
-
-    // setting password null right now, But this needs to be updated as per requirements. We can
-    // use encoder here as well if we want to take password as input
-    member.setPassword(null);
     Member registeredMember = memberService.registerMember(member);
     return new ResponseEntity<>(registeredMember, HttpStatus.CREATED);
   }
@@ -130,7 +126,7 @@ public class RestService {
       @ApiResponse(responseCode = "500", description = "Internal server error")
   })
   @PutMapping("/{id}")
-  public ResponseEntity<Member> updateMember(@Valid @RequestBody Member updatedMember,
+  public ResponseEntity<Member> updateMember(@RequestBody Member updatedMember,
       @PathVariable("id") String id) {
 
     log.info("Updating Member with Id {}", id);
