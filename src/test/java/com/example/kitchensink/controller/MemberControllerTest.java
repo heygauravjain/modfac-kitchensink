@@ -147,13 +147,13 @@ class MemberControllerTest {
   @Test
   void error403_ShouldReturn403View() {
     String viewName = memberController.error403();
-    assertEquals("/error/403", viewName);
+    assertEquals("error/403", viewName);
   }
 
   // Scenario: Error 401 page
   @Test
   void error401_ShouldReturn401View() {
     String viewName = memberController.error401();
-    assertEquals("/error/401", viewName);
+    assertEquals("error/401", viewName);
   }
 }

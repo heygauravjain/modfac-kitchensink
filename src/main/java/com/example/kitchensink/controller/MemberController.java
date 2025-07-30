@@ -114,7 +114,7 @@ public class MemberController {
    */
   @GetMapping("/403")
   public String error403() {
-    return "/error/403";
+    return "error/403";
   }
 
   /**
@@ -124,6 +124,6 @@ public class MemberController {
    */
   @GetMapping("/401")
   public String error401() {
-    return "/error/401";
+    return "error/401";
   }
 }
