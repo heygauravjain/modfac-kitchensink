@@ -21,6 +21,7 @@ docker-compose up --build
 # Access the application
 # Web App: http://localhost:8080
 # MongoDB Express: http://localhost:8081 (admin/admin123)
+# Health Check: http://localhost:8080/actuator/health
 ```
 
 ### Run Locally
@@ -43,9 +44,11 @@ java -jar target/kitchensink-0.0.1-SNAPSHOT.jar
 - **Password Encryption**: BCrypt password hashing
 - **Session Management**: Stateless JWT sessions
 - **CORS Configuration**: Cross-origin resource sharing setup
+- **Self-Edit Prevention**: Users cannot edit or delete their own accounts
 
 ### 🗄️ Data Management
 - **MongoDB Integration**: NoSQL database with Spring Data MongoDB
+- **MongoDB Express**: Web-based MongoDB admin interface (http://localhost:8081)
 - **MapStruct Mapping**: Efficient entity-to-DTO mapping
 - **Data Initialization**: Automatic default user creation
 - **Repository Pattern**: Clean data access layer
@@ -61,6 +64,7 @@ java -jar target/kitchensink-0.0.1-SNAPSHOT.jar
 - **OpenAPI Documentation**: Swagger UI integration
 - **Proper Error Handling**: Global exception handling
 - **Validation**: Input validation and sanitization
+- **Strategy Pattern**: Dynamic registration behavior based on source context
 
 ### 🛠️ Development Tools
 - **Health Checks**: Actuator endpoints for monitoring
@@ -92,11 +96,11 @@ java -jar target/kitchensink-0.0.1-SNAPSHOT.jar
          │                       │                       │
          ▼                       ▼                       ▼
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│  Service Layer  │    │  Mapper Layer   │    │  Config Layer   │
+│  Service Layer  │    │  Strategy Layer │    │  Config Layer   │
 │                 │    │                 │    │                 │
-│ • Auth Service  │◄──►│ • MapStruct     │◄──►│ • Security Config│
-│ • Member Service│    │ • DTO Mapping   │    │ • Data Init     │
-│ • Business Logic│    │ • Entity Mapping│    │ • Bean Config   │
+│ • Auth Service  │◄──►│ • Registration  │◄──►│ • Security Config│
+│ • Member Service│    │ • Context       │    │ • Data Init     │
+│ • Business Logic│    │ • Strategies    │    │ • Bean Config   │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
