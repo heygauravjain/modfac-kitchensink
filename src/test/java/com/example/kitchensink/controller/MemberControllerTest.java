@@ -1,7 +1,6 @@
 package com.example.kitchensink.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
@@ -9,7 +8,6 @@ import static org.mockito.Mockito.*;
 
 import com.example.kitchensink.controller.strategy.RegistrationContext;
 import com.example.kitchensink.entity.MemberDocument;
-import com.example.kitchensink.exception.ResourceNotFoundException;
 import com.example.kitchensink.model.Member;
 import com.example.kitchensink.service.MemberService;
 import java.security.Principal;
@@ -60,10 +58,9 @@ class MemberControllerTest {
     MockitoAnnotations.openMocks(this);
   }
 
-  // Scenario: Show registration form with empty members list
   @Test
-  void showRegistrationForm_ShouldReturnIndexView_WithNoMembers() {
-    when(memberService.getAllMembers()).thenReturn(new ArrayList<>()); // Empty list
+  void showAdminHome_ShouldReturnIndexView_WithNoMembers() {
+    when(memberService.getAllMembers()).thenReturn(new ArrayList<>());
     when(session.getAttribute("userEmail")).thenReturn(null);
     when(session.getAttribute("accessToken")).thenReturn(null);
     when(session.getAttribute("refreshToken")).thenReturn(null);
@@ -77,9 +74,8 @@ class MemberControllerTest {
     verify(model).addAttribute(eq("loggedInUser"), eq("Admin"));
   }
 
-  // Scenario: Show registration form with multiple members
   @Test
-  void showRegistrationForm_ShouldReturnIndexView_WithMembers() {
+  void showAdminHome_ShouldReturnIndexView_WithMembers() {
     ArrayList<Member> members = new ArrayList<>();
     members.add(new Member("1", "John Doe", "john.doe@example.com", "1234567890", null, "ADMIN"));
     members.add(new Member("2", "Jane Doe", "jane.doe@example.com", "0987654321", null, "USER"));
@@ -95,9 +91,8 @@ class MemberControllerTest {
     verify(model).addAttribute(eq("loggedInUser"), eq("admin@admin.com"));
   }
 
-  // Scenario: Show registration form with session user
   @Test
-  void showRegistrationForm_ShouldReturnIndexView_WithSessionUser() {
+  void showAdminHome_ShouldReturnIndexView_WithSessionUser() {
     when(memberService.getAllMembers()).thenReturn(new ArrayList<>());
     when(session.getAttribute("userEmail")).thenReturn("test@test.com");
 
@@ -107,7 +102,6 @@ class MemberControllerTest {
     verify(model).addAttribute(eq("loggedInUser"), eq("test@test.com"));
   }
 
-  // Scenario: Clear session attributes
   @Test
   void showAdminHome_ShouldClearSession_WhenClearSessionIsTrue() {
     String viewName = memberController.showAdminHome(model, principal, response, "true", session);
@@ -119,7 +113,6 @@ class MemberControllerTest {
     verify(session).removeAttribute("userRole");
   }
 
-  // Scenario: Register member using admin strategy
   @Test
   void registerMember_WhenSourceIsIndex_ShouldUseAdminStrategy() {
     Member member = new Member();
@@ -132,7 +125,6 @@ class MemberControllerTest {
     verify(registrationContext).register(eq(member), eq(redirectAttributes));
   }
 
-  // Scenario: Register member using user strategy
   @Test
   void registerMember_WhenSourceIsRegister_ShouldUseUserStrategy() {
     Member member = new Member();
@@ -145,14 +137,12 @@ class MemberControllerTest {
     verify(registrationContext).register(eq(member), eq(redirectAttributes));
   }
 
-  // Scenario: Redirect to JWT login page
   @Test
   void redirectToJwtLogin_ShouldReturnRedirectToJwtLogin() {
     String viewName = memberController.redirectToJwtLogin();
     assertEquals("redirect:/jwt-login", viewName);
   }
 
-  // Scenario: Show user profile page with authentication
   @Test
   void showUserProfile_ShouldReturnUserProfileView_WithAuthentication() {
     String email = "test@example.com";
@@ -168,7 +158,6 @@ class MemberControllerTest {
     verify(model).addAttribute(eq("member"), any(Member.class));
   }
 
-  // Scenario: Show user profile page with session user
   @Test
   void showUserProfile_ShouldReturnUserProfileView_WithSessionUser() {
     String email = "test@example.com";
@@ -184,7 +173,6 @@ class MemberControllerTest {
     verify(model).addAttribute(eq("member"), any(Member.class));
   }
 
-  // Scenario: Show user profile page with default member
   @Test
   void showUserProfile_ShouldReturnUserProfileView_WithDefaultMember() {
     when(session.getAttribute("userEmail")).thenReturn(null);
@@ -195,7 +183,6 @@ class MemberControllerTest {
     verify(model).addAttribute(eq("member"), any(Member.class));
   }
 
-  // Scenario: Clear session in user profile
   @Test
   void showUserProfile_ShouldClearSession_WhenClearSessionIsTrue() {
     String viewName = memberController.showUserProfile(model, authentication, "true", session);
@@ -207,28 +194,24 @@ class MemberControllerTest {
     verify(session).removeAttribute("userRole");
   }
 
-  // Scenario: Register member with invalid data - should return index view
   @Test
   void registerMember_WithInvalidData_ShouldReturnIndexView() {
-    Member invalidMember = new Member(); // Empty member with invalid data
-    when(registrationContext.register(eq(invalidMember), eq(redirectAttributes))).thenReturn(
-        "index");
+    Member invalidMember = new Member();
+    when(registrationContext.register(eq(invalidMember), eq(redirectAttributes))).thenReturn("index");
 
     String viewName = memberController.registerMember(invalidMember, "index", redirectAttributes);
 
-    assertEquals("index", viewName); // Should stay on the index view due to validation errors
+    assertEquals("index", viewName);
     verify(registrationContext).setStrategy("index");
     verify(registrationContext).register(eq(invalidMember), eq(redirectAttributes));
   }
 
-  // Scenario: Error 403 page
   @Test
   void error403_ShouldReturn403View() {
     String viewName = memberController.error403();
     assertEquals("error/403", viewName);
   }
 
-  // Scenario: Error 401 page
   @Test
   void error401_ShouldReturn401View() {
     String viewName = memberController.error401();

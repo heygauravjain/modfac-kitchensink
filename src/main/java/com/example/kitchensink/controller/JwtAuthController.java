@@ -72,26 +72,6 @@ public class JwtAuthController {
             redirectAttributes.addFlashAttribute("refreshToken", refreshToken);
             redirectAttributes.addFlashAttribute("userEmail", userDetails.getUsername());
             redirectAttributes.addFlashAttribute("userRole", role);
-            
-            log.info("Flash attributes set - accessToken: {}, refreshToken: {}, userEmail: {}, userRole: {}", 
-                    accessToken != null ? "Present" : "Missing",
-                    refreshToken != null ? "Present" : "Missing",
-                    userDetails.getUsername(),
-                    role);
-
-            log.info("Session attributes set for user {}: accessToken={}, refreshToken={}, userEmail={}, userRole={}", 
-                    userDetails.getUsername(), 
-                    accessToken != null ? "Present" : "Missing",
-                    refreshToken != null ? "Present" : "Missing",
-                    userDetails.getUsername(),
-                    role);
-            
-            // Debug: Verify session attributes are set
-            log.info("Session verification - accessToken: {}, refreshToken: {}, userEmail: {}, userRole: {}", 
-                    session.getAttribute("accessToken") != null ? "Present" : "Missing",
-                    session.getAttribute("refreshToken") != null ? "Present" : "Missing",
-                    session.getAttribute("userEmail"),
-                    session.getAttribute("userRole"));
 
             log.info("User {} logged in successfully with JWT", userDetails.getUsername());
             
@@ -100,10 +80,8 @@ public class JwtAuthController {
 
             // Redirect directly to appropriate dashboard based on role
             if (role.equals("ROLE_ADMIN")) {
-                log.info("Redirecting admin user {} to /admin/home", userDetails.getUsername());
                 return "redirect:/admin/home";
             } else {
-                log.info("Redirecting user {} to /user-profile", userDetails.getUsername());
                 return "redirect:/user-profile";
             }
 
@@ -163,29 +141,5 @@ public class JwtAuthController {
         response.setHeader("Expires", "0");
         
         return "redirect:/jwt-login";
-    }
-
-    @GetMapping("/debug-session")
-    public String debugSession(HttpSession session, Model model) {
-        String accessToken = (String) session.getAttribute("accessToken");
-        String refreshToken = (String) session.getAttribute("refreshToken");
-        String userEmail = (String) session.getAttribute("userEmail");
-        String userRole = (String) session.getAttribute("userRole");
-        Long loginTime = (Long) session.getAttribute("loginTime");
-        
-        log.info("Debug session - accessToken: {}, refreshToken: {}, userEmail: {}, userRole: {}, loginTime: {}", 
-                accessToken != null ? "Present" : "Missing",
-                refreshToken != null ? "Present" : "Missing",
-                userEmail,
-                userRole,
-                loginTime);
-        
-        model.addAttribute("accessToken", accessToken != null ? "Present" : "Missing");
-        model.addAttribute("refreshToken", refreshToken != null ? "Present" : "Missing");
-        model.addAttribute("userEmail", userEmail);
-        model.addAttribute("userRole", userRole);
-        model.addAttribute("loginTime", loginTime);
-        
-        return "debug-session";
     }
 } 

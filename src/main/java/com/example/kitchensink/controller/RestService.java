@@ -16,6 +16,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
@@ -129,6 +131,7 @@ public class RestService {
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Successfully deleted member"),
       @ApiResponse(responseCode = "404", description = "Member not found"),
+      @ApiResponse(responseCode = "403", description = "Cannot delete your own account"),
       @ApiResponse(responseCode = "500", description = "Internal server error")
   })
   @DeleteMapping("/{id}")
@@ -137,6 +140,14 @@ public class RestService {
     if (Objects.isNull(member)) {
       throw new ResourceNotFoundException("Member with ID " + id + " not found.");
     }
+    
+    // Check if user is trying to delete their own account
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication != null && authentication.getName().equals(member.getEmail())) {
+      log.warn("User {} attempted to delete their own account", authentication.getName());
+      return new ResponseEntity<>("Cannot delete your own account", HttpStatus.FORBIDDEN);
+    }
+    
     memberService.deleteById(id);
     return new ResponseEntity<>("Member deleted successfully", HttpStatus.OK);
   }
@@ -151,6 +162,7 @@ public class RestService {
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Successfully updated member"),
       @ApiResponse(responseCode = "404", description = "Member not found"),
+      @ApiResponse(responseCode = "403", description = "Cannot edit your own account"),
       @ApiResponse(responseCode = "500", description = "Internal server error")
   })
   @PutMapping("/{id}")
@@ -163,6 +175,14 @@ public class RestService {
       if (Objects.isNull(existingMember)) {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND); // Member not found
       }
+      
+      // Check if user is trying to edit their own account
+      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+      if (authentication != null && authentication.getName().equals(existingMember.getEmail())) {
+        log.warn("User {} attempted to edit their own account", authentication.getName());
+        return new ResponseEntity<>(HttpStatus.FORBIDDEN); // Cannot edit own account
+      }
+      
       Member savedMember = memberService.updateMember(existingMember, updatedMember);
 
       // Return the updated member
@@ -170,22 +190,6 @@ public class RestService {
     } catch (Exception e) {
       // Handle exceptions and return appropriate error status
       return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-  }
-
-  @PostMapping("/fix-roles")
-  @Operation(summary = "Fix user roles", description = "Fix existing users with incorrect role format")
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "User roles fixed successfully"),
-      @ApiResponse(responseCode = "500", description = "Internal server error")
-  })
-  public ResponseEntity<String> fixUserRoles() {
-    try {
-      memberService.fixExistingUserRoles();
-      return new ResponseEntity<>("User roles fixed successfully", HttpStatus.OK);
-    } catch (Exception e) {
-      log.error("Error fixing user roles: {}", e.getMessage(), e);
-      return new ResponseEntity<>("Error fixing user roles: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 

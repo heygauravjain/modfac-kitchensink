@@ -1,21 +1,3 @@
-// Function to fix user roles
-function fixUserRoles() {
-  fetch('/admin/members/fix-roles', {
-    method: 'POST',
-    headers: getAuthHeaders()
-  })
-  .then(response => {
-    return response.text();
-  })
-  .then(data => {
-    showModal('Fix User Roles', data, 'success');
-  })
-  .catch(error => {
-    console.error('Fix roles error:', error);
-    showModal('Error', 'Failed to fix user roles', 'error');
-  });
-}
-
 // Function to create and display the iframe
 function loadInFrame(url) {
   // Check if the iframe container already exists, if not create it
@@ -441,6 +423,10 @@ function confirmDelete() {
     if (response.ok) {
       showModal('Success', 'Member deleted successfully!', 'success');
       anchor.closest('tr').remove(); // Remove the table row
+    } else if (response.status === 403) {
+      response.text().then(errorMessage => {
+        showModal('Access Denied', 'Cannot delete your own account. Please contact an administrator if you need to delete your account.', 'error');
+      });
     } else {
       response.text().then(errorMessage => {
         showModal('Error', `Failed to delete member. Status: ${response.status}`, 'error');
@@ -448,11 +434,11 @@ function confirmDelete() {
     }
   })
   .catch(error => {
-    console.error('Error deleting member:', error);
-    showModal('Error', 'Failed to delete member.', 'error');
+    console.error('Delete error:', error);
+    showModal('Error', 'Failed to delete member. Please try again.', 'error');
   });
   
-  delete window.pendingDelete;
+  closeModal();
 }
 
 // Function to load members in a modal
@@ -568,10 +554,17 @@ function saveMember(anchor, url) {
       anchor.style.display = 'none';
       cancelButton.style.display = 'none';
       editButton.style.display = 'inline';
+    } else if (response.status === 403) {
+      response.text().then(errorMessage => {
+        showModal('Access Denied', 'Cannot edit your own account. Please contact an administrator if you need to modify your account.', 'error');
+      });
+      
+      // Cancel edit mode and restore original values
+      cancelEdit(row.querySelector('.cancel-button'));
     } else {
       // Extract error message from response and display it in the modal
-      response.json().then(errorMessage => {
-        showModal('Error', `Failed to update member. Error: ${errorMessage.message || "Unknown error"}`, 'error');
+      response.text().then(errorMessage => {
+        showModal('Error', `Failed to update member. Error: ${errorMessage}`, 'error');
       });
     }
   })

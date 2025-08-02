@@ -132,24 +132,6 @@ public class MemberService {
     return memberDocument != null ? memberMapper.memberEntityToMember(memberDocument) : null;
   }
 
-  /**
-   * Fixes existing users that might have incorrect role format (without ROLE_ prefix)
-   */
-  public void fixExistingUserRoles() {
-    log.info("Checking for users with incorrect role format...");
-    List<MemberDocument> allUsers = memberRepository.findAll();
-    
-    for (MemberDocument user : allUsers) {
-      String role = user.getRole();
-      if (role != null && !role.startsWith("ROLE_")) {
-        String fixedRole = "ROLE_" + role.toUpperCase();
-        log.info("Fixing role for user {}: {} -> {}", user.getEmail(), role, fixedRole);
-        user.setRole(fixedRole);
-        memberRepository.save(user);
-      }
-    }
-  }
-
   public void deleteById(String id) {
     if (!StringUtils.hasText(id)) {
       log.error("Attempted to find a member with a null or empty ID.");

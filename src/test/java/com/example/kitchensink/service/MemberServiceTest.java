@@ -54,7 +54,7 @@ class MemberServiceTest {
     member.setId("1");
     member.setName("John Doe");
     member.setEmail("john.doe@example.com");
-    member.setPassword("testPassword123"); // Add password for testing
+    member.setPassword("testPassword123");
     member.setPhoneNumber("1234567890");
     member.setRole("USER");
 
@@ -62,12 +62,11 @@ class MemberServiceTest {
     memberDocument.setId("1");
     memberDocument.setName("John Doe");
     memberDocument.setEmail("john.doe@example.com");
-    memberDocument.setPassword("encodedPassword"); // Set encoded password
+    memberDocument.setPassword("encodedPassword");
     memberDocument.setPhoneNumber("1234567890");
-    memberDocument.setRole("USER");
+    memberDocument.setRole("ROLE_USER");
   }
 
-  // Positive scenario: Registering a valid member
   @Test
   void testRegisterMember() {
     when(memberMapper.memberToMemberEntity(any(Member.class))).thenReturn(memberDocument);
@@ -82,7 +81,6 @@ class MemberServiceTest {
     assertThat(result.getEmail()).isEqualTo(member.getEmail());
   }
 
-  // Positive scenario: Retrieve all members
   @Test
   void testGetAllMembers() {
     when(memberRepository.findAllOrderedByName()).thenReturn(
@@ -97,7 +95,6 @@ class MemberServiceTest {
     assertThat(result.get(0).getName()).isEqualTo("John Doe");
   }
 
-  // Negative scenario: Empty list when no members are found
   @Test
   void testGetAllMembers_EmptyList() {
     when(memberRepository.findAllOrderedByName()).thenReturn(Collections.emptyList());
@@ -109,7 +106,6 @@ class MemberServiceTest {
     assertThat(result).isEmpty();
   }
 
-  // Positive scenario: Retrieve a member by email
   @Test
   void testFindByEmail() {
     when(memberRepository.findByEmail(anyString())).thenReturn(Optional.of(memberDocument));
@@ -121,7 +117,6 @@ class MemberServiceTest {
     assertThat(result.get().getEmail()).isEqualTo("john.doe@example.com");
   }
 
-  // Negative scenario: Member not found by email
   @Test
   void testFindByEmail_MemberNotFound() {
     when(memberRepository.findByEmail(anyString())).thenReturn(Optional.empty());
@@ -132,7 +127,6 @@ class MemberServiceTest {
     assertThat(result).isNotPresent();
   }
 
-  // Positive scenario: Retrieve a member by ID
   @Test
   void testFindById_WhenMemberExists() {
     when(memberRepository.findById(anyString())).thenReturn(Optional.of(memberDocument));
@@ -146,7 +140,6 @@ class MemberServiceTest {
     assertThat(result.getName()).isEqualTo("John Doe");
   }
 
-  // Negative scenario: Member not found by ID
   @Test
   void testFindById_WhenMemberDoesNotExist() {
     when(memberRepository.findById(anyString())).thenReturn(Optional.empty());
@@ -157,25 +150,71 @@ class MemberServiceTest {
     assertNull(result);
   }
 
-  // Positive scenario: Successfully update a member
   @Test
   void testUpdateMember_Success() {
-    Member updatedMember = new Member("1", "Jane Doe", "jane.doe@example.com", "1234567890", null,
-        "ADMIN");
+    // Create the existing member that should be found in the database
+    Member existingMember = new Member("1", "John Doe", "john.doe@example.com", "1234567890", null, "USER");
+    
+    // Create the updated member with new details
+    Member updatedMember = new Member("1", "Jane Doe", "jane.doe@example.com", "0987654321", null, "ADMIN");
+    
+    // Create the existing document that should be returned from database
+    MemberDocument existingDocument = new MemberDocument();
+    existingDocument.setId("1");
+    existingDocument.setName("John Doe");
+    existingDocument.setEmail("john.doe@example.com");
+    existingDocument.setPassword("encodedPassword");
+    existingDocument.setPhoneNumber("1234567890");
+    existingDocument.setRole("ROLE_USER");
+    
+    // Create the updated document that should be saved
+    MemberDocument updatedDocument = new MemberDocument();
+    updatedDocument.setId("1");
+    updatedDocument.setName("Jane Doe");
+    updatedDocument.setEmail("jane.doe@example.com");
+    updatedDocument.setPassword("encodedPassword");
+    updatedDocument.setPhoneNumber("0987654321");
+    updatedDocument.setRole("ROLE_ADMIN");
 
-    when(memberMapper.memberToMemberEntity(any(Member.class))).thenReturn(memberDocument);
-    when(memberRepository.save(any(MemberDocument.class))).thenReturn(memberDocument);
+    // Mock the repository to return the existing member when findById is called
+    when(memberRepository.findById("1")).thenReturn(Optional.of(existingDocument));
+    
+    // Mock the mapper to return the updated document when converting
+    when(memberMapper.memberToMemberEntity(any(Member.class))).thenReturn(updatedDocument);
+    
+    // Mock the repository to return the updated document when saving
+    when(memberRepository.save(any(MemberDocument.class))).thenReturn(updatedDocument);
+    
+    // Mock the mapper to return the updated member when converting back
     when(memberMapper.memberEntityToMember(any(MemberDocument.class))).thenReturn(updatedMember);
 
-    Member result = memberService.updateMember(member, updatedMember);
+    Member result = memberService.updateMember(existingMember, updatedMember);
 
-    //verify(memberRepository, times(1)).save(memberDocument);
+    verify(memberRepository, times(1)).findById("1");
+    verify(memberRepository, times(1)).save(any(MemberDocument.class));
     assertThat(result).isNotNull();
     assertThat(result.getName()).isEqualTo("Jane Doe");
     assertThat(result.getEmail()).isEqualTo("jane.doe@example.com");
+    assertThat(result.getRole()).isEqualTo("ROLE_ADMIN");
   }
 
-  // Positive scenario: Successfully delete a member by ID
+  @Test
+  void testUpdateMember_MemberNotFound() {
+    Member existingMember = new Member("1", "John Doe", "john.doe@example.com", "1234567890", null, "USER");
+    Member updatedMember = new Member("1", "Jane Doe", "jane.doe@example.com", "0987654321", null, "ADMIN");
+
+    // Mock the repository to return empty when findById is called
+    when(memberRepository.findById("1")).thenReturn(Optional.empty());
+
+    // Test that RuntimeException is thrown
+    assertThrows(RuntimeException.class, () -> {
+      memberService.updateMember(existingMember, updatedMember);
+    });
+
+    verify(memberRepository, times(1)).findById("1");
+    verify(memberRepository, times(0)).save(any(MemberDocument.class));
+  }
+
   @Test
   void testDeleteById_Success() {
     when(memberRepository.findById("1")).thenReturn(Optional.of(memberDocument));
@@ -186,10 +225,15 @@ class MemberServiceTest {
     verify(memberRepository, times(1)).deleteById("1");
   }
 
-  // Negative scenario: Delete member with null or empty ID
   @Test
   void testDeleteById_NullOrEmptyId() {
     assertThrows(IllegalArgumentException.class, () -> memberService.deleteById(""));
+    verify(memberRepository, times(0)).deleteById(anyString());
+  }
+
+  @Test
+  void testDeleteById_NullId() {
+    assertThrows(IllegalArgumentException.class, () -> memberService.deleteById(null));
     verify(memberRepository, times(0)).deleteById(anyString());
   }
 }
