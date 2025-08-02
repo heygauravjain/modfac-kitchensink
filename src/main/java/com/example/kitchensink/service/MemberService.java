@@ -7,7 +7,7 @@ import com.example.kitchensink.repository.MemberRepository;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -19,9 +19,9 @@ public class MemberService {
 
   private final MemberRepository memberRepository;
   
-  private final BCryptPasswordEncoder passwordEncoder;
+  private final PasswordEncoder passwordEncoder;
 
-  public MemberService(MemberRepository memberRepository, BCryptPasswordEncoder passwordEncoder) {
+  public MemberService(MemberRepository memberRepository, PasswordEncoder passwordEncoder) {
     this.memberRepository = memberRepository;
     this.passwordEncoder = passwordEncoder;
   }
@@ -30,8 +30,14 @@ public class MemberService {
    * Registers a new member by saving the member document in the database.
    */
   public Member registerMember(Member member) {
-    log.info("Registering member: {}", member);
     MemberDocument memberDocument = memberMapper.memberToMemberEntity(member);
+    
+    // Ensure role has ROLE_ prefix for Spring Security compatibility
+    String role = memberDocument.getRole();
+    if (role != null && !role.startsWith("ROLE_")) {
+      role = "ROLE_" + role.toUpperCase();
+      memberDocument.setRole(role);
+    }
     
     // Encrypt the password before saving
     if (memberDocument.getPassword() != null && !memberDocument.getPassword().isEmpty()) {
@@ -45,17 +51,29 @@ public class MemberService {
   }
 
   public Member updateMember(Member existingMember, Member updatedMember) {
-    log.info("Updating member: {}", updatedMember);
-
+    // Get the existing member from database to preserve the encrypted password
+    MemberDocument existingDocument = memberRepository.findById(existingMember.getId())
+        .orElseThrow(() -> new RuntimeException("Member not found with ID: " + existingMember.getId()));
+    
     // Update the existing member's details with new values
     existingMember.setName(updatedMember.getName());
     existingMember.setEmail(updatedMember.getEmail());
     existingMember.setPhoneNumber(updatedMember.getPhoneNumber());
-    existingMember.setRole(updatedMember.getRole());
     
+    // Ensure role has ROLE_ prefix for Spring Security compatibility
+    String role = updatedMember.getRole();
+    if (role != null && !role.startsWith("ROLE_")) {
+      role = "ROLE_" + role.toUpperCase();
+    }
+    existingMember.setRole(role);
+    
+    // Preserve the existing encrypted password from database
     // Only update password if a new password is explicitly provided
     if (updatedMember.getPassword() != null && !updatedMember.getPassword().isEmpty()) {
       existingMember.setPassword(updatedMember.getPassword());
+    } else {
+      // Keep the existing encrypted password from database
+      existingMember.setPassword(existingDocument.getPassword());
     }
 
     MemberDocument memberDocument = memberMapper.memberToMemberEntity(existingMember);
@@ -64,8 +82,10 @@ public class MemberService {
     if (updatedMember.getPassword() != null && !updatedMember.getPassword().isEmpty()) {
       String encryptedPassword = passwordEncoder.encode(memberDocument.getPassword());
       memberDocument.setPassword(encryptedPassword);
+    } else {
+      // Preserve the existing encrypted password
+      memberDocument.setPassword(existingDocument.getPassword());
     }
-    // If no new password was provided, the existing encrypted password remains unchanged
     
     memberRepository.save(memberDocument);
 
@@ -110,6 +130,24 @@ public class MemberService {
   public Member findById(String id) {
     MemberDocument memberDocument = memberRepository.findById(id).orElse(null);
     return memberDocument != null ? memberMapper.memberEntityToMember(memberDocument) : null;
+  }
+
+  /**
+   * Fixes existing users that might have incorrect role format (without ROLE_ prefix)
+   */
+  public void fixExistingUserRoles() {
+    log.info("Checking for users with incorrect role format...");
+    List<MemberDocument> allUsers = memberRepository.findAll();
+    
+    for (MemberDocument user : allUsers) {
+      String role = user.getRole();
+      if (role != null && !role.startsWith("ROLE_")) {
+        String fixedRole = "ROLE_" + role.toUpperCase();
+        log.info("Fixing role for user {}: {} -> {}", user.getEmail(), role, fixedRole);
+        user.setRole(fixedRole);
+        memberRepository.save(user);
+      }
+    }
   }
 
   public void deleteById(String id) {

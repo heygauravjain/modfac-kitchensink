@@ -1,3 +1,21 @@
+// Function to fix user roles
+function fixUserRoles() {
+  fetch('/admin/members/fix-roles', {
+    method: 'POST',
+    headers: getAuthHeaders()
+  })
+  .then(response => {
+    return response.text();
+  })
+  .then(data => {
+    showModal('Fix User Roles', data, 'success');
+  })
+  .catch(error => {
+    console.error('Fix roles error:', error);
+    showModal('Error', 'Failed to fix user roles', 'error');
+  });
+}
+
 // Function to create and display the iframe
 function loadInFrame(url) {
   // Check if the iframe container already exists, if not create it
@@ -149,8 +167,9 @@ function validateTableEmail(email) {
 }
 
 function validateTablePhone(phone) {
+  // Phone number is optional, so if empty, it's valid
   if (!phone || phone.trim() === '') {
-    return 'Phone number is required.';
+    return null; // No error for empty phone number
   }
   const phoneRegex = /^\d{10,12}$/;
   if (!phoneRegex.test(phone)) {
@@ -214,7 +233,11 @@ function validateTableField(field, fieldType) {
 function editMember(button) {
   const row = button.closest('tr');
   const fields = row.querySelectorAll('.editable-field');
-  fields.forEach(field => {
+  
+  console.log('Edit button clicked, found fields:', fields.length);
+  
+  fields.forEach((field, index) => {
+    console.log(`Field ${index}:`, field);
     field.disabled = false;
     field.classList.add('edit-mode');
   });
@@ -222,15 +245,19 @@ function editMember(button) {
   // Show Save and Cancel links, hide Edit button
   const saveLink = row.querySelector('.save-link');
   const cancelButton = row.querySelector('.cancel-button');
-  saveLink.style.display = 'inline';
-  cancelButton.style.display = 'inline';
-  button.style.display = 'none';
+  const editButton = row.querySelector('.edit-button');
+  
+  if (saveLink) saveLink.style.display = 'inline';
+  if (cancelButton) cancelButton.style.display = 'inline';
+  if (editButton) editButton.style.display = 'none';
 
   // Store original values in data attributes to restore on cancel
-  row.setAttribute('data-original-name', fields[0].value);
-  row.setAttribute('data-original-email', fields[1].value);
-  row.setAttribute('data-original-phone', fields[2].value);
-  row.setAttribute('data-original-role', fields[3].value);
+  if (fields.length >= 4) {
+    row.setAttribute('data-original-name', fields[0].value);
+    row.setAttribute('data-original-email', fields[1].value);
+    row.setAttribute('data-original-phone', fields[2].value);
+    row.setAttribute('data-original-role', fields[3].value);
+  }
 }
 
 // Function to cancel edit mode and restore original values
@@ -258,22 +285,227 @@ function cancelEdit(button) {
   editButton.style.display = 'inline';
 }
 
+// Modal functions
+function showModal(title, message, type = 'info') {
+  // Remove existing modal if any
+  const existingModal = document.getElementById('customModal');
+  if (existingModal) {
+    existingModal.remove();
+  }
+
+  const modal = document.createElement('div');
+  modal.id = 'customModal';
+  modal.style.position = 'fixed';
+  modal.style.top = '0';
+  modal.style.left = '0';
+  modal.style.width = '100%';
+  modal.style.height = '100%';
+  modal.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+  modal.style.zIndex = '10000';
+  modal.style.display = 'flex';
+  modal.style.alignItems = 'center';
+  modal.style.justifyContent = 'center';
+
+  const modalContent = document.createElement('div');
+  modalContent.style.backgroundColor = 'var(--bg-primary)';
+  modalContent.style.borderRadius = '12px';
+  modalContent.style.padding = '30px';
+  modalContent.style.maxWidth = '800px';
+  modalContent.style.width = '90%';
+  modalContent.style.maxHeight = '80vh';
+  modalContent.style.overflowY = 'auto';
+  modalContent.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.3)';
+  modalContent.style.position = 'relative';
+
+  // Set color based on type
+  let color = 'var(--primary-color)';
+  if (type === 'success') color = 'var(--success-color)';
+  if (type === 'error') color = 'var(--error-color)';
+  if (type === 'warning') color = 'var(--warning-color)';
+
+  modalContent.innerHTML = `
+    <h3 style="margin: 0 0 20px 0; color: ${color}; font-size: 20px;">${title}</h3>
+    <p style="margin: 0 0 25px 0; color: var(--text-primary); line-height: 1.5;">${message}</p>
+    <button onclick="closeModal()" style="
+      background: ${color};
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    ">OK</button>
+  `;
+
+  modal.appendChild(modalContent);
+  document.body.appendChild(modal);
+
+  // Close modal on background click
+  modal.addEventListener('click', function(e) {
+    if (e.target === modal) {
+      closeModal();
+    }
+  });
+}
+
+function closeModal() {
+  const modal = document.getElementById('customModal');
+  if (modal) {
+    modal.remove();
+  }
+}
+
 // Function to delete a member
 function deleteMember(anchor, url) {
-  if (confirm("Are you sure you want to delete this member?")) {
-    fetch(url, {
-      method: 'DELETE'
-    })
-    .then(response => {
-      if (response.ok) {
-        alert("Member deleted successfully!");
-        anchor.closest('tr').remove(); // Remove the table row
-      } else {
-        alert("Failed to delete member.");
-      }
-    })
-    .catch(error => console.error('Error deleting member:', error));
+  // Remove existing modal if any
+  const existingModal = document.getElementById('customModal');
+  if (existingModal) {
+    existingModal.remove();
   }
+
+  const modal = document.createElement('div');
+  modal.id = 'customModal';
+  modal.style.position = 'fixed';
+  modal.style.top = '0';
+  modal.style.left = '0';
+  modal.style.width = '100%';
+  modal.style.height = '100%';
+  modal.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+  modal.style.zIndex = '10000';
+  modal.style.display = 'flex';
+  modal.style.alignItems = 'center';
+  modal.style.justifyContent = 'center';
+
+  const modalContent = document.createElement('div');
+  modalContent.style.backgroundColor = 'var(--bg-primary)';
+  modalContent.style.borderRadius = '12px';
+  modalContent.style.padding = '30px';
+  modalContent.style.maxWidth = '400px';
+  modalContent.style.width = '90%';
+  modalContent.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.3)';
+  modalContent.style.position = 'relative';
+
+  modalContent.innerHTML = `
+    <h3 style="margin: 0 0 20px 0; color: var(--warning-color); font-size: 20px;">Confirm Delete</h3>
+    <p style="margin: 0 0 25px 0; color: var(--text-primary); line-height: 1.5;">Are you sure you want to delete this member?</p>
+    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+      <button onclick="closeModal()" style="
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+      ">Cancel</button>
+      <button onclick="confirmDelete()" style="
+        background: var(--error-color);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+      ">Delete</button>
+    </div>
+  `;
+
+  modal.appendChild(modalContent);
+  document.body.appendChild(modal);
+
+  // Store the anchor and url for the confirmation
+  window.pendingDelete = { anchor, url };
+
+  // Close modal on background click
+  modal.addEventListener('click', function(e) {
+    if (e.target === modal) {
+      closeModal();
+    }
+  });
+}
+
+function confirmDelete() {
+  const { anchor, url } = window.pendingDelete;
+  
+  fetch(url, {
+    method: 'DELETE',
+    headers: getAuthHeaders()
+  })
+  .then(response => {
+    if (response.ok) {
+      showModal('Success', 'Member deleted successfully!', 'success');
+      anchor.closest('tr').remove(); // Remove the table row
+    } else {
+      response.text().then(errorMessage => {
+        showModal('Error', `Failed to delete member. Status: ${response.status}`, 'error');
+      });
+    }
+  })
+  .catch(error => {
+    console.error('Error deleting member:', error);
+    showModal('Error', 'Failed to delete member.', 'error');
+  });
+  
+  delete window.pendingDelete;
+}
+
+// Function to load members in a modal
+function loadMembersModal() {
+  console.log('Loading members modal...');
+  const headers = getAuthHeaders();
+  console.log('Request headers:', headers);
+  
+  fetch('/admin/members', {
+    headers: headers
+  })
+    .then(response => {
+      console.log('Members response status:', response.status);
+      console.log('Members response headers:', response.headers);
+      if (!response.ok) {
+        return response.text().then(errorText => {
+          throw new Error(`HTTP ${response.status}: ${errorText}`);
+        });
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('Members data received:', data);
+      let membersHtml = '';
+      if (data && data.length > 0) {
+        membersHtml = '<table style="width: 100%; border-collapse: collapse; margin-top: 15px;">';
+        membersHtml += '<thead><tr style="background: var(--bg-secondary);">';
+        membersHtml += '<th style="padding: 10px; text-align: left; border-bottom: 1px solid var(--border-color);">Name</th>';
+        membersHtml += '<th style="padding: 10px; text-align: left; border-bottom: 1px solid var(--border-color);">Email</th>';
+        membersHtml += '<th style="padding: 10px; text-align: left; border-bottom: 1px solid var(--border-color);">Phone Number</th>';
+        membersHtml += '<th style="padding: 10px; text-align: left; border-bottom: 1px solid var(--border-color);">Role</th>';
+        membersHtml += '</tr></thead><tbody>';
+        
+        data.forEach(member => {
+          membersHtml += '<tr style="border-bottom: 1px solid var(--border-color);">';
+          membersHtml += `<td style="padding: 10px;">${member.name || 'N/A'}</td>`;
+          membersHtml += `<td style="padding: 10px;">${member.email || 'N/A'}</td>`;
+          membersHtml += `<td style="padding: 10px;">${member.phoneNumber || 'N/A'}</td>`;
+          membersHtml += `<td style="padding: 10px;">${member.role || 'N/A'}</td>`;
+          membersHtml += '</tr>';
+        });
+        
+        membersHtml += '</tbody></table>';
+      } else {
+        membersHtml = '<p style="text-align: center; color: var(--text-secondary);">No members found.</p>';
+      }
+      
+      showModal('Members List', membersHtml, 'info');
+    })
+    .catch(error => {
+      console.error('Error loading members:', error);
+      showModal('Error', 'Failed to load members data: ' + error.message, 'error');
+    });
 }
 
 // Function to save updated member information
@@ -301,7 +533,7 @@ function saveMember(anchor, url) {
     if (phoneError) errorMessage += `• ${phoneError}\n`;
     if (roleError) errorMessage += `• ${roleError}\n`;
     
-    alert(errorMessage);
+    showModal('Validation Error', errorMessage, 'error');
     return;
   }
 
@@ -317,14 +549,12 @@ function saveMember(anchor, url) {
   // Send the updated member data to the server using the URL
   fetch(url, {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json'
-    },
+    headers: getAuthHeaders(),
     body: JSON.stringify(updatedMember)
   })
   .then(response => {
     if (response.ok) {
-      alert("Member updated successfully!");
+      showModal('Success', 'Member updated successfully!', 'success');
 
       // Disable fields again after saving
       fields.forEach(field => {
@@ -339,16 +569,43 @@ function saveMember(anchor, url) {
       cancelButton.style.display = 'none';
       editButton.style.display = 'inline';
     } else {
-      // Extract error message from response and display it in the alert
+      // Extract error message from response and display it in the modal
       response.json().then(errorMessage => {
-        alert(`Failed to update member. Error: ${errorMessage.message || "Unknown error"}`);
+        showModal('Error', `Failed to update member. Error: ${errorMessage.message || "Unknown error"}`, 'error');
       });
     }
   })
   .catch(error => {
     console.error('Error updating member:', error);
-    alert(`Failed to update member. Error: ${error.message}`);
+    showModal('Error', `Failed to update member. Error: ${error.message}`, 'error');
   });
+}
+
+// Utility function to get JWT token from localStorage
+function getAuthToken() {
+  const token = localStorage.getItem('accessToken');
+  console.log('Getting auth token from localStorage:', token ? 'Token found' : 'No token found');
+  if (!token) {
+    console.log('localStorage contents:', {
+      accessToken: localStorage.getItem('accessToken'),
+      refreshToken: localStorage.getItem('refreshToken'),
+      userEmail: localStorage.getItem('userEmail'),
+      userRole: localStorage.getItem('userRole')
+    });
+  }
+  return token;
+}
+
+// Utility function to add Authorization header to fetch requests
+function getAuthHeaders() {
+  const token = getAuthToken();
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(token && { 'Authorization': `Bearer ${token}` })
+  };
+  console.log('Auth headers being sent:', headers);
+  console.log('Token present:', !!token);
+  return headers;
 }
 
 

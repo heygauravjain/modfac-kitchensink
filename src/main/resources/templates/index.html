@@ -3,156 +3,219 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kitchensink</title>
+  <title>KitchenSink - Admin Dashboard</title>
   <!-- Favicon -->
   <link rel="icon" type="image/png" th:href="@{/gfx/mongo.png}"/>
   <link rel="shortcut icon" type="image/png" th:href="@{/gfx/mongo.png}"/>
-  <!-- Include the CSS stylesheet -->
-  <link th:href="@{/css/screen.css}" rel="stylesheet"/>
-  <!-- Include the JavaScript file -->
+  <!-- Include the unified CSS stylesheet -->
+  <link th:href="@{/css/unified-theme.css}" rel="stylesheet"/>
+  <!-- Include the theme toggle JavaScript -->
+  <script th:src="@{/js/theme-toggle.js}" defer></script>
+  <!-- Include the existing JavaScript file -->
   <script th:src="@{/js/script.js}"></script>
+  <style>
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .error-message {
+      color: #dc3545;
+      font-size: 0.875rem;
+      margin-top: 5px;
+      display: none;
+    }
+    .success-message {
+      color: #28a745;
+      font-size: 0.875rem;
+      margin-top: 5px;
+      display: none;
+    }
+    .form-control {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+    .form-control:focus {
+      outline: none;
+      border-color: #007bff;
+      box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+    }
+    .form-control.error {
+      border-color: #dc3545;
+    }
+    .form-control.success {
+      border-color: #28a745;
+    }
+    .password-requirements {
+      font-size: 0.75rem;
+      color: #6c757d;
+      margin-top: 5px;
+    }
+    .requirement {
+      margin: 2px 0;
+    }
+    .requirement.met {
+      color: #28a745;
+    }
+    .requirement.unmet {
+      color: #dc3545;
+    }
+  </style>
 </head>
 <body>
-<div id="container">
-  <div id="header">
-        <h1>Kitchensink - Admin Home</h1>
-        <a th:href="@{/logout}" class="logout-button">Logout</a>
-  </div>
-
-  <!-- Registration Form Section -->
-  <div class="form-container">
-    <!-- Success Message -->
-    <div th:if="${registrationSuccess}">
-      <div th:text="${successMessage}" class="valid"></div>
-    </div>
-
-    <!-- Error Message -->
-    <div th:if="${registrationError}">
-      <div th:text="${errorMessage}" class="invalid"></div>
-    </div>
-
-    <!-- Registration Form -->
-    <form th:action="@{/register}" th:object="${member}" method="post" id="registrationForm" onsubmit="return validateForm()">
-      <fieldset>
-        <legend>Member Registration</legend>
-        <div class="form-group tooltip-container">
-          <label for="name">Name:</label>
-          <input type="text" id="name" th:field="*{name}" placeholder="Enter your name" required
-                 pattern="[^0-9]*" onblur="validateName()"/>
-          <span class="tooltip-text">Your full name (no numbers).</span>
-          <div id="nameError" class="invalid" style="display: none;"></div>
-        </div>
-        <div class="form-group tooltip-container">
-          <label for="email">Email:</label>
-          <input type="email" id="email" th:field="*{email}" placeholder="Enter your email"
-                 required onblur="validateEmail()"/>
-          <span class="tooltip-text">e.g., user@example.com</span>
-          <div id="emailError" class="invalid" style="display: none;"></div>
-        </div>
-        <div class="form-group tooltip-container">
-          <label for="password">Password:</label>
-          <input type="password" id="password" th:field="*{password}" placeholder="Enter your password"
-                 required onblur="validatePassword()"/>
-          <span class="tooltip-text">Password must be at least 8 characters long.</span>
-          <div id="passwordError" class="invalid" style="display: none;"></div>
-        </div>
-        <div class="form-group tooltip-container">
-          <label for="phoneNumber">Phone:</label>
-          <input type="text" id="phoneNumber" th:field="*{phoneNumber}"
-                 placeholder="Enter your phone number" required onblur="validatePhone()"/>
-          <span class="tooltip-text">Your phone number (10-12 digits).</span>
-          <div id="phoneError" class="invalid" style="display: none;"></div>
-        </div>
-        <div class="role-section">
-          <label>Role:</label>
-          <div class="radio-option">
-            <input type="radio" id="roleAdmin" name="role" value="ADMIN"/>
-            <label for="roleAdmin">ADMIN</label>
-          </div>
-          <div class="radio-option">
-            <input type="radio" id="roleUser" name="role" value="USER" checked/>
-            <label for="roleUser">USER</label>
-          </div>
-        </div>
-        <input type="hidden" name="sourcePage" value="index"/>
-        <div class="button-container">
-          <button type="submit" class="register-button">Register</button>
-        </div>
-      </fieldset>
-    </form>
-  </div>
-
-  <!-- Members Table Section -->
-  <div class="table-container">
-    <h2>Members</h2>
-    <div th:if="${#lists.isEmpty(members)}">
-      <em>No registered Members.</em>
-    </div>
-    <div th:if="${!#lists.isEmpty(members)}">
-      <table class="simpletablestyle">
-        <thead>
-        <tr>
-          <th>Actions</th>
-          <th>Id</th>
-          <th>Name</th>
-          <th>Email</th>
-          <th>Phone #</th>
-          <th>Role</th>
-          <th>REST URL</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="member : ${members}">
-          <td>
-            <!-- Cancel Button (X) (Hidden Initially) -->
-            <button type="button" class="cancel-button icon-button" style="display:none;"
-                    onclick="cancelEdit(this)">❌
-            </button>
-            <!-- Save Link (Hidden Initially) -->
-            <a th:href="@{/admin/members/{id}(id=${member.id})}" class="save-link icon-button"
-               onclick="saveMember(this, this.href); return false;" style="display:none;">💾</a>
-            <!-- Edit Button Icon -->
-            <!-- Only show Edit button if the current member is not the logged-in user -->
-            <button type="button" class="edit-button icon-button"
-                    th:if="${loggedInUser != member.email}"
-                    onclick="editMember(this)">✏️
-            </button>
-            <!-- Delete Button Icon -->
-            <a th:href="@{/admin/members/{id}(id=${member.id})}" class="delete-link icon-button"
-               th:if="${loggedInUser != member.email}"
-               onclick="deleteMember(this, this.href); return false;">🗑️</a>
-          </td>
-          <td th:text="${member.id}"></td>
-          <td><input type="text" th:value="${member.name}" disabled class="editable-field" onblur="validateTableField(this, 'name')"/></td>
-          <td><input type="email" th:value="${member.email}" disabled class="editable-field" onblur="validateTableField(this, 'email')"/></td>
-          <td><input type="text" th:value="${member.phoneNumber}" disabled class="editable-field" onblur="validateTableField(this, 'phone')"/>
-          </td>
-          <td>
-            <select disabled class="editable-field" onblur="validateTableField(this, 'role')">
-              <option value="ADMIN" th:selected="${member.role == 'ADMIN'}">ADMIN</option>
-              <option value="USER" th:selected="${member.role == 'USER'}">USER</option>
-            </select>
-          </td>
-          <td>
-            <a th:href="@{/admin/members/{id}(id=${member.id})}"
-               onclick="return loadInFrame(this.href)">
-              /admin/members/<span th:text="${member.id}"></span>
-            </a>
-          </td>
-        </tr>
-        </tbody>
-      </table>
-      <div>Rest URL for all members: <a href="/admin/members"
-                                        onclick="return loadInFrame(this.href)">/admin/members</a>
+  <div class="admin-dashboard">
+    <!-- Hidden inputs for session tokens -->
+    <input type="hidden" id="sessionAccessToken" th:value="${sessionAccessToken}" />
+    <input type="hidden" id="sessionRefreshToken" th:value="${sessionRefreshToken}" />
+    <input type="hidden" id="sessionUserEmail" th:value="${sessionUserEmail}" />
+    <input type="hidden" id="sessionUserRole" th:value="${sessionUserRole}" />
+    
+    <!-- Header Section -->
+    <div class="dashboard-header">
+      <h1>KitchenSink - Admin Dashboard</h1>
+      <div class="header-actions">
+        <span class="welcome-text">Welcome, <span th:text="${loggedInUser}">Admin</span></span>
+        <a th:href="@{/jwt-logout}" class="btn btn-logout" onclick="logout()">Logout</a>
       </div>
     </div>
-  </div>
 
-  <!-- Footer Section -->
-  <div id="footer">
-    This project was generated using Spring Boot with Thymeleaf and MongoDB
+    <!-- Main Content -->
+    <div class="dashboard-content">
+      <!-- Members Table Section -->
+      <div class="dashboard-section">
+        <h2>Members Management</h2>
+        <div th:if="${#lists.isEmpty(members)}" class="empty-state">
+          <p>No registered members found.</p>
+        </div>
+        <div th:if="${!#lists.isEmpty(members)}" class="members-table-container">
+          <table class="members-table">
+            <thead>
+              <tr>
+                <th>Actions</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone Number</th>
+                <th>Role</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr th:each="member : ${members}">
+                <td class="actions-cell">
+                  <a href="#" class="btn btn-small btn-edit edit-button" 
+                     th:onclick="'return editMember(this);'" style="display: inline;">Edit</a>
+                  <a href="#" class="btn btn-small btn-secondary save-link" 
+                     th:onclick="'return saveMember(this, \'' + @{/admin/members/{id}(id=${member.id})} + '\');'" 
+                     style="display: none;">Save</a>
+                  <a href="#" class="btn btn-small btn-delete cancel-button" 
+                     th:onclick="'return cancelEdit(this);'" style="display: none;">Cancel</a>
+                  <a href="#" class="btn btn-small btn-delete" 
+                     th:onclick="'return deleteMember(this, \'' + @{/admin/members/{id}(id=${member.id})} + '\');'">Delete</a>
+                </td>
+                <td>
+                  <input type="text" class="editable-field" th:value="${member.name}" disabled style="border: none; background: transparent; width: 100%;">
+                </td>
+                <td>
+                  <input type="email" class="editable-field" th:value="${member.email}" disabled style="border: none; background: transparent; width: 100%;">
+                </td>
+                <td>
+                  <input type="text" class="editable-field" th:value="${member.phoneNumber}" disabled style="border: none; background: transparent; width: 100%;">
+                </td>
+                <td>
+                  <select class="editable-field" disabled style="border: none; background: transparent; width: 100%;">
+                    <option value="ADMIN" th:selected="${member.role == 'ROLE_ADMIN'}">ADMIN</option>
+                    <option value="USER" th:selected="${member.role == 'ROLE_USER'}">USER</option>
+                  </select>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="api-info">
+            <p>REST API: <a href="#" onclick="loadMembersModal()">/admin/members</a></p>
+            <p><a href="#" onclick="fixUserRoles()">Fix User Roles</a></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Registration Form Section -->
+      <div class="dashboard-section">
+        <h2>Member Registration</h2>
+        
+        <!-- Success Message -->
+        <div th:if="${registrationSuccess}" class="success" th:text="${successMessage}"></div>
+
+        <!-- Error Message -->
+        <div th:if="${registrationError}" class="error" th:text="${errorMessage}"></div>
+
+        <!-- Registration Form -->
+        <form th:action="@{/register}" th:object="${member}" method="post" id="registrationForm" onsubmit="return submitRegistrationForm(event)">
+          <div class="form-group">
+            <label for="name">Name: *</label>
+            <input type="text" id="name" th:field="*{name}" class="form-control" placeholder="Enter your full name" required
+                   onblur="validateName()" oninput="validateName()"/>
+            <div id="nameError" class="error-message" style="display: none;"></div>
+          </div>
+          
+          <div class="form-group">
+            <label for="email">Email: *</label>
+            <input type="email" id="email" th:field="*{email}" class="form-control" placeholder="Enter your email address"
+                   required onblur="validateEmail()" oninput="validateEmail()"/>
+            <div id="emailError" class="error-message" style="display: none;"></div>
+          </div>
+          
+          <div class="form-group">
+            <label for="password">Password: *</label>
+            <input type="password" id="password" th:field="*{password}" class="form-control" placeholder="Enter your password" required 
+                   onblur="validatePassword()" oninput="validatePassword()"/>
+            <div id="passwordError" class="error-message" style="display: none;"></div>
+            <div class="password-requirements">
+              <div class="requirement" id="lengthReq">At least 8 characters</div>
+              <div class="requirement" id="uppercaseReq">One uppercase letter</div>
+              <div class="requirement" id="lowercaseReq">One lowercase letter</div>
+              <div class="requirement" id="numberReq">One number</div>
+              <div class="requirement" id="specialReq">One special character (@$!%*?&)</div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="confirmPassword">Confirm Password: *</label>
+            <input type="password" id="confirmPassword" name="confirmPassword" class="form-control" required 
+                   placeholder="Confirm your password" onblur="validateConfirmPassword()" oninput="validateConfirmPassword()"/>
+            <div id="confirmPasswordError" class="error-message" style="display: none;"></div>
+          </div>
+          
+          <div class="form-group">
+            <label for="phoneNumber">Phone Number: (Optional)</label>
+            <input type="tel" id="phoneNumber" th:field="*{phoneNumber}" class="form-control" 
+                   placeholder="Enter your phone number (10-12 digits)" onblur="validatePhone()" oninput="validatePhone()"/>
+            <div id="phoneError" class="error-message" style="display: none;"></div>
+          </div>
+          
+          <div class="form-group">
+            <label>Role:</label>
+            <div class="role-options">
+              <div class="radio-option">
+                <input type="radio" id="roleAdmin" name="role" value="ADMIN"/>
+                <label for="roleAdmin">Admin</label>
+              </div>
+              <div class="radio-option">
+                <input type="radio" id="roleUser" name="role" value="USER" checked/>
+                <label for="roleUser">User</label>
+              </div>
+            </div>
+          </div>
+          
+          <input type="hidden" name="sourcePage" value="index"/>
+          <button type="submit" class="btn btn-secondary" data-original-text="Register Member">Register Member</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Footer Section -->
+    <div class="dashboard-footer">
+      <p>KitchenSink - Spring Boot with Thymeleaf and MongoDB</p>
+    </div>
   </div>
-</div>
 
 <script>
 // Form validation functions
@@ -162,19 +225,16 @@ function validateName() {
   const name = nameInput.value.trim();
   
   if (name === '') {
-    nameError.textContent = 'Name is required.';
-    nameError.style.display = 'block';
-    return false;
-  } else if (/\d/.test(name)) {
-    nameError.textContent = 'Name must not contain numbers.';
-    nameError.style.display = 'block';
+    showError(nameInput, nameError, 'Name is required.');
     return false;
   } else if (name.length > 25) {
-    nameError.textContent = 'Name must be 25 characters or less.';
-    nameError.style.display = 'block';
+    showError(nameInput, nameError, 'Name must be 25 characters or less.');
+    return false;
+  } else if (/\d/.test(name)) {
+    showError(nameInput, nameError, 'Name must not contain numbers.');
     return false;
   } else {
-    nameError.style.display = 'none';
+    showSuccess(nameInput, nameError);
     return true;
   }
 }
@@ -186,15 +246,13 @@ function validateEmail() {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   
   if (email === '') {
-    emailError.textContent = 'Email is required.';
-    emailError.style.display = 'block';
+    showError(emailInput, emailError, 'Email is required.');
     return false;
   } else if (!emailRegex.test(email)) {
-    emailError.textContent = 'Please enter a valid email address.';
-    emailError.style.display = 'block';
+    showError(emailInput, emailError, 'Please enter a valid email address.');
     return false;
   } else {
-    emailError.style.display = 'none';
+    showSuccess(emailInput, emailError);
     return true;
   }
 }
@@ -204,16 +262,46 @@ function validatePassword() {
   const passwordError = document.getElementById('passwordError');
   const password = passwordInput.value;
   
+  // Password requirements
+  const hasLength = password.length >= 8;
+  const hasUppercase = /[A-Z]/.test(password);
+  const hasLowercase = /[a-z]/.test(password);
+  const hasNumber = /\d/.test(password);
+  const hasSpecial = /[@$!%*?&]/.test(password);
+  
+  // Update requirement indicators
+  document.getElementById('lengthReq').className = hasLength ? 'requirement met' : 'requirement unmet';
+  document.getElementById('uppercaseReq').className = hasUppercase ? 'requirement met' : 'requirement unmet';
+  document.getElementById('lowercaseReq').className = hasLowercase ? 'requirement met' : 'requirement unmet';
+  document.getElementById('numberReq').className = hasNumber ? 'requirement met' : 'requirement unmet';
+  document.getElementById('specialReq').className = hasSpecial ? 'requirement met' : 'requirement unmet';
+  
   if (password === '') {
-    passwordError.textContent = 'Password is required.';
-    passwordError.style.display = 'block';
+    showError(passwordInput, passwordError, 'Password is required.');
     return false;
-  } else if (password.length < 8) {
-    passwordError.textContent = 'Password must be at least 8 characters long.';
-    passwordError.style.display = 'block';
+  } else if (!hasLength || !hasUppercase || !hasLowercase || !hasNumber || !hasSpecial) {
+    showError(passwordInput, passwordError, 'Password does not meet all requirements.');
     return false;
   } else {
-    passwordError.style.display = 'none';
+    showSuccess(passwordInput, passwordError);
+    return true;
+  }
+}
+
+function validateConfirmPassword() {
+  const confirmPasswordInput = document.getElementById('confirmPassword');
+  const confirmPasswordError = document.getElementById('confirmPasswordError');
+  const password = document.getElementById('password').value;
+  const confirmPassword = confirmPasswordInput.value;
+  
+  if (confirmPassword === '') {
+    showError(confirmPasswordInput, confirmPasswordError, 'Please confirm your password.');
+    return false;
+  } else if (password !== confirmPassword) {
+    showError(confirmPasswordInput, confirmPasswordError, 'Passwords do not match.');
+    return false;
+  } else {
+    showSuccess(confirmPasswordInput, confirmPasswordError);
     return true;
   }
 }
@@ -222,43 +310,277 @@ function validatePhone() {
   const phoneInput = document.getElementById('phoneNumber');
   const phoneError = document.getElementById('phoneError');
   const phone = phoneInput.value.trim();
-  const phoneRegex = /^\d{10,12}$/;
   
+  // Phone is optional, so if empty, it's valid
   if (phone === '') {
-    phoneError.textContent = 'Phone number is required.';
-    phoneError.style.display = 'block';
-    return false;
-  } else if (!phoneRegex.test(phone)) {
-    phoneError.textContent = 'Phone number must be 10-12 digits.';
-    phoneError.style.display = 'block';
-    return false;
-  } else {
-    phoneError.style.display = 'none';
+    showSuccess(phoneInput, phoneError);
     return true;
   }
+  
+  const phoneRegex = /^\d{10,12}$/;
+  if (!phoneRegex.test(phone)) {
+    showError(phoneInput, phoneError, 'Phone number must be 10-12 digits.');
+    return false;
+  } else {
+    showSuccess(phoneInput, phoneError);
+    return true;
+  }
+}
+
+function showError(input, errorElement, message) {
+  input.classList.remove('success');
+  input.classList.add('error');
+  errorElement.textContent = message;
+  errorElement.style.display = 'block';
+}
+
+function showSuccess(input, errorElement) {
+  input.classList.remove('error');
+  input.classList.add('success');
+  errorElement.style.display = 'none';
 }
 
 function validateForm() {
   const isNameValid = validateName();
   const isEmailValid = validateEmail();
   const isPasswordValid = validatePassword();
+  const isConfirmPasswordValid = validateConfirmPassword();
   const isPhoneValid = validatePhone();
   
-  return isNameValid && isEmailValid && isPasswordValid && isPhoneValid;
+  return isNameValid && isEmailValid && isPasswordValid && isConfirmPasswordValid && isPhoneValid;
+}
+
+// Function to submit registration form with JWT token
+function submitRegistrationForm(event) {
+  event.preventDefault();
+  
+  if (!validateForm()) {
+    return false;
+  }
+  
+  console.log('Submitting registration form with JWT token...');
+  
+  const form = document.getElementById('registrationForm');
+  const formData = new FormData(form);
+  
+  // Get role from radio buttons
+  const roleAdmin = document.getElementById('roleAdmin');
+  const roleUser = document.getElementById('roleUser');
+  let role = 'USER'; // default
+  if (roleAdmin && roleAdmin.checked) {
+    role = 'ADMIN';
+  } else if (roleUser && roleUser.checked) {
+    role = 'USER';
+  }
+  
+  // Convert form data to JSON
+  const memberData = {
+    name: formData.get('name'),
+    email: formData.get('email'),
+    password: formData.get('password'),
+    phoneNumber: formData.get('phoneNumber') || '',
+    role: role
+  };
+  
+  console.log('Form data extracted:');
+  console.log('- name:', formData.get('name'));
+  console.log('- email:', formData.get('email'));
+  console.log('- password:', formData.get('password') ? '***' : 'empty');
+  console.log('- phoneNumber:', formData.get('phoneNumber'));
+  console.log('- role:', role);
+  console.log('Registration data:', memberData);
+  
+  fetch('/admin/members', {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(memberData)
+  })
+  .then(response => {
+    console.log('Registration response status:', response.status);
+    console.log('Registration response headers:', response.headers);
+    
+    if (response.ok) {
+      return response.json().then(data => ({ status: response.status, data: data }));
+    } else {
+      return response.text().then(errorText => ({ status: response.status, data: errorText }));
+    }
+  })
+  .then(result => {
+    console.log('Registration response:', result.data);
+    if (result.status === 200 || result.status === 201) {
+      showModal('Success', 'Member registered successfully!', 'success');
+      // Reload the page to show the new member
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+    } else {
+      showModal('Error', 'Failed to register member: ' + result.data, 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Registration error:', error);
+    showModal('Error', 'Failed to register member: ' + error.message, 'error');
+  });
+  
+  return false;
 }
 
 // Add event listeners for real-time validation
 document.addEventListener('DOMContentLoaded', function() {
+  // Handle session attributes from login
+  const accessToken = document.getElementById('sessionAccessToken')?.value || null;
+  const refreshToken = document.getElementById('sessionRefreshToken')?.value || null;
+  const userEmail = document.getElementById('sessionUserEmail')?.value || null;
+  const userRole = document.getElementById('sessionUserRole')?.value || null;
+  
+  console.log('Session tokens check:');
+  console.log('- accessToken:', accessToken ? 'Present' : 'Missing');
+  console.log('- refreshToken:', refreshToken ? 'Present' : 'Missing');
+  console.log('- userEmail:', userEmail);
+  console.log('- userRole:', userRole);
+  
+  // Debug: Check model attributes
+  const debugAccessToken = /*[[${debugAccessToken}]]*/ 'Not set';
+  const debugRefreshToken = /*[[${debugRefreshToken}]]*/ 'Not set';
+  const debugUserEmail = /*[[${debugUserEmail}]]*/ 'Not set';
+  const debugUserRole = /*[[${debugUserRole}]]*/ 'Not set';
+  
+  console.log('Debug model attributes:');
+  console.log('- debugAccessToken:', debugAccessToken);
+  console.log('- debugRefreshToken:', debugRefreshToken);
+  console.log('- debugUserEmail:', debugUserEmail);
+  console.log('- debugUserRole:', debugUserRole);
+  
+  // Additional debugging
+  console.log('Raw session values:');
+  console.log('- accessToken raw:', accessToken);
+  console.log('- refreshToken raw:', refreshToken);
+  console.log('- userEmail raw:', userEmail);
+  console.log('- userRole raw:', userRole);
+  
+  // Check if we're getting the session attributes at all
+  console.log('Session attribute check:');
+  console.log('- accessToken type:', typeof accessToken);
+  console.log('- accessToken length:', accessToken ? accessToken.length : 0);
+  console.log('- refreshToken type:', typeof refreshToken);
+  console.log('- refreshToken length:', refreshToken ? refreshToken.length : 0);
+  
+  // Debug model attributes directly
+  console.log('Model attribute debugging:');
+  console.log('- sessionAccessToken from model:', /*[[${sessionAccessToken}]]*/ 'null');
+  console.log('- sessionRefreshToken from model:', /*[[${sessionRefreshToken}]]*/ 'null');
+  console.log('- sessionUserEmail from model:', /*[[${sessionUserEmail}]]*/ 'null');
+  console.log('- sessionUserRole from model:', /*[[${sessionUserRole}]]*/ 'null');
+  
+  // Debug: Check what's actually in the HTML
+  console.log('HTML debugging:');
+  console.log('- accessToken HTML:', document.querySelector('script').textContent.includes('sessionAccessToken'));
+  console.log('- refreshToken HTML:', document.querySelector('script').textContent.includes('sessionRefreshToken'));
+  console.log('- userEmail HTML:', document.querySelector('script').textContent.includes('sessionUserEmail'));
+  console.log('- userRole HTML:', document.querySelector('script').textContent.includes('sessionUserRole'));
+  
+  if (accessToken && refreshToken) {
+    // Store tokens in localStorage
+    localStorage.setItem('accessToken', accessToken);
+    localStorage.setItem('refreshToken', refreshToken);
+    localStorage.setItem('userEmail', userEmail);
+    localStorage.setItem('userRole', userRole);
+    
+    console.log('JWT tokens stored successfully in localStorage');
+    console.log('localStorage after storing:', {
+      accessToken: localStorage.getItem('accessToken') ? 'Present' : 'Missing',
+      refreshToken: localStorage.getItem('refreshToken') ? 'Present' : 'Missing',
+      userEmail: localStorage.getItem('userEmail'),
+      userRole: localStorage.getItem('userRole')
+    });
+    
+    // Clear session attributes after storing in localStorage (with delay to ensure localStorage is set)
+    setTimeout(() => {
+      console.log('Clearing session attributes...');
+      fetch('/admin/home?clearSession=true', { method: 'GET' })
+        .then(response => {
+          console.log('Session cleared successfully');
+        })
+        .catch(error => {
+          console.error('Error clearing session:', error);
+        });
+    }, 500);
+  } else {
+    console.log('No session tokens found, checking localStorage');
+    console.log('Current localStorage contents:', {
+      accessToken: localStorage.getItem('accessToken') ? 'Present' : 'Missing',
+      refreshToken: localStorage.getItem('refreshToken') ? 'Present' : 'Missing',
+      userEmail: localStorage.getItem('userEmail'),
+      userRole: localStorage.getItem('userRole')
+    });
+  }
+  
+  // Check if user is authenticated
+  const storedToken = localStorage.getItem('accessToken');
+  if (!storedToken) {
+    console.log('No access token found, redirecting to login');
+    window.location.href = '/jwt-login';
+    return;
+  }
+  
+  // Add event listeners for real-time validation
   const nameInput = document.getElementById('name');
   const emailInput = document.getElementById('email');
   const passwordInput = document.getElementById('password');
+  const confirmPasswordInput = document.getElementById('confirmPassword');
   const phoneInput = document.getElementById('phoneNumber');
   
   if (nameInput) nameInput.addEventListener('input', validateName);
   if (emailInput) emailInput.addEventListener('input', validateEmail);
   if (passwordInput) passwordInput.addEventListener('input', validatePassword);
+  if (confirmPasswordInput) confirmPasswordInput.addEventListener('input', validateConfirmPassword);
   if (phoneInput) phoneInput.addEventListener('input', validatePhone);
+  
+  // Load user information from localStorage
+  const storedUserEmail = localStorage.getItem('userEmail');
+  const storedUserRole = localStorage.getItem('userRole');
+
+  if (storedUserEmail) {
+    console.log('Loading user info from localStorage:', storedUserEmail);
+    const welcomeText = document.querySelector('.welcome-text');
+    if (welcomeText) {
+      welcomeText.innerHTML = `Welcome, <span>${storedUserEmail}</span>`;
+    }
+  }
 });
+
+// Utility function to get JWT token from localStorage
+function getAuthToken() {
+  const token = localStorage.getItem('accessToken');
+  console.log('Getting auth token:', token ? 'Token found' : 'No token found');
+  return token;
+}
+
+// Utility function to add Authorization header to fetch requests
+function getAuthHeaders() {
+  const token = getAuthToken();
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(token && { 'Authorization': `Bearer ${token}` })
+  };
+  return headers;
+}
+
+// Logout function
+function logout(event) {
+  if (event) {
+    event.preventDefault();
+  }
+  
+  // Clear localStorage
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('refreshToken');
+  localStorage.removeItem('userEmail');
+  localStorage.removeItem('userRole');
+  
+  // Redirect to login page with success message
+  window.location.href = '/jwt-login?message=logout_success';
+}
 </script>
 </body>
 </html>

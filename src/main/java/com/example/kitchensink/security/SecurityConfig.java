@@ -1,124 +1,114 @@
 package com.example.kitchensink.security;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer.FrameOptionsConfig;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
 
 @Configuration
+@EnableWebSecurity
+@EnableMethodSecurity
+@RequiredArgsConstructor
 @Slf4j
 public class SecurityConfig {
 
-  private final CustomUserDetailsService customUserDetailsService;
-  private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final CustomUserDetailsService customUserDetailsService;
 
-  private final JwtRequestFilter jwtRequestFilter;
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/", "/jwt-login", "/jwt-signup", "/admin/home", "/register", "/user-profile", "/debug-session").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll() // Allow all auth endpoints
+                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/actuator/**").permitAll()
+                        .requestMatchers("/css/**", "/js/**", "/gfx/**", "/images/**", "/favicon.ico").permitAll() // Allow static resources
+                        .requestMatchers("/401", "/403").permitAll() // Allow error pages
+                        .requestMatchers("/admin/members/register").hasRole("ADMIN") // Allow admin to register members
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/user/**").hasRole("USER")
+                        .anyRequest().authenticated()
+                )
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                )
+                .exceptionHandling(exception -> exception
+                        .accessDeniedHandler(accessDeniedHandler())
+                        .authenticationEntryPoint(authenticationEntryPoint())
+                )
+                .authenticationProvider(authenticationProvider())
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
+        return http.build();
+    }
 
-  private final JwtTokenUtil jwtTokenUtil;
-  private final CustomAccessDeniedHandler customAccessDeniedHandler;
+    @Bean
+    public AuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(customUserDetailsService);
+        authProvider.setPasswordEncoder(passwordEncoder());
+        return authProvider;
+    }
 
-  public SecurityConfig(CustomUserDetailsService customUserDetailsService,
-      CustomAuthenticationEntryPoint customAuthenticationEntryPoint,
-      JwtRequestFilter jwtRequestFilter, JwtTokenUtil jwtTokenUtil,
-      CustomAccessDeniedHandler customAccessDeniedHandler) {
-    this.customUserDetailsService = customUserDetailsService;
-    this.customAuthenticationEntryPoint = customAuthenticationEntryPoint;
-    this.jwtRequestFilter = jwtRequestFilter;
-    this.jwtTokenUtil = jwtTokenUtil;
-    this.customAccessDeniedHandler = customAccessDeniedHandler;
-  }
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
+    }
 
-  @Bean
-  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    http
-        .headers(headers -> headers
-            .frameOptions(FrameOptionsConfig::sameOrigin)
-        )
-        .csrf(AbstractHttpConfigurer::disable)
-        .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/", "/login", "/register","/swagger-ui/**", "/swagger-ui.html",
-             "/v3/api-docs/**", "/v3/api-docs", "/v3/api-docs/swagger-config", "/401", "/api/auth/**").permitAll()
-            .requestMatchers("/admin/home").hasRole("ADMIN")
-            .requestMatchers("/admin/members/**").hasRole("ADMIN")
-            .requestMatchers("/user-profile").hasRole("USER")
-            .anyRequest().authenticated()
-        )
-        .exceptionHandling(exceptionHandling -> exceptionHandling
-            .authenticationEntryPoint(customAuthenticationEntryPoint)
-            .accessDeniedHandler(customAccessDeniedHandler)
-        )
-        .formLogin(form -> form
-            .loginPage("/login")
-            .successHandler(customAuthenticationSuccessHandler())
-            .permitAll()
-        )
-        .logout(logout -> logout
-            .logoutUrl("/logout")
-            .logoutSuccessUrl("/login")
-            .permitAll()
-        )
-        .authenticationProvider(authenticationProvider())
-        .addFilterBefore(jwtRequestFilter,
-            UsernamePasswordAuthenticationFilter.class); // Add JWT filter
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
-    return http.build();
-  }
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(true);
+        
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
 
-  @Bean
-  public BCryptPasswordEncoder passwordEncoder() {
-    return new BCryptPasswordEncoder();
-  }
+    @Bean
+    public AccessDeniedHandler accessDeniedHandler() {
+        return (request, response, accessDeniedException) -> {
+            log.warn("Access denied for user: {}", request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : "anonymous");
+            response.sendRedirect("/403");
+        };
+    }
 
-  @Bean
-  public DaoAuthenticationProvider authenticationProvider() {
-    DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-    authProvider.setUserDetailsService(customUserDetailsService);
-    authProvider.setPasswordEncoder(passwordEncoder());
-    return authProvider;
-  }
-
-  /**
-   * Custom Authentication Success Handler for role-based redirection.
-   */
-  @Bean
-  public AuthenticationSuccessHandler customAuthenticationSuccessHandler() {
-    return new AuthenticationSuccessHandler() {
-      @Override
-      public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
-          org.springframework.security.core.Authentication authentication)
-          throws IOException {
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-
-        // Generate JWT token using the authenticated user's username
-        String jwtToken = jwtTokenUtil.generateToken(userDetails.getUsername());
-
-        // Add the JWT token to the response header
-        response.setHeader("Authorization", "Bearer " + jwtToken);
-
-        log.info("token-----{}", jwtToken);
-
-        // Check if the user has the ADMIN role and redirect accordingly
-        if (userDetails.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"))) {
-          response.sendRedirect("/admin/home");
-        } else if (userDetails.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_USER"))) {
-          response.sendRedirect("/user-profile"); // Redirect to user profile page for USER
-        } else {
-          response.sendRedirect("/login"); // Default redirect for other roles (or no roles)
-        }
-      }
-    };
-  }
+    @Bean
+    public AuthenticationEntryPoint authenticationEntryPoint() {
+        return (request, response, authException) -> {
+            log.warn("Authentication failed for request: {}", request.getRequestURI());
+            response.sendRedirect("/401");
+        };
+    }
 }

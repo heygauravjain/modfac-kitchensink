@@ -1,166 +1,129 @@
 package com.example.kitchensink.controller;
 
-import com.example.kitchensink.security.JwtTokenUtil;
+import com.example.kitchensink.model.AuthRequest;
+import com.example.kitchensink.model.AuthResponse;
+import com.example.kitchensink.model.RefreshTokenRequest;
+import com.example.kitchensink.model.SignupRequest;
+import com.example.kitchensink.security.JwtTokenService;
+import com.example.kitchensink.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
+@RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Authentication", description = "Authentication API endpoints")
 public class AuthController {
 
-  private final AuthenticationProvider authenticationProvider;
-  private final JwtTokenUtil jwtTokenUtil;
+    private final AuthenticationManager authenticationManager;
+    private final JwtTokenService jwtTokenService;
+    private final AuthService authService;
 
-  public AuthController(AuthenticationProvider authenticationProvider, JwtTokenUtil jwtTokenUtil) {
-    this.authenticationProvider = authenticationProvider;
-    this.jwtTokenUtil = jwtTokenUtil;
-  }
+    @Operation(summary = "User login", description = "Authenticate user and return JWT tokens")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Login successful"),
+            @ApiResponse(responseCode = "401", description = "Invalid credentials"),
+            @ApiResponse(responseCode = "400", description = "Invalid request data")
+    })
+    @PostMapping("/login")
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody AuthRequest request) {
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+            );
 
-  /**
-   * REST endpoint for user authentication and JWT token generation.
-   * 
-   * @param loginRequest the login credentials
-   * @return JWT token and user information
-   */
-  @Operation(summary = "Authenticate user and get JWT token")
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Authentication successful"),
-      @ApiResponse(responseCode = "401", description = "Invalid credentials"),
-      @ApiResponse(responseCode = "400", description = "Invalid request data")
-  })
-  @PostMapping("/login")
-  public ResponseEntity<Map<String, Object>> authenticateUser(
-      @Valid @RequestBody LoginRequest loginRequest) {
-    
-    try {
-      // Authenticate the user using AuthenticationProvider
-      Authentication authentication = authenticationProvider.authenticate(
-          new UsernamePasswordAuthenticationToken(
-              loginRequest.getEmail(), 
-              loginRequest.getPassword()
-          )
-      );
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            String role = userDetails.getAuthorities().stream()
+                    .findFirst()
+                    .map(Object::toString)
+                    .orElse("ROLE_USER");
 
-      // Get user details
-      UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-      
-      // Generate JWT token
-      String jwtToken = jwtTokenUtil.generateToken(userDetails.getUsername());
-      
-      // Prepare response
-      Map<String, Object> response = new HashMap<>();
-      response.put("timestamp", LocalDateTime.now());
-      response.put("status", "success");
-      response.put("message", "Authentication successful");
-      response.put("token", jwtToken);
-      response.put("tokenType", "Bearer");
-      response.put("expiresIn", "3600000"); // 1 hour in milliseconds
-      response.put("user", Map.of(
-          "email", userDetails.getUsername(),
-          "authorities", userDetails.getAuthorities()
-      ));
-      
-      log.info("User {} authenticated successfully", userDetails.getUsername());
-      
-      return ResponseEntity.ok(response);
-      
-    } catch (Exception e) {
-      log.error("Authentication failed for user: {}", loginRequest.getEmail(), e);
-      
-      Map<String, Object> errorResponse = new HashMap<>();
-      errorResponse.put("timestamp", LocalDateTime.now());
-      errorResponse.put("status", "error");
-      errorResponse.put("message", "Invalid email or password");
-      errorResponse.put("error", "Authentication failed");
-      
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+            String accessToken = jwtTokenService.generateAccessToken(userDetails.getUsername(), role);
+            String refreshToken = jwtTokenService.generateRefreshToken(userDetails.getUsername());
+
+            AuthResponse response = new AuthResponse(
+                    accessToken,
+                    refreshToken,
+                    "Bearer",
+                    jwtTokenService.getAccessTokenExpiration(),
+                    userDetails.getUsername(),
+                    role
+            );
+
+            log.info("User {} logged in successfully", userDetails.getUsername());
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("Login failed for user: {}", request.getEmail(), e);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
     }
-  }
 
-  /**
-   * REST endpoint to validate JWT token.
-   * 
-   * @param tokenRequest the token to validate
-   * @return validation result
-   */
-  @Operation(summary = "Validate JWT token")
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Token is valid"),
-      @ApiResponse(responseCode = "401", description = "Token is invalid or expired")
-  })
-  @PostMapping("/validate")
-  public ResponseEntity<Map<String, Object>> validateToken(
-      @Valid @RequestBody TokenRequest tokenRequest) {
-    
-    try {
-      String username = jwtTokenUtil.extractUsername(tokenRequest.getToken());
-      
-      if (username != null && !jwtTokenUtil.isTokenExpired(tokenRequest.getToken())) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("timestamp", LocalDateTime.now());
-        response.put("status", "valid");
-        response.put("message", "Token is valid");
-        response.put("username", username);
-        
-        return ResponseEntity.ok(response);
-      } else {
-        Map<String, Object> errorResponse = new HashMap<>();
-        errorResponse.put("timestamp", LocalDateTime.now());
-        errorResponse.put("status", "invalid");
-        errorResponse.put("message", "Token is invalid or expired");
-        
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
-      }
-      
-    } catch (Exception e) {
-      log.error("Token validation failed", e);
-      
-      Map<String, Object> errorResponse = new HashMap<>();
-      errorResponse.put("timestamp", LocalDateTime.now());
-      errorResponse.put("status", "error");
-      errorResponse.put("message", "Token validation failed");
-      errorResponse.put("error", e.getMessage());
-      
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+    @Operation(summary = "User registration", description = "Register a new user")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "User registered successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid request data"),
+            @ApiResponse(responseCode = "409", description = "User already exists")
+    })
+    @PostMapping("/signup")
+    public ResponseEntity<AuthResponse> signup(@Valid @RequestBody SignupRequest request) {
+        try {
+            AuthResponse response = authService.registerUser(request);
+            log.info("User {} registered successfully", request.getEmail());
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (RuntimeException e) {
+            log.error("Registration failed for user: {}", request.getEmail(), e);
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
     }
-  }
 
-  // Request DTOs
-  public static class LoginRequest {
-    private String email;
-    private String password;
+    @Operation(summary = "Refresh token", description = "Get new access token using refresh token")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Token refreshed successfully"),
+            @ApiResponse(responseCode = "401", description = "Invalid refresh token")
+    })
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
+        try {
+            AuthResponse response = authService.refreshToken(request.getRefreshToken());
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            log.error("Token refresh failed", e);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+    }
 
-    // Getters and setters
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
-  }
+    @Operation(summary = "Validate token", description = "Validate JWT token")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Token is valid"),
+            @ApiResponse(responseCode = "401", description = "Token is invalid")
+    })
+    @PostMapping("/validate")
+    public ResponseEntity<Object> validateToken(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
 
-  public static class TokenRequest {
-    private String token;
-
-    // Getters and setters
-    public String getToken() { return token; }
-    public void setToken(String token) { this.token = token; }
-  }
+        String token = authHeader.substring(7);
+        if (jwtTokenService.isTokenValid(token)) {
+            return ResponseEntity.ok(Map.of("valid", true, "username", jwtTokenService.extractUsername(token)));
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+    }
 } 

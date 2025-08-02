@@ -4,17 +4,12 @@ import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Null;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.stereotype.Component;
-import org.springframework.web.context.annotation.RequestScope;
 
-@Component
-@RequestScope
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -35,9 +30,8 @@ public class Member {
   @Size(min = 8, message = "Password must be at least 8 characters long")
   private String password;
 
-  @NotNull
-  @Size(min = 10, max = 12)
-  @Digits(fraction = 0, integer = 12)
+  // Made phone number truly optional - only validate if not empty
+  @Pattern(regexp = "^$|^\\d{10,12}$", message = "Phone number must be 10-12 digits or empty")
   private String phoneNumber;
 
   private String role = "USER";

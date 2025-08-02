@@ -61,7 +61,7 @@ class UserRegistrationStrategyTest {
     String result = userRegistrationStrategy.register(member, redirectAttributes);
 
     // Assert
-    assertEquals("redirect:/login", result);
+    assertEquals("redirect:/jwt-login", result);
     assertEquals("encodedPassword", existingMember.getPassword(),
         "Password should be updated with encoded password.");
 
@@ -90,7 +90,7 @@ class UserRegistrationStrategyTest {
     String result = userRegistrationStrategy.register(member, redirectAttributes);
 
     // Assert
-    assertEquals("redirect:/login", result);
+    assertEquals("redirect:/jwt-login", result);
 
     // Verify that no updates were made to the existing member
     verify(memberRepository, never()).save(any(MemberDocument.class));
@@ -115,7 +115,7 @@ class UserRegistrationStrategyTest {
     String result = userRegistrationStrategy.register(member, redirectAttributes);
 
     // Assert
-    assertEquals("redirect:/login", result);
+    assertEquals("redirect:/jwt-login", result);
 
     // Verify that a new member was created and registered
     ArgumentCaptor<Member> memberCaptor = ArgumentCaptor.forClass(Member.class);
@@ -143,7 +143,7 @@ class UserRegistrationStrategyTest {
     String result = userRegistrationStrategy.register(member, redirectAttributes);
 
     // Assert
-    assertEquals("redirect:/login", result);
+    assertEquals("redirect:/jwt-login", result);
 
     // Verify that a new member was registered
     verify(memberService, times(1)).registerMember(any(Member.class));

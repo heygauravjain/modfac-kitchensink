@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>KitchenSink - Signup</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" th:href="@{/css/unified-theme.css}">
+    <script th:src="@{/js/theme-toggle.js}" defer></script>
+    <style>
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .error-message {
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 5px;
+            display: none;
+        }
+        .success-message {
+            color: #28a745;
+            font-size: 0.875rem;
+            margin-top: 5px;
+            display: none;
+        }
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+        }
+        .form-control.error {
+            border-color: #dc3545;
+        }
+        .form-control.success {
+            border-color: #28a745;
+        }
+        .password-requirements {
+            font-size: 0.75rem;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        .requirement {
+            margin: 2px 0;
+        }
+        .requirement.met {
+            color: #28a745;
+        }
+        .requirement.unmet {
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <h2>Create Account</h2>
+        <h3>Join KitchenSink</h3>
+        
+        <div th:if="${error}" class="error" th:text="${error}"></div>
+        
+        <form th:action="@{/jwt-signup}" method="post" id="signupForm" onsubmit="return validateForm()">
+            <div class="form-group">
+                <label for="name">Name: *</label>
+                <input type="text" id="name" name="name" class="form-control" required 
+                       placeholder="Enter your full name" onblur="validateName()" oninput="validateName()">
+                <div id="nameError" class="error-message"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email: *</label>
+                <input type="email" id="email" name="email" class="form-control" required 
+                       placeholder="Enter your email address" onblur="validateEmail()" oninput="validateEmail()">
+                <div id="emailError" class="error-message"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password: *</label>
+                <input type="password" id="password" name="password" class="form-control" required 
+                       placeholder="Enter your password" onblur="validatePassword()" oninput="validatePassword()">
+                <div id="passwordError" class="error-message"></div>
+                <div class="password-requirements">
+                    <div class="requirement" id="lengthReq">At least 8 characters</div>
+                    <div class="requirement" id="uppercaseReq">One uppercase letter</div>
+                    <div class="requirement" id="lowercaseReq">One lowercase letter</div>
+                    <div class="requirement" id="numberReq">One number</div>
+                    <div class="requirement" id="specialReq">One special character (@$!%*?&)</div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="confirmPassword">Confirm Password: *</label>
+                <input type="password" id="confirmPassword" name="confirmPassword" class="form-control" required 
+                       placeholder="Confirm your password" onblur="validateConfirmPassword()" oninput="validateConfirmPassword()">
+                <div id="confirmPasswordError" class="error-message"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="phoneNumber">Phone Number: (Optional)</label>
+                <input type="tel" id="phoneNumber" name="phoneNumber" class="form-control" 
+                       placeholder="Enter your phone number (10-12 digits)" onblur="validatePhone()" oninput="validatePhone()">
+                <div id="phoneError" class="error-message"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="role">Role:</label>
+                <select id="role" name="role" class="form-control">
+                    <option value="USER">User</option>
+                    <option value="ADMIN">Admin</option>
+                </select>
+            </div>
+            
+            <button type="submit" class="btn btn-secondary" data-original-text="Sign Up">Sign Up</button>
+        </form>
+        
+        <div class="link-section">
+            <p>Already have an account? <a th:href="@{/jwt-login}">Login here</a></p>
+        </div>
+    </div>
+
+    <script>
+        // Validation functions
+        function validateName() {
+            const nameInput = document.getElementById('name');
+            const nameError = document.getElementById('nameError');
+            const name = nameInput.value.trim();
+            
+            if (name === '') {
+                showError(nameInput, nameError, 'Name is required.');
+                return false;
+            } else if (name.length > 25) {
+                showError(nameInput, nameError, 'Name must be 25 characters or less.');
+                return false;
+            } else if (/\d/.test(name)) {
+                showError(nameInput, nameError, 'Name must not contain numbers.');
+                return false;
+            } else {
+                showSuccess(nameInput, nameError);
+                return true;
+            }
+        }
+
+        function validateEmail() {
+            const emailInput = document.getElementById('email');
+            const emailError = document.getElementById('emailError');
+            const email = emailInput.value.trim();
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            
+            if (email === '') {
+                showError(emailInput, emailError, 'Email is required.');
+                return false;
+            } else if (!emailRegex.test(email)) {
+                showError(emailInput, emailError, 'Please enter a valid email address.');
+                return false;
+            } else {
+                showSuccess(emailInput, emailError);
+                return true;
+            }
+        }
+
+        function validatePassword() {
+            const passwordInput = document.getElementById('password');
+            const passwordError = document.getElementById('passwordError');
+            const password = passwordInput.value;
+            
+            // Password requirements
+            const hasLength = password.length >= 8;
+            const hasUppercase = /[A-Z]/.test(password);
+            const hasLowercase = /[a-z]/.test(password);
+            const hasNumber = /\d/.test(password);
+            const hasSpecial = /[@$!%*?&]/.test(password);
+            
+            // Update requirement indicators
+            document.getElementById('lengthReq').className = hasLength ? 'requirement met' : 'requirement unmet';
+            document.getElementById('uppercaseReq').className = hasUppercase ? 'requirement met' : 'requirement unmet';
+            document.getElementById('lowercaseReq').className = hasLowercase ? 'requirement met' : 'requirement unmet';
+            document.getElementById('numberReq').className = hasNumber ? 'requirement met' : 'requirement unmet';
+            document.getElementById('specialReq').className = hasSpecial ? 'requirement met' : 'requirement unmet';
+            
+            if (password === '') {
+                showError(passwordInput, passwordError, 'Password is required.');
+                return false;
+            } else if (!hasLength || !hasUppercase || !hasLowercase || !hasNumber || !hasSpecial) {
+                showError(passwordInput, passwordError, 'Password does not meet all requirements.');
+                return false;
+            } else {
+                showSuccess(passwordInput, passwordError);
+                return true;
+            }
+        }
+
+        function validateConfirmPassword() {
+            const confirmPasswordInput = document.getElementById('confirmPassword');
+            const confirmPasswordError = document.getElementById('confirmPasswordError');
+            const password = document.getElementById('password').value;
+            const confirmPassword = confirmPasswordInput.value;
+            
+            if (confirmPassword === '') {
+                showError(confirmPasswordInput, confirmPasswordError, 'Please confirm your password.');
+                return false;
+            } else if (password !== confirmPassword) {
+                showError(confirmPasswordInput, confirmPasswordError, 'Passwords do not match.');
+                return false;
+            } else {
+                showSuccess(confirmPasswordInput, confirmPasswordError);
+                return true;
+            }
+        }
+
+        function validatePhone() {
+            const phoneInput = document.getElementById('phoneNumber');
+            const phoneError = document.getElementById('phoneError');
+            const phone = phoneInput.value.trim();
+            
+            // Phone is optional, so if empty, it's valid
+            if (phone === '') {
+                showSuccess(phoneInput, phoneError);
+                return true;
+            }
+            
+            const phoneRegex = /^\d{10,12}$/;
+            if (!phoneRegex.test(phone)) {
+                showError(phoneInput, phoneError, 'Phone number must be 10-12 digits.');
+                return false;
+            } else {
+                showSuccess(phoneInput, phoneError);
+                return true;
+            }
+        }
+
+        function showError(input, errorElement, message) {
+            input.classList.remove('success');
+            input.classList.add('error');
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+        }
+
+        function showSuccess(input, errorElement) {
+            input.classList.remove('error');
+            input.classList.add('success');
+            errorElement.style.display = 'none';
+        }
+
+        function validateForm() {
+            const isNameValid = validateName();
+            const isEmailValid = validateEmail();
+            const isPasswordValid = validatePassword();
+            const isConfirmPasswordValid = validateConfirmPassword();
+            const isPhoneValid = validatePhone();
+            
+            return isNameValid && isEmailValid && isPasswordValid && isConfirmPasswordValid && isPhoneValid;
+        }
+
+        // Add event listeners for real-time validation
+        document.addEventListener('DOMContentLoaded', function() {
+            const nameInput = document.getElementById('name');
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+            const confirmPasswordInput = document.getElementById('confirmPassword');
+            const phoneInput = document.getElementById('phoneNumber');
+            
+            if (nameInput) nameInput.addEventListener('input', validateName);
+            if (emailInput) emailInput.addEventListener('input', validateEmail);
+            if (passwordInput) passwordInput.addEventListener('input', validatePassword);
+            if (confirmPasswordInput) confirmPasswordInput.addEventListener('input', validateConfirmPassword);
+            if (phoneInput) phoneInput.addEventListener('input', validatePhone);
+        });
+    </script>
+</body>
+</html> 

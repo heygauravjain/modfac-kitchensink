@@ -43,12 +43,12 @@ public class UserRegistrationStrategy implements RegistrationStrategy {
 
         redirectAttributes.addFlashAttribute("registrationSuccess", true);
         redirectAttributes.addFlashAttribute("successMessage", "Password updated successfully!");
-        return "redirect:/login";
+        return "redirect:/jwt-login";
       } else {
         redirectAttributes.addFlashAttribute("registrationError", true);
         redirectAttributes.addFlashAttribute("errorMessage",
             "Account already exists with this email. Please log in.");
-        return "redirect:/login";
+        return "redirect:/jwt-login";
       }
     }
 
@@ -58,6 +58,6 @@ public class UserRegistrationStrategy implements RegistrationStrategy {
 
     redirectAttributes.addFlashAttribute("registrationSuccess", true);
     redirectAttributes.addFlashAttribute("successMessage", "User successfully registered!");
-    return "redirect:/login";
+    return "redirect:/jwt-login";
   }
 }

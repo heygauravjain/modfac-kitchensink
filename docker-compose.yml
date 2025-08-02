@@ -1,69 +1,47 @@
+version: '3.8'
+
 services:
+  # MongoDB Database
   mongodb:
     image: mongo:7
-    container_name: mongodb
-    restart: always
+    container_name: kitchensink-mongodb
+    restart: unless-stopped
     ports:
       - "27017:27017"
     environment:
       MONGO_INITDB_DATABASE: kitchensinkdb
     volumes:
-      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
       - mongodb_data:/data/db
-    networks:
-      - kitchensink-network
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
-  mongo-express:
-    image: mongo-express:latest
-    container_name: mongo-express
-    restart: always
-    ports:
-      - "8081:8081"
-    environment:
-      ME_CONFIG_MONGODB_SERVER: mongodb
-      ME_CONFIG_MONGODB_PORT: 27017
-      ME_CONFIG_MONGODB_ADMINUSERNAME: ""
-      ME_CONFIG_MONGODB_ADMINPASSWORD: ""
-      ME_CONFIG_BASICAUTH_USERNAME: admin
-      ME_CONFIG_BASICAUTH_PASSWORD: admin123
-    depends_on:
-      mongodb:
-        condition: service_healthy
-    networks:
-      - kitchensink-network
-
-  kitchensink-app:
+  # Spring Boot Backend
+  backend:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: kitchensink-app
-    depends_on:
-      mongodb:
-        condition: service_healthy
+    container_name: kitchensink-backend
+    restart: unless-stopped
     ports:
       - "8080:8080"
     environment:
-      SPRING_PROFILES_ACTIVE: docker
       SPRING_DATA_MONGODB_URI: mongodb://mongodb:27017/kitchensinkdb
-    networks:
-      - kitchensink-network
-    restart: always
+      SPRING_PROFILES_ACTIVE: docker
+      JWT_SECRET_KEY: Srgl71VAmMhSVI+8Bb5eQB6HFr3HdUbidBb/xoTWZAM=
+    depends_on:
+      mongodb:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 30s
       timeout: 10s
-      retries: 5
-      start_period: 120s
+      retries: 3
+      start_period: 60s
 
 volumes:
   mongodb_data:
-
-networks:
-  kitchensink-network:
-    driver: bridge
+    driver: local

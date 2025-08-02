@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Authentication Tokens</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" th:href="@{/css/unified-theme.css}">
+</head>
+<body>
+    <div class="auth-container">
+        <h2>Setting up authentication...</h2>
+        <div id="loading">Please wait while we set up your session...</div>
+    </div>
+
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            const accessToken = /*[[${accessToken}]]*/ null;
+            const refreshToken = /*[[${refreshToken}]]*/ null;
+            const userEmail = /*[[${userEmail}]]*/ null;
+            const userRole = /*[[${userRole}]]*/ null;
+            
+            console.log('Auth tokens page loaded');
+            console.log('Access token present:', !!accessToken);
+            console.log('Refresh token present:', !!refreshToken);
+            console.log('User email:', userEmail);
+            console.log('User role:', userRole);
+            
+            if (accessToken && refreshToken) {
+                // Store tokens in localStorage
+                localStorage.setItem('accessToken', accessToken);
+                localStorage.setItem('refreshToken', refreshToken);
+                localStorage.setItem('userEmail', userEmail);
+                localStorage.setItem('userRole', userRole);
+                
+                console.log('JWT tokens stored successfully in localStorage');
+                
+                // Redirect based on role
+                if (userRole === 'ROLE_ADMIN') {
+                    console.log('Redirecting to admin dashboard');
+                    window.location.href = '/admin/home';
+                } else {
+                    console.log('Redirecting to user profile');
+                    window.location.href = '/user-profile';
+                }
+            } else {
+                console.log('No tokens found, redirecting to login');
+                // No tokens found, redirect to login
+                window.location.href = '/jwt-login';
+            }
+        });
+    </script>
+</body>
+</html> 

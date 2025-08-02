@@ -1,0 +1,23 @@
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/test
+      database: test
+
+jwt:
+  secret:
+    key: testSecretKeyForTestingPurposesOnly12345678901234567890
+  access:
+    token:
+      expiration: 900000
+  refresh:
+    token:
+      expiration: 604800000
+
+logging:
+  level:
+    com.example.kitchensink: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.data.mongo: DEBUG 

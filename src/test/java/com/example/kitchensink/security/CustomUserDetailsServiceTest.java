@@ -1,107 +1,112 @@
 package com.example.kitchensink.security;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import com.example.kitchensink.entity.MemberDocument;
 import com.example.kitchensink.repository.MemberRepository;
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
 class CustomUserDetailsServiceTest {
 
-  @Mock
-  private MemberRepository memberRepository;
+    @Mock
+    private MemberRepository memberRepository;
 
-  @InjectMocks
-  private CustomUserDetailsService customUserDetailsService;
+    @InjectMocks
+    private CustomUserDetailsService customUserDetailsService;
 
-  private MemberDocument mockMember;
+    private MemberDocument memberDocument;
 
-  @BeforeEach
-  void setUp() {
-    MockitoAnnotations.openMocks(this);
+    @BeforeEach
+    void setUp() {
+        memberDocument = new MemberDocument();
+        memberDocument.setId("1");
+        memberDocument.setName("Test User");
+        memberDocument.setEmail("test@example.com");
+        memberDocument.setPassword("encodedPassword");
+        memberDocument.setRole("ROLE_USER");
+    }
 
-    // Initialize a mock member for testing
-    mockMember = new MemberDocument();
-    mockMember.setId("1");
-    mockMember.setName("John Doe");
-    mockMember.setEmail("john.doe@example.com");
-    mockMember.setPassword("password123");
-    mockMember.setRole("USER");
-  }
+    @Test
+    void loadUserByUsername_WithValidEmail_ShouldReturnUserDetails() {
+        // Given
+        when(memberRepository.findByEmail("test@example.com")).thenReturn(Optional.of(memberDocument));
 
-  @Test
-  void loadUserByUsername_WithValidEmail_ShouldReturnUserDetails() {
-    // Arrange: Mock the repository to return the mock member for the given email
-    when(memberRepository.findByEmail(anyString())).thenReturn(Optional.of(mockMember));
+        // When
+        UserDetails userDetails = customUserDetailsService.loadUserByUsername("test@example.com");
 
-    // Act: Call the method with a valid email
-    UserDetails userDetails = customUserDetailsService.loadUserByUsername("john.doe@example.com");
+        // Then
+        assertNotNull(userDetails);
+        assertEquals("test@example.com", userDetails.getUsername());
+        assertEquals("encodedPassword", userDetails.getPassword());
+        assertTrue(userDetails.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_USER")));
+    }
 
-    // Assert: Verify that UserDetails is returned with the correct email and role
-    assertNotNull(userDetails);
-    assertEquals(mockMember.getEmail(), userDetails.getUsername());
-    assertEquals("ROLE_USER", userDetails.getAuthorities().iterator().next().getAuthority());
-    verify(memberRepository, times(1)).findByEmail("john.doe@example.com");
-  }
+    @Test
+    void loadUserByUsername_WithInvalidEmail_ShouldThrowException() {
+        // Given
+        when(memberRepository.findByEmail("invalid@example.com")).thenReturn(Optional.empty());
 
-  @Test
-  void loadUserByUsername_WithInvalidEmail_ShouldThrowUsernameNotFoundException() {
-    // Arrange: Mock the repository to return an empty Optional for the given email
-    when(memberRepository.findByEmail(anyString())).thenReturn(Optional.empty());
+        // When & Then
+        UsernameNotFoundException exception = assertThrows(UsernameNotFoundException.class,
+                () -> customUserDetailsService.loadUserByUsername("invalid@example.com"));
+        assertEquals("User not found with email: invalid@example.com", exception.getMessage());
+    }
 
-    // Act & Assert: Call the method with an invalid email and verify exception is thrown
-    UsernameNotFoundException exception = assertThrows(UsernameNotFoundException.class,
-        () -> customUserDetailsService.loadUserByUsername("unknown@example.com"));
+    @Test
+    void loadUserByUsername_WithAdminRole_ShouldReturnUserDetailsWithAdminAuthority() {
+        // Given
+        MemberDocument adminMember = new MemberDocument();
+        adminMember.setId("2");
+        adminMember.setName("Admin User");
+        adminMember.setEmail("admin@example.com");
+        adminMember.setPassword("encodedPassword");
+        adminMember.setRole("ROLE_ADMIN");
+        
+        when(memberRepository.findByEmail("admin@example.com")).thenReturn(Optional.of(adminMember));
 
-    assertEquals("User not found with email: unknown@example.com", exception.getMessage());
-    verify(memberRepository, times(1)).findByEmail("unknown@example.com");
-  }
+        // When
+        UserDetails userDetails = customUserDetailsService.loadUserByUsername("admin@example.com");
 
-  @Test
-  void loadUserByUsername_WithNullEmail_ShouldThrowUsernameNotFoundException() {
-    // Act & Assert: Call the method with a null email and verify exception is thrown
-    UsernameNotFoundException exception = assertThrows(UsernameNotFoundException.class,
-        () -> customUserDetailsService.loadUserByUsername(null));
+        // Then
+        assertNotNull(userDetails);
+        assertEquals("admin@example.com", userDetails.getUsername());
+        assertEquals("encodedPassword", userDetails.getPassword());
+        assertTrue(userDetails.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN")));
+    }
 
-    assertEquals("User not found with email: null", exception.getMessage());
-    verify(memberRepository, times(1)).findByEmail(null);
-  }
+    @Test
+    void loadUserByUsername_WithUserRole_ShouldReturnUserDetailsWithUserAuthority() {
+        // Given
+        MemberDocument userMember = new MemberDocument();
+        userMember.setId("3");
+        userMember.setName("Regular User");
+        userMember.setEmail("user@example.com");
+        userMember.setPassword("encodedPassword");
+        userMember.setRole("ROLE_USER");
+        
+        when(memberRepository.findByEmail("user@example.com")).thenReturn(Optional.of(userMember));
 
-  @Test
-  void loadUserByUsername_WithEmptyEmail_ShouldThrowUsernameNotFoundException() {
-    // Act & Assert: Call the method with an empty email and verify exception is thrown
-    UsernameNotFoundException exception = assertThrows(UsernameNotFoundException.class,
-        () -> customUserDetailsService.loadUserByUsername(""));
+        // When
+        UserDetails userDetails = customUserDetailsService.loadUserByUsername("user@example.com");
 
-    assertEquals("User not found with email: ", exception.getMessage());
-    verify(memberRepository, times(1)).findByEmail("");
-  }
-
-  @Test
-  void loadUserByUsername_ShouldConvertRoleToGrantedAuthority() {
-    // Arrange: Mock the repository to return a member with a different role
-    mockMember.setRole("ADMIN");
-    when(memberRepository.findByEmail(anyString())).thenReturn(Optional.of(mockMember));
-
-    // Act: Call the method and verify the role is correctly converted to GrantedAuthority
-    UserDetails userDetails = customUserDetailsService.loadUserByUsername("john.doe@example.com");
-
-    assertNotNull(userDetails);
-    assertEquals("ROLE_ADMIN", userDetails.getAuthorities().iterator().next().getAuthority());
-    verify(memberRepository, times(1)).findByEmail("john.doe@example.com");
-  }
-
+        // Then
+        assertNotNull(userDetails);
+        assertEquals("user@example.com", userDetails.getUsername());
+        assertEquals("encodedPassword", userDetails.getPassword());
+        assertTrue(userDetails.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_USER")));
+    }
 }

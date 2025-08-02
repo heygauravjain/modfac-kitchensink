@@ -23,9 +23,13 @@ logging:
 
 jwt:
   secret:
-    key: Srgl71VAmMhSVI+8Bb5eQB6HFr3HdUbidBb/xoTWZAM= # Replace with a generated key in prod
-  token:
-    expiration: 3600000 # Expiration time in milliseconds (1 hour)
+    key: ${JWT_SECRET_KEY:Srgl71VAmMhSVI+8Bb5eQB6HFr3HdUbidBb/xoTWZAM=}
+  access:
+    token:
+      expiration: 900000 # 15 minutes in milliseconds
+  refresh:
+    token:
+      expiration: 604800000 # 7 days in milliseconds
 
 # Management endpoints for health checks
 management:

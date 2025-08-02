@@ -9,7 +9,6 @@ spring:
     mode: HTML
     suffix: .html
 
-
 logging:
   level:
     org:
@@ -17,9 +16,12 @@ logging:
         security: DEBUG
         web: DEBUG
         
-
 jwt:
   secret:
     key: Srgl71VAmMhSVI+8Bb5eQB6HFr3HdUbidBb/xoTWZAM= # Replace with a generated key in prod
-  token:
-    expiration: 3600000 # Expiration time in milliseconds (15 minutes)
+  access:
+    token:
+      expiration: 900000 # 15 minutes in milliseconds
+  refresh:
+    token:
+      expiration: 604800000 # 7 days in milliseconds

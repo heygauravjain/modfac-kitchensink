@@ -37,10 +37,17 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     log.info("User found: {}", memberDocument.getEmail());
     log.info("User role: {}", memberDocument.getRole());
+    log.info("User password: {}", memberDocument.getPassword() != null ? "Present" : "Missing");
 
-    // Convert the single role to a Set of GrantedAuthority
+    // Use the role as is (it should already have ROLE_ prefix)
     Set<GrantedAuthority> authorities = Collections.singleton(
-        new SimpleGrantedAuthority("ROLE_" + memberDocument.getRole()));
+        new SimpleGrantedAuthority(memberDocument.getRole()));
+
+    // Check if password is null or empty before creating User object
+    if (memberDocument.getPassword() == null || memberDocument.getPassword().isEmpty()) {
+      log.error("User {} has null or empty password", memberDocument.getEmail());
+      throw new UsernameNotFoundException("User has invalid password: " + memberDocument.getEmail());
+    }
 
     // Return a UserDetails object with member information
     return new User(memberDocument.getEmail(), memberDocument.getPassword(), authorities);

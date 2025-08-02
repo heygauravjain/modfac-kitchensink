@@ -15,6 +15,8 @@ import com.example.kitchensink.service.MemberService;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Optional;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -47,6 +49,12 @@ class MemberControllerTest {
   @Mock
   private RedirectAttributes redirectAttributes;
 
+  @Mock
+  private HttpServletResponse response;
+
+  @Mock
+  private HttpSession session;
+
   @BeforeEach
   void setUp() {
     MockitoAnnotations.openMocks(this);
@@ -56,12 +64,17 @@ class MemberControllerTest {
   @Test
   void showRegistrationForm_ShouldReturnIndexView_WithNoMembers() {
     when(memberService.getAllMembers()).thenReturn(new ArrayList<>()); // Empty list
+    when(session.getAttribute("userEmail")).thenReturn(null);
+    when(session.getAttribute("accessToken")).thenReturn(null);
+    when(session.getAttribute("refreshToken")).thenReturn(null);
+    when(session.getAttribute("userRole")).thenReturn(null);
 
-    String viewName = memberController.showAdminHome(model, principal);
+    String viewName = memberController.showAdminHome(model, null, response, null, session);
 
     assertEquals("index", viewName);
     verify(model).addAttribute(eq("member"), any(Member.class));
     verify(model).addAttribute(eq("members"), anyList());
+    verify(model).addAttribute(eq("loggedInUser"), eq("Admin"));
   }
 
   // Scenario: Show registration form with multiple members
@@ -72,12 +85,38 @@ class MemberControllerTest {
     members.add(new Member("2", "Jane Doe", "jane.doe@example.com", "0987654321", null, "USER"));
 
     when(memberService.getAllMembers()).thenReturn(members);
+    when(principal.getName()).thenReturn("admin@admin.com");
 
-    String viewName = memberController.showAdminHome(model, principal);
+    String viewName = memberController.showAdminHome(model, principal, response, null, session);
 
     assertEquals("index", viewName);
     verify(model).addAttribute(eq("member"), any(Member.class));
     verify(model).addAttribute(eq("members"), eq(members));
+    verify(model).addAttribute(eq("loggedInUser"), eq("admin@admin.com"));
+  }
+
+  // Scenario: Show registration form with session user
+  @Test
+  void showRegistrationForm_ShouldReturnIndexView_WithSessionUser() {
+    when(memberService.getAllMembers()).thenReturn(new ArrayList<>());
+    when(session.getAttribute("userEmail")).thenReturn("test@test.com");
+
+    String viewName = memberController.showAdminHome(model, null, response, null, session);
+
+    assertEquals("index", viewName);
+    verify(model).addAttribute(eq("loggedInUser"), eq("test@test.com"));
+  }
+
+  // Scenario: Clear session attributes
+  @Test
+  void showAdminHome_ShouldClearSession_WhenClearSessionIsTrue() {
+    String viewName = memberController.showAdminHome(model, principal, response, "true", session);
+
+    assertEquals("redirect:/admin/home", viewName);
+    verify(session).removeAttribute("accessToken");
+    verify(session).removeAttribute("refreshToken");
+    verify(session).removeAttribute("userEmail");
+    verify(session).removeAttribute("userRole");
   }
 
   // Scenario: Register member using admin strategy
@@ -106,16 +145,16 @@ class MemberControllerTest {
     verify(registrationContext).register(eq(member), eq(redirectAttributes));
   }
 
-  // Scenario: Show login page
+  // Scenario: Redirect to JWT login page
   @Test
-  void showLoginPage_ShouldReturnLoginView() {
-    String viewName = memberController.showLoginPage();
-    assertEquals("login", viewName);
+  void redirectToJwtLogin_ShouldReturnRedirectToJwtLogin() {
+    String viewName = memberController.redirectToJwtLogin();
+    assertEquals("redirect:/jwt-login", viewName);
   }
 
-  // Scenario: Show user profile page
+  // Scenario: Show user profile page with authentication
   @Test
-  void showUserProfile_ShouldReturnUserProfileView() {
+  void showUserProfile_ShouldReturnUserProfileView_WithAuthentication() {
     String email = "test@example.com";
     MemberDocument memberDocument = new MemberDocument("1", "John Doe", email, "1234567890",
         "password", "USER");
@@ -123,10 +162,49 @@ class MemberControllerTest {
     when(authentication.getName()).thenReturn(email);
     when(memberService.findByEmail(email)).thenReturn(Optional.of(memberDocument));
 
-    String viewName = memberController.showUserProfile(model, authentication);
+    String viewName = memberController.showUserProfile(model, authentication, null, session);
 
     assertEquals("user-profile", viewName);
     verify(model).addAttribute(eq("member"), any(Member.class));
+  }
+
+  // Scenario: Show user profile page with session user
+  @Test
+  void showUserProfile_ShouldReturnUserProfileView_WithSessionUser() {
+    String email = "test@example.com";
+    MemberDocument memberDocument = new MemberDocument("1", "John Doe", email, "1234567890",
+        "password", "USER");
+
+    when(session.getAttribute("userEmail")).thenReturn(email);
+    when(memberService.findByEmail(email)).thenReturn(Optional.of(memberDocument));
+
+    String viewName = memberController.showUserProfile(model, null, null, session);
+
+    assertEquals("user-profile", viewName);
+    verify(model).addAttribute(eq("member"), any(Member.class));
+  }
+
+  // Scenario: Show user profile page with default member
+  @Test
+  void showUserProfile_ShouldReturnUserProfileView_WithDefaultMember() {
+    when(session.getAttribute("userEmail")).thenReturn(null);
+
+    String viewName = memberController.showUserProfile(model, null, null, session);
+
+    assertEquals("user-profile", viewName);
+    verify(model).addAttribute(eq("member"), any(Member.class));
+  }
+
+  // Scenario: Clear session in user profile
+  @Test
+  void showUserProfile_ShouldClearSession_WhenClearSessionIsTrue() {
+    String viewName = memberController.showUserProfile(model, authentication, "true", session);
+
+    assertEquals("redirect:/user-profile", viewName);
+    verify(session).removeAttribute("accessToken");
+    verify(session).removeAttribute("refreshToken");
+    verify(session).removeAttribute("userEmail");
+    verify(session).removeAttribute("userRole");
   }
 
   // Scenario: Register member with invalid data - should return index view

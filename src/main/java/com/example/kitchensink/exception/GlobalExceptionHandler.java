@@ -31,6 +31,18 @@ public class GlobalExceptionHandler {
     return new ResponseEntity<>(errorDetails, HttpStatus.NOT_FOUND);
   }
 
+  @ExceptionHandler(NullPointerException.class)
+  public ResponseEntity<Object> handleNullPointerException(NullPointerException ex) {
+    log.error("NullPointerException occurred: {}", ex.getMessage(), ex);
+    
+    Map<String, Object> errorDetails = new HashMap<>();
+    errorDetails.put("timestamp", LocalDateTime.now());
+    errorDetails.put("message", "An unexpected error occurred");
+    errorDetails.put("details", ex.getMessage());
+    
+    return new ResponseEntity<>(errorDetails, HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+
   // Handle all other exceptions
   @ExceptionHandler(Exception.class)
   public final ResponseEntity<Object> handleAllExceptions(Exception ex, WebRequest request) {

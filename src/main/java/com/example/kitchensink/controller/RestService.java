@@ -4,25 +4,23 @@ import com.example.kitchensink.exception.ResourceNotFoundException;
 import com.example.kitchensink.model.Member;
 import com.example.kitchensink.service.MemberService;
 
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-
 import io.swagger.v3.oas.annotations.Operation;
-import jakarta.validation.Valid;
-import java.util.List;
-import java.util.Objects;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import jakarta.validation.Valid;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * The Class MemberController.
@@ -31,14 +29,13 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/admin/members")
+@Tag(name = "Member Management", description = "APIs for managing members")
+@SecurityRequirement(name = "bearerAuth")
 @Slf4j
+@RequiredArgsConstructor
 public class RestService {
 
   private final MemberService memberService;
-
-  public RestService(MemberService memberService) {
-    this.memberService = memberService;
-  }
 
   /** 
    * REST endpoint for listing all members.
@@ -109,8 +106,18 @@ public class RestService {
   })
   @PostMapping
   public ResponseEntity<Member> registerMember(@Valid @RequestBody Member member) {
-    Member registeredMember = memberService.registerMember(member);
-    return new ResponseEntity<>(registeredMember, HttpStatus.CREATED);
+    log.info("Registering new member: {}", member.getEmail());
+    log.info("Member details - Name: {}, Email: {}, Role: {}, Phone: {}", 
+             member.getName(), member.getEmail(), member.getRole(), member.getPhoneNumber());
+    
+    try {
+      Member registeredMember = memberService.registerMember(member);
+      log.info("Member registered successfully: {}", registeredMember.getEmail());
+      return new ResponseEntity<>(registeredMember, HttpStatus.CREATED);
+    } catch (Exception e) {
+      log.error("Error registering member: {}", e.getMessage(), e);
+      throw e;
+    }
   }
 
   /** 
@@ -147,10 +154,9 @@ public class RestService {
       @ApiResponse(responseCode = "500", description = "Internal server error")
   })
   @PutMapping("/{id}")
-  public ResponseEntity<Member> updateMember(@RequestBody Member updatedMember,
+  public ResponseEntity<Member> updateMember(@Valid @RequestBody Member updatedMember,
       @PathVariable("id") String id) {
 
-    log.info("Updating Member with Id {}", id);
     try {
       // Check if the member exists before updating
       Member existingMember = memberService.findById(id);
@@ -164,6 +170,50 @@ public class RestService {
     } catch (Exception e) {
       // Handle exceptions and return appropriate error status
       return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @PostMapping("/fix-roles")
+  @Operation(summary = "Fix user roles", description = "Fix existing users with incorrect role format")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "User roles fixed successfully"),
+      @ApiResponse(responseCode = "500", description = "Internal server error")
+  })
+  public ResponseEntity<String> fixUserRoles() {
+    try {
+      memberService.fixExistingUserRoles();
+      return new ResponseEntity<>("User roles fixed successfully", HttpStatus.OK);
+    } catch (Exception e) {
+      log.error("Error fixing user roles: {}", e.getMessage(), e);
+      return new ResponseEntity<>("Error fixing user roles: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @PostMapping("/auth/login")
+  @Operation(summary = "Login to get JWT token", description = "Login with email and password to get JWT token for API testing")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Login successful", content = @Content(schema = @Schema(implementation = String.class))),
+      @ApiResponse(responseCode = "401", description = "Invalid credentials"),
+      @ApiResponse(responseCode = "500", description = "Internal server error")
+  })
+  public ResponseEntity<String> loginForToken(
+      @Parameter(description = "User email", required = true) @RequestParam String email,
+      @Parameter(description = "User password", required = true) @RequestParam String password) {
+    
+    try {
+      // This is a simple endpoint for Swagger testing
+      // In a real application, you would use proper authentication service
+      
+      // For demo purposes, accept any valid email/password combination
+      // In production, validate against the database
+      if (email != null && password != null && !email.isEmpty() && !password.isEmpty()) {
+        return ResponseEntity.ok("Login successful. Use the JWT token from your login session for API calls.");
+      } else {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
+      }
+    } catch (Exception e) {
+      log.error("Login error: {}", e.getMessage());
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Login failed");
     }
   }
 }
