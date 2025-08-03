@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="500 Internal Server Error - Server Error">
+  <title>500 Internal Server Error - KitchenSink</title>
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" th:href="@{/gfx/favicon.png}"/>
+  <link rel="shortcut icon" type="image/png" th:href="@{/gfx/favicon.png}"/>
+  <link rel="stylesheet" th:href="@{/css/unified-theme.css}">
+  <script th:src="@{/js/theme-toggle.js}" defer></script>
+</head>
+<body>
+  <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+  
+  <div class="auth-container">
+    <h2>500 Internal Server Error</h2>
+    <h3>Server Error</h3>
+    
+    <div class="error">
+      Sorry, something went wrong on our end. Our team has been notified and is working to fix the issue.
+    </div>
+    
+    <div class="error-details" th:if="${error}">
+      <p><strong>Error Details:</strong></p>
+      <p th:text="${error}">Error message</p>
+    </div>
+    
+    <div class="error-details" th:if="${message}">
+      <p><strong>Message:</strong></p>
+      <p th:text="${message}">Error message</p>
+    </div>
+    
+    <div class="error-details" th:if="${timestamp}">
+      <p><strong>Timestamp:</strong></p>
+      <p th:text="${timestamp}">Timestamp</p>
+    </div>
+    
+    <div class="link-section">
+      <a href="/" class="btn">Return to Home</a>
+      <a href="/jwt-login" class="btn btn-secondary">Go to Login</a>
+    </div>
+    
+    <div class="help-section">
+      <p>If this problem persists, please contact support.</p>
+    </div>
+  </div>
+</body>
+</html> 

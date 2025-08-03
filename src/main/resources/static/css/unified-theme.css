@@ -267,14 +267,14 @@ body {
 }
 
 .link-section a {
-    color: var(--primary-color);
+    /*color: var(--primary-color);*/
     text-decoration: none;
     font-weight: 500;
     transition: var(--transition);
 }
 
 .link-section a:hover {
-    color: var(--primary-hover);
+    /*color: var(--primary-hover);*/
     text-decoration: underline;
 }
 

@@ -12,8 +12,10 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.AccessDeniedHandler;
-import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import com.example.kitchensink.security.JwtAuthenticationFilter;
+import com.example.kitchensink.security.JwtTokenService;
 
 @TestConfiguration
 @EnableWebSecurity
@@ -21,56 +23,41 @@ public class TestSecurityConfig {
 
     @Bean
     @Primary
-    public SecurityFilterChain testSecurityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain testSecurityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthFilter) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll() // Allow all auth endpoints
-                        .requestMatchers("/", "/jwt-login", "/jwt-signup").permitAll()
-                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
-                        .requestMatchers("/actuator/**").permitAll()
-                        .requestMatchers("/css/**", "/js/**", "/gfx/**", "/images/**", "/favicon.ico").permitAll() // Allow static resources
-                        .requestMatchers("/401", "/403").permitAll() // Allow error pages
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/user-profile").hasAnyRole("USER", "ADMIN")
-                        .anyRequest().authenticated()
-                )
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-                .exceptionHandling(exception -> exception
-                        .accessDeniedHandler(accessDeniedHandler())
-                        .authenticationEntryPoint(authenticationEntryPoint())
-                );
+            .csrf(AbstractHttpConfigurer::disable)
+            .cors(cors -> cors.and())
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/css/**", "/js/**", "/gfx/**", "/images/**", "/favicon.ico", "/favicon.png").permitAll() // Allow static resources
+                .requestMatchers("/error/**", "/error").permitAll() // Allow error endpoints
+                .requestMatchers("/jwt/login", "/jwt/signup", "/jwt/logout").permitAll() // Allow JWT auth endpoints
+                .requestMatchers("/auth/**", "/api/auth/**").permitAll() // Allow auth endpoints
+                .requestMatchers("/api/public/**").permitAll() // Allow public API endpoints
+                .anyRequest().authenticated() // Require authentication for all other requests
+            )
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
     @Bean
-    @Primary
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
     @Bean
-    @Primary
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
-        return authConfig.getAuthenticationManager();
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
     }
 
     @Bean
-    @Primary
-    public AccessDeniedHandler accessDeniedHandler() {
-        return (request, response, accessDeniedException) -> {
-            response.sendRedirect("/403");
-        };
+    public JwtTokenService jwtTokenService() {
+        return new JwtTokenService();
     }
 
     @Bean
-    @Primary
-    public AuthenticationEntryPoint authenticationEntryPoint() {
-        return (request, response, authException) -> {
-            response.sendRedirect("/401");
-        };
+    public JwtAuthenticationFilter jwtAuthenticationFilter(JwtTokenService jwtTokenService, com.example.kitchensink.security.CustomUserDetailsService userDetailsService) {
+        return new JwtAuthenticationFilter(jwtTokenService, userDetailsService);
     }
 } 

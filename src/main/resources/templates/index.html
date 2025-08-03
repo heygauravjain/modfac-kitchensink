@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>KitchenSink - Admin Dashboard</title>
   <!-- Favicon -->
-  <link rel="icon" type="image/png" th:href="@{/gfx/mongo.png}"/>
-  <link rel="shortcut icon" type="image/png" th:href="@{/gfx/mongo.png}"/>
+  <link rel="icon" type="image/png" th:href="@{/gfx/favicon.png}"/>
+  <link rel="shortcut icon" type="image/png" th:href="@{/gfx/favicon.png}"/>
   <!-- Include the unified CSS stylesheet -->
   <link th:href="@{/css/unified-theme.css}" rel="stylesheet"/>
   <!-- Include the theme toggle JavaScript -->
@@ -76,7 +76,7 @@
       <h1>KitchenSink - Admin Dashboard</h1>
       <div class="header-actions">
         <span class="welcome-text">Welcome, <span th:text="${loggedInUser}">Admin</span></span>
-        <a th:href="@{/jwt-logout}" class="btn btn-logout" onclick="logout()">Logout</a>
+        <a href="#" class="btn btn-logout" onclick="logout()">Logout</a>
       </div>
     </div>
 
@@ -103,20 +103,14 @@
               <tr th:each="member : ${members}">
                 <td class="actions-cell">
                   <a href="#" class="btn btn-small btn-edit edit-button" 
-                     th:onclick="'return editMember(this);'" 
-                     th:style="${member.email == sessionUserEmail ? 'display: none;' : 'display: inline;'}"
-                     th:title="${member.email == sessionUserEmail ? 'Cannot edit your own account' : 'Edit member'}">Edit</a>
+                     th:onclick="'return editMember(this);'" style="display: inline;">Edit</a>
                   <a href="#" class="btn btn-small btn-secondary save-link" 
                      th:onclick="'return saveMember(this, \'' + @{/admin/members/{id}(id=${member.id})} + '\');'" 
                      style="display: none;">Save</a>
                   <a href="#" class="btn btn-small btn-delete cancel-button" 
                      th:onclick="'return cancelEdit(this);'" style="display: none;">Cancel</a>
                   <a href="#" class="btn btn-small btn-delete" 
-                     th:onclick="'return deleteMember(this, \'' + @{/admin/members/{id}(id=${member.id})} + '\');'"
-                     th:style="${member.email == sessionUserEmail ? 'display: none;' : 'display: inline;'}"
-                     th:title="${member.email == sessionUserEmail ? 'Cannot delete your own account' : 'Delete member'}">Delete</a>
-                  <span th:if="${member.email == sessionUserEmail}" class="current-user-indicator" 
-                        style="color: #6c757d; font-size: 0.8em; font-style: italic;">(Current User)</span>
+                     th:onclick="'return deleteMember(this, \'' + @{/admin/members/{id}(id=${member.id})} + '\');'">Delete</a>
                 </td>
                 <td>
                   <input type="text" class="editable-field" th:value="${member.name}" disabled style="border: none; background: transparent; width: 100%;">

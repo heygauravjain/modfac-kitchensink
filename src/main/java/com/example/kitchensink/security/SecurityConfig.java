@@ -41,12 +41,12 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/jwt-login", "/jwt-signup", "/admin/home", "/register", "/user-profile", "/debug-session").permitAll()
+                        .requestMatchers("/", "/jwt-login", "/jwt-signup", "/jwt-logout", "/admin/home", "/register", "/user-profile", "/debug-session").permitAll()
                         .requestMatchers("/api/auth/**").permitAll() // Allow all auth endpoints
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
-                        .requestMatchers("/css/**", "/js/**", "/gfx/**", "/images/**", "/favicon.ico").permitAll() // Allow static resources
-                        .requestMatchers("/401", "/403").permitAll() // Allow error pages
+                        .requestMatchers("/css/**", "/js/**", "/gfx/**", "/images/**", "/favicon.ico", "/favicon.png").permitAll() // Allow static resources
+                        .requestMatchers("/401", "/403", "/500", "/error/**").permitAll() // Allow error pages
                         .requestMatchers("/admin/members/register").hasRole("ADMIN") // Allow admin to register members
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/user/**").hasRole("USER")

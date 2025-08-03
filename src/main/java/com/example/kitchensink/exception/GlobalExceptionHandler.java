@@ -31,6 +31,20 @@ public class GlobalExceptionHandler {
     return new ResponseEntity<>(errorDetails, HttpStatus.NOT_FOUND);
   }
 
+  // Add specific handler for static resource errors
+  @ExceptionHandler(org.springframework.web.servlet.NoHandlerFoundException.class)
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  public final ResponseEntity<Object> handleNoHandlerFoundException(org.springframework.web.servlet.NoHandlerFoundException ex,
+      WebRequest request) {
+    log.warn("Static resource not found: {} - Request: {}", ex.getRequestURL(), request.getDescription(false));
+    
+    Map<String, Object> errorDetails = new HashMap<>();
+    errorDetails.put("timestamp", LocalDateTime.now());
+    errorDetails.put("message", "An unexpected error occurred");
+    errorDetails.put("details", "No static resource " + ex.getRequestURL().substring(ex.getRequestURL().lastIndexOf("/") + 1) + ".");
+    return new ResponseEntity<>(errorDetails, HttpStatus.NOT_FOUND);
+  }
+
   @ExceptionHandler(NullPointerException.class)
   public ResponseEntity<Object> handleNullPointerException(NullPointerException ex) {
     log.error("NullPointerException occurred: {}", ex.getMessage(), ex);
@@ -41,6 +55,18 @@ public class GlobalExceptionHandler {
     errorDetails.put("details", ex.getMessage());
     
     return new ResponseEntity<>(errorDetails, HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+
+  @ExceptionHandler(IllegalArgumentException.class)
+  public ResponseEntity<Object> handleIllegalArgumentException(IllegalArgumentException ex) {
+    log.error("IllegalArgumentException occurred: {}", ex.getMessage(), ex);
+    
+    Map<String, Object> errorDetails = new HashMap<>();
+    errorDetails.put("timestamp", LocalDateTime.now());
+    errorDetails.put("message", "Invalid request");
+    errorDetails.put("details", ex.getMessage());
+    
+    return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
   }
 
   // Handle all other exceptions

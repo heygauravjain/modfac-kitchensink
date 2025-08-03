@@ -249,4 +249,14 @@ public class MemberController {
   public String error401() {
     return "error/401";
   }
+
+  /**
+   * Displays the 500 error page.
+   *
+   * @return the 500 error page view
+   */
+  @GetMapping("/500")
+  public String error500() {
+    return "error/500";
+  }
 }
