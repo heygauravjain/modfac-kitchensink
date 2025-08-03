@@ -118,12 +118,12 @@ java -jar target/kitchensink-0.0.1-SNAPSHOT.jar
 ### 📖 Complete Documentation
 - **[Application Flow](docs/APPLICATION_FLOW.md)**: Detailed system architecture and authentication flow
 - **[Authentication Flow Analysis](docs/AUTHENTICATION_FLOW_ANALYSIS.md)**: Comprehensive JWT and session authentication analysis
-- **[Project Documentation](docs/PROJECT_DOCUMENTATION.md)**: Complete setup, development, and deployment guide
+
 - **[User Journey Flow](docs/USER_JOURNEY_FLOW.md)**: Complete user experience and workflow documentation
 - **[UI Architecture Explanation](docs/UI_ARCHITECTURE_EXPLANATION.md)**: Frontend design patterns and component structure
 - **[Build Guide](docs/BUILD_GUIDE.md)**: Build and testing instructions
 - **[Troubleshooting](docs/TROUBLESHOOTING.md)**: Common issues and solutions
-- **[Test Coverage](docs/TEST_COVERAGE_SUMMARY.md)**: Testing strategy and coverage report
+
 
 ### 🎨 Architecture Diagram
 - **[Draw.io Diagram](docs/KitchenSink_Architecture_Diagram.xml)**: Visual architecture representation
@@ -384,7 +384,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Favicon Issues**: Clear browser cache if favicon doesn't load
 
 ### Getting Help
-- Check the [Troubleshooting Guide](docs/TROUBLESHOOTING.md)
+
 - Review the [Project Documentation](docs/PROJECT_DOCUMENTATION.md)
 - Examine the [Application Flow](docs/APPLICATION_FLOW.md)
 - Follow the [User Journey Flow](docs/USER_JOURNEY_FLOW.md)
@@ -393,9 +393,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 **KitchenSink Application** - A comprehensive Spring Boot application demonstrating modern web development practices with JWT authentication, MongoDB integration, and role-based access control. 
-
-### Recent Updates
-- ✅ **Fixed Favicon Issues**: Proper favicon.ico and favicon.png handling
-- ✅ **Improved Test Suite**: All 95 tests now passing with proper security validation
-- ✅ **Enhanced Error Handling**: Custom error pages for 401, 403, 404, and 500 errors
-- ✅ **Updated Documentation**: Added comprehensive project documentation, user journey flow, and UI architecture explanation 
