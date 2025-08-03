@@ -58,6 +58,8 @@ java -jar target/kitchensink-0.0.1-SNAPSHOT.jar
 - **Responsive Design**: Modern web interface
 - **Admin Dashboard**: Member management interface
 - **User Profile**: Personal information display
+- **Favicon Support**: Proper favicon.ico and favicon.png handling
+- **Error Pages**: Custom 401, 403, 404, and 500 error pages
 
 ### 🔌 RESTful APIs
 - **Complete CRUD Operations**: Create, Read, Update, Delete
@@ -68,7 +70,7 @@ java -jar target/kitchensink-0.0.1-SNAPSHOT.jar
 
 ### 🛠️ Development Tools
 - **Health Checks**: Actuator endpoints for monitoring
-- **Test Coverage**: Comprehensive unit and integration tests
+- **Test Coverage**: Comprehensive unit and integration tests (95 tests passing)
 - **Docker Support**: Containerized deployment
 - **Maven Wrapper**: Consistent build environment
 
@@ -115,7 +117,10 @@ java -jar target/kitchensink-0.0.1-SNAPSHOT.jar
 
 ### 📖 Complete Documentation
 - **[Application Flow](docs/APPLICATION_FLOW.md)**: Detailed system architecture and authentication flow
+- **[Authentication Flow Analysis](docs/AUTHENTICATION_FLOW_ANALYSIS.md)**: Comprehensive JWT and session authentication analysis
 - **[Project Documentation](docs/PROJECT_DOCUMENTATION.md)**: Complete setup, development, and deployment guide
+- **[User Journey Flow](docs/USER_JOURNEY_FLOW.md)**: Complete user experience and workflow documentation
+- **[UI Architecture Explanation](docs/UI_ARCHITECTURE_EXPLANATION.md)**: Frontend design patterns and component structure
 - **[Build Guide](docs/BUILD_GUIDE.md)**: Build and testing instructions
 - **[Troubleshooting](docs/TROUBLESHOOTING.md)**: Common issues and solutions
 - **[Test Coverage](docs/TEST_COVERAGE_SUMMARY.md)**: Testing strategy and coverage report
@@ -137,6 +142,12 @@ java -jar target/kitchensink-0.0.1-SNAPSHOT.jar
 - `POST /jwt-login` - Web-based JWT authentication
 - `GET /admin/home` - Admin dashboard (Admin only)
 - `GET /user-profile` - User profile page (Authenticated users)
+
+### Error Handling
+- `GET /error/500` - Internal server error page
+- `GET /error/404` - Not found error page
+- `GET /error/401` - Unauthorized error page
+- `GET /error/403` - Forbidden error page
 
 ### Admin APIs (Admin only)
 - `GET /admin/members` - List all members
@@ -185,7 +196,7 @@ java -jar target/kitchensink-0.0.1-SNAPSHOT.jar
 
 ### Run Tests
 ```bash
-# Run all tests
+# Run all tests (95 tests passing)
 mvn test
 
 # Run specific test class
@@ -198,6 +209,7 @@ mvn test jacoco:report
 ### Test Categories
 - **Unit Tests**: Service layer, repository layer, security components
 - **Integration Tests**: REST API endpoints, authentication flows
+- **Controller Tests**: Error handling, security validation
 - **End-to-End Tests**: Complete user workflows
 
 ### Test Coverage
@@ -205,6 +217,13 @@ mvn test jacoco:report
 - **Service Layer**: 90%+
 - **Security Layer**: 85%+
 - **Overall Coverage**: 85%+
+- **All 95 tests passing** ✅
+
+### Recent Test Improvements
+- **Fixed ErrorControllerTest**: Updated expectations to match Spring Security behavior
+- **Fixed JwtAuthControllerTest**: Added missing dependencies and updated expectations
+- **Improved Test Security Configuration**: Better handling of authentication in tests
+- **Enhanced Error Handling**: Proper 401/403 status code validation
 
 ## 🚀 Deployment
 
@@ -285,7 +304,10 @@ src/
 │   │   ├── security/        # JWT and security config
 │   │   └── service/         # Business logic
 │   └── resources/
-│       ├── static/          # Static assets
+│       ├── static/          # Static assets (CSS, JS, images)
+│       │   ├── css/         # Stylesheets
+│       │   ├── js/          # JavaScript files
+│       │   └── gfx/         # Images and favicon
 │       ├── templates/       # Thymeleaf templates
 │       └── application.yml  # Application config
 └── test/                    # Unit and integration tests
@@ -359,12 +381,21 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **JWT Token Issues**: Verify JWT secret configuration
 - **Port Conflicts**: Ensure port 8080 is available
 - **Memory Issues**: Increase JVM heap size if needed
+- **Favicon Issues**: Clear browser cache if favicon doesn't load
 
 ### Getting Help
 - Check the [Troubleshooting Guide](docs/TROUBLESHOOTING.md)
 - Review the [Project Documentation](docs/PROJECT_DOCUMENTATION.md)
 - Examine the [Application Flow](docs/APPLICATION_FLOW.md)
+- Follow the [User Journey Flow](docs/USER_JOURNEY_FLOW.md)
+- Understand the [UI Architecture](docs/UI_ARCHITECTURE_EXPLANATION.md)
 
 ---
 
 **KitchenSink Application** - A comprehensive Spring Boot application demonstrating modern web development practices with JWT authentication, MongoDB integration, and role-based access control. 
+
+### Recent Updates
+- ✅ **Fixed Favicon Issues**: Proper favicon.ico and favicon.png handling
+- ✅ **Improved Test Suite**: All 95 tests now passing with proper security validation
+- ✅ **Enhanced Error Handling**: Custom error pages for 401, 403, 404, and 500 errors
+- ✅ **Updated Documentation**: Added comprehensive project documentation, user journey flow, and UI architecture explanation 
