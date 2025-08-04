@@ -118,8 +118,7 @@ java -jar target/kitchensink-0.0.1-SNAPSHOT.jar
 ### 📖 Complete Documentation
 - **[Application Flow](docs/APPLICATION_FLOW.md)**: Detailed system architecture and authentication flow
 - **[Authentication Flow Analysis](docs/AUTHENTICATION_FLOW_ANALYSIS.md)**: Comprehensive JWT and session authentication analysis
-
-- **[User Journey Flow](docs/USER_JOURNEY_FLOW.md)**: Complete user experience and workflow documentation
+- **[UI Flow](docs/UI-FLOW.md)**: Detailed user interface flow and JWT token lifecycle
 - **[UI Architecture Explanation](docs/UI_ARCHITECTURE_EXPLANATION.md)**: Frontend design patterns and component structure
 - **[Build Guide](docs/BUILD_GUIDE.md)**: Build and testing instructions
 - **[Troubleshooting](docs/TROUBLESHOOTING.md)**: Common issues and solutions
