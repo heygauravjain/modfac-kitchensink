@@ -84,7 +84,7 @@ mvn clean install -U
 mvn clean package -DskipTests
 
 # Run only specific tests
-mvn test -Dtest=SimpleBuildTest
+mvn test -Dtest=KitchenSinkApplicationTests
 ```
 
 #### 5. Compilation Issues

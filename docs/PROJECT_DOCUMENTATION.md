@@ -26,6 +26,7 @@ KitchenSink is a comprehensive Spring Boot application that demonstrates modern 
 - 🎨 **Web Interface**: Thymeleaf templates for user interaction
 - 🛡️ **Security**: Spring Security with custom filters and handlers
 - 📊 **Monitoring**: Actuator endpoints for health checks and metrics
+- 🎯 **Strategy Pattern**: Dynamic registration behavior based on source context
 
 ### Technology Stack
 - **Backend**: Spring Boot 3.2.5

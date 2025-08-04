@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2024-01-01T00:00:00.000Z" agent="5.0" etag="xxx" version="22.1.16" type="device">
+  <diagram name="High-Level Design" id="hld-diagram">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- Title -->
+        <mxCell id="title" value="KitchenSink Application - High-Level Design (HLD)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="500" y="20" width="400" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- Client Layer -->
+        <mxCell id="client-layer" value="CLIENT LAYER" style="text;html=1;strokeColor=none;fillColor=#dae8fc;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="50" y="80" width="1300" height="40" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="client" value="Web Browser&#xa;(User Interface)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="100" y="140" width="150" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="mobile" value="Mobile Device&#xa;(Future Support)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;fontStyle=1;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="300" y="140" width="150" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- Presentation Layer -->
+        <mxCell id="presentation-layer" value="PRESENTATION LAYER" style="text;html=1;strokeColor=none;fillColor=#d5e8d4;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="50" y="260" width="1300" height="40" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="frontend-server" value="Frontend Server&#xa;(Spring Boot + Thymeleaf)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="100" y="320" width="180" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="static-resources" value="Static Resources&#xa;(CSS, JS, Images)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="320" y="320" width="150" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="error-pages" value="Error Pages&#xa;(401, 403, 500)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="510" y="320" width="150" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- Security Layer -->
+        <mxCell id="security-layer" value="SECURITY LAYER" style="text;html=1;strokeColor=none;fillColor=#fff2cc;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="50" y="440" width="1300" height="40" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="api-gateway" value="API Gateway&#xa;(Spring Security)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="100" y="500" width="150" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="jwt-auth" value="JWT Authentication&#xa;(Token Management)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="300" y="500" width="150" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="session-mgmt" value="Session Management&#xa;(HttpSession)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="500" y="500" width="150" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="cors-config" value="CORS Configuration&#xa;(Cross-Origin)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="700" y="500" width="150" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- Application Layer -->
+        <mxCell id="application-layer" value="APPLICATION LAYER" style="text;html=1;strokeColor=none;fillColor=#e1d5e7;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="50" y="620" width="1300" height="40" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="auth-controller" value="Auth Controller&#xa;(JwtAuthController)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="100" y="680" width="150" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="member-controller" value="Member Controller&#xa;(MemberController)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="300" y="680" width="150" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="rest-service" value="REST Service&#xa;(RestService)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="500" y="680" width="150" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="strategy-pattern" value="Strategy Pattern&#xa;(RegistrationContext)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="700" y="680" width="150" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- Service Layer -->
+        <mxCell id="service-layer" value="SERVICE LAYER" style="text;html=1;strokeColor=none;fillColor=#f8cecc;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="50" y="800" width="1300" height="40" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="auth-service" value="Auth Service&#xa;(AuthService)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="100" y="860" width="150" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="member-service" value="Member Service&#xa;(MemberService)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="300" y="860" width="150" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="jwt-service" value="JWT Token Service&#xa;(JwtTokenService)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="500" y="860" width="150" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="user-details" value="User Details Service&#xa;(CustomUserDetailsService)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="700" y="860" width="150" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- Data Layer -->
+        <mxCell id="data-layer" value="DATA LAYER" style="text;html=1;strokeColor=none;fillColor=#ffe6cc;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="50" y="980" width="1300" height="40" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="mongodb" value="MongoDB Database&#xa;(NoSQL)" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="100" y="1040" width="150" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="mongo-express" value="MongoDB Express&#xa;(Admin Interface)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="300" y="1040" width="150" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="repository" value="Repository Layer&#xa;(MemberRepository)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="500" y="1040" width="150" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="mapper" value="Mapper Layer&#xa;(MemberMapper)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="700" y="1040" width="150" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- External Services -->
+        <mxCell id="external-layer" value="EXTERNAL SERVICES" style="text;html=1;strokeColor=none;fillColor=#f5f5f5;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="50" y="1160" width="1300" height="40" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="swagger" value="Swagger UI&#xa;(API Documentation)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="100" y="1220" width="150" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="actuator" value="Spring Actuator&#xa;(Health Checks)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="300" y="1220" width="150" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="docker" value="Docker Container&#xa;(Deployment)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="500" y="1220" width="150" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- Trust Boundaries -->
+        <mxCell id="trust-boundary-1" value="Trust Boundary: Client ↔ Server" style="shape=rect;html=1;whiteSpace=wrap;fillColor=#ffcccc;strokeColor=#cc0000;strokeWidth=3;dashed=1;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="50" y="240" width="1300" height="20" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="trust-boundary-2" value="Trust Boundary: External ↔ Internal" style="shape=rect;html=1;whiteSpace=wrap;fillColor=#ccffcc;strokeColor=#00cc00;strokeWidth=3;dashed=1;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="50" y="1140" width="1300" height="20" as="geometry" />
+        </mxCell>
+        
+        <!-- Data Flow Connections -->
+        <mxCell id="flow1" value="HTTP/HTTPS" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=10;fontStyle=1;strokeWidth=2;" edge="1" parent="1" source="client" target="frontend-server">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="flow2" value="API Calls" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=10;fontStyle=1;strokeWidth=2;" edge="1" parent="1" source="frontend-server" target="api-gateway">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="flow3" value="JWT Validation" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=10;fontStyle=1;strokeWidth=2;" edge="1" parent="1" source="api-gateway" target="jwt-auth">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="flow4" value="Business Logic" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=10;fontStyle=1;strokeWidth=2;" edge="1" parent="1" source="api-gateway" target="auth-controller">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="flow5" value="Service Calls" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=10;fontStyle=1;strokeWidth=2;" edge="1" parent="1" source="auth-controller" target="auth-service">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="flow6" value="Data Access" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=10;fontStyle=1;strokeWidth=2;" edge="1" parent="1" source="member-service" target="repository">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="flow7" value="Database Operations" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=10;fontStyle=1;strokeWidth=2;" edge="1" parent="1" source="repository" target="mongodb">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="flow8" value="Admin Access" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=10;fontStyle=1;strokeWidth=2;" edge="1" parent="1" source="mongo-express" target="mongodb">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Cross-layer connections -->
+        <mxCell id="cross1" value="Member Management" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=10;fontStyle=1;strokeWidth=2;strokeColor=#9673a6;" edge="1" parent="1" source="member-controller" target="member-service">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="cross2" value="REST API" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=10;fontStyle=1;strokeWidth=2;strokeColor=#9673a6;" edge="1" parent="1" source="rest-service" target="member-service">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="cross3" value="Token Generation" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=10;fontStyle=1;strokeWidth=2;strokeColor=#b85450;" edge="1" parent="1" source="auth-service" target="jwt-service">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="cross4" value="User Details" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=10;fontStyle=1;strokeWidth=2;strokeColor=#b85450;" edge="1" parent="1" source="auth-service" target="user-details">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Data Flow Labels -->
+        <mxCell id="data-flow-1" value="1. User requests page" style="text;html=1;strokeColor=none;fillColor=#f0f0f0;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="50" y="1320" width="200" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="data-flow-2" value="2. Security validation" style="text;html=1;strokeColor=none;fillColor=#f0f0f0;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="280" y="1320" width="200" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="data-flow-3" value="3. Business logic execution" style="text;html=1;strokeColor=none;fillColor=#f0f0f0;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="510" y="1320" width="200" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="data-flow-4" value="4. Data persistence" style="text;html=1;strokeColor=none;fillColor=#f0f0f0;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="740" y="1320" width="200" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="data-flow-5" value="5. Response rendering" style="text;html=1;strokeColor=none;fillColor=#f0f0f0;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="970" y="1320" width="200" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Technology Stack -->
+        <mxCell id="tech-stack-title" value="Technology Stack" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="50" y="1380" width="200" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="tech-backend" value="Backend: Spring Boot, Spring Security, JWT" style="text;html=1;strokeColor=none;fillColor=#e1d5e7;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="50" y="1420" width="300" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="tech-frontend" value="Frontend: Thymeleaf, JavaScript, CSS" style="text;html=1;strokeColor=none;fillColor=#d5e8d4;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="50" y="1460" width="300" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="tech-database" value="Database: MongoDB, MongoDB Express" style="text;html=1;strokeColor=none;fillColor=#ffe6cc;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="50" y="1500" width="300" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="tech-deployment" value="Deployment: Docker, Docker Compose" style="text;html=1;strokeColor=none;fillColor=#f5f5f5;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="50" y="1540" width="300" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Security Features -->
+        <mxCell id="security-title" value="Security Features" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="400" y="1380" width="200" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="security-jwt" value="• JWT Token Authentication" style="text;html=1;strokeColor=none;fillColor=#fff2cc;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="400" y="1420" width="250" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="security-session" value="• Session Management" style="text;html=1;strokeColor=none;fillColor=#fff2cc;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="400" y="1460" width="250" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="security-cors" value="• CORS Configuration" style="text;html=1;strokeColor=none;fillColor=#fff2cc;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="400" y="1500" width="250" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="security-role" value="• Role-Based Access Control" style="text;html=1;strokeColor=none;fillColor=#fff2cc;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="400" y="1540" width="250" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Key Features -->
+        <mxCell id="features-title" value="Key Features" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="700" y="1380" width="200" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="features-auth" value="• User Authentication & Authorization" style="text;html=1;strokeColor=none;fillColor=#f8cecc;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="700" y="1420" width="300" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="features-crud" value="• CRUD Operations for Members" style="text;html=1;strokeColor=none;fillColor=#f8cecc;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="700" y="1460" width="300" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="features-strategy" value="• Strategy Pattern Implementation" style="text;html=1;strokeColor=none;fillColor=#f8cecc;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="700" y="1500" width="300" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="features-admin" value="• Admin Dashboard & MongoDB Express" style="text;html=1;strokeColor=none;fillColor=#f8cecc;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="700" y="1540" width="300" height="30" as="geometry" />
+        </mxCell>
+        
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile> 
