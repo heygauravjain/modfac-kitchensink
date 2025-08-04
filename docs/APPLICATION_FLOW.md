@@ -47,11 +47,11 @@ The KitchenSink application is a Spring Boot-based web application that demonstr
          │                       │                       │
          ▼                       ▼                       ▼
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│  Service Layer  │    │  Mapper Layer   │    │  Config Layer   │
+│  Service Layer  │    │  Strategy Layer │    │  Config Layer   │
 │                 │    │                 │    │                 │
-│ • Auth Service  │◄──►│ • MapStruct     │◄──►│ • Security Config│
-│ • Member Service│    │ • DTO Mapping   │    │ • Data Init     │
-│ • Business Logic│    │ • Entity Mapping│    │ • Bean Config   │
+│ • Auth Service  │◄──►│ • Registration  │◄──►│ • Security Config│
+│ • Member Service│    │ • Context       │    │ • Bean Config   │
+│ • Business Logic│    │ • Strategies    │    │ • Data Init     │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 

@@ -24,7 +24,7 @@ KitchenSink is a Spring Boot-based web application that demonstrates modern Java
 - **Member Management**: CRUD operations for user management with admin dashboard
 - **RESTful APIs**: Comprehensive API endpoints with Swagger documentation
 - **Web Interface**: Thymeleaf-based responsive web interface
-- **Strategy Pattern**: Flexible registration strategies for different user types
+- **Strategy Pattern**: Dynamic registration behavior based on source context
 - **Security**: Spring Security with custom filters and JWT token management
 
 ## System Architecture
