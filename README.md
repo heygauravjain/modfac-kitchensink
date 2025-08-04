@@ -122,10 +122,6 @@ java -jar target/kitchensink-0.0.1-SNAPSHOT.jar
 - **[UI Architecture Explanation](docs/UI_ARCHITECTURE_EXPLANATION.md)**: Frontend design patterns and component structure
 
 
-
-### 🎨 Architecture Diagram
-- **[Draw.io Diagram](docs/KitchenSink_Architecture_Diagram.xml)**: Visual architecture representation
-
 ## 🛣️ API Endpoints
 
 ### Authentication
@@ -386,7 +382,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Review the [Project Documentation](docs/PROJECT_DOCUMENTATION.md)
 - Examine the [Application Flow](docs/APPLICATION_FLOW.md)
 - Follow the [User Journey Flow](docs/USER_JOURNEY_FLOW.md)
-- Understand the [UI Architecture](docs/UI_ARCHITECTURE_EXPLANATION.md)
 
 ---
 
