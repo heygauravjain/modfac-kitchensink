@@ -1,4 +1,4 @@
-l# KitchenSink Authentication & Authorization Flow Analysis
+# KitchenSink Authentication & Authorization Flow Analysis
 
 ## Table of Contents
 1. [Application Flow Overview](#application-flow-overview)
