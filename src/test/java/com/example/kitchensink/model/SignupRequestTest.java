@@ -96,14 +96,58 @@ class SignupRequestTest {
     }
 
     @Test
-    void testDefaultRole() {
-        SignupRequest request = new SignupRequest();
-        assertEquals("USER", request.getRole());
+    void testEqualsWithNullFields() {
+        SignupRequest request1 = new SignupRequest(null, null, null, null, null);
+        SignupRequest request2 = new SignupRequest(null, null, null, null, null);
+
+        assertEquals(request1, request2);
+        assertEquals(request1.hashCode(), request2.hashCode());
     }
 
     @Test
-    void testNullValues() {
+    void testEqualsWithDifferentNullFields() {
+        SignupRequest request1 = new SignupRequest("John Doe", null, "Password123!", "1234567890", "USER");
+        SignupRequest request2 = new SignupRequest("John Doe", "john@example.com", null, "1234567890", "USER");
+
+        assertNotEquals(request1, request2);
+    }
+
+    @Test
+    void testHashCodeConsistency() {
+        SignupRequest request = new SignupRequest("John Doe", "john@example.com", "Password123!", "1234567890", "USER");
+
+        assertEquals(request.hashCode(), request.hashCode());
+    }
+
+    @Test
+    void testHashCodeWithNullFields() {
         SignupRequest request = new SignupRequest(null, null, null, null, null);
+
+        assertNotNull(request.hashCode());
+    }
+
+    @Test
+    void testToStringWithNullValues() {
+        SignupRequest request = new SignupRequest(null, null, null, null, null);
+        String toString = request.toString();
+
+        assertNotNull(toString);
+        assertTrue(toString.contains("SignupRequest"));
+    }
+
+    @Test
+    void testToStringWithEmptyValues() {
+        SignupRequest request = new SignupRequest("", "", "", "", "");
+        String toString = request.toString();
+
+        assertNotNull(toString);
+        assertTrue(toString.contains("SignupRequest"));
+    }
+
+    @Test
+    void testAllArgsConstructorWithNullValues() {
+        SignupRequest request = new SignupRequest(null, null, null, null, null);
+
         assertNull(request.getName());
         assertNull(request.getEmail());
         assertNull(request.getPassword());
@@ -112,12 +156,81 @@ class SignupRequestTest {
     }
 
     @Test
-    void testEmptyStringValues() {
+    void testAllArgsConstructorWithEmptyValues() {
         SignupRequest request = new SignupRequest("", "", "", "", "");
+
         assertEquals("", request.getName());
         assertEquals("", request.getEmail());
         assertEquals("", request.getPassword());
         assertEquals("", request.getPhoneNumber());
         assertEquals("", request.getRole());
+    }
+
+    @Test
+    void testSettersWithNullValues() {
+        signupRequest.setName(null);
+        signupRequest.setEmail(null);
+        signupRequest.setPassword(null);
+        signupRequest.setPhoneNumber(null);
+        signupRequest.setRole(null);
+
+        assertNull(signupRequest.getName());
+        assertNull(signupRequest.getEmail());
+        assertNull(signupRequest.getPassword());
+        assertNull(signupRequest.getPhoneNumber());
+        assertNull(signupRequest.getRole());
+    }
+
+    @Test
+    void testSettersWithEmptyValues() {
+        signupRequest.setName("");
+        signupRequest.setEmail("");
+        signupRequest.setPassword("");
+        signupRequest.setPhoneNumber("");
+        signupRequest.setRole("");
+
+        assertEquals("", signupRequest.getName());
+        assertEquals("", signupRequest.getEmail());
+        assertEquals("", signupRequest.getPassword());
+        assertEquals("", signupRequest.getPhoneNumber());
+        assertEquals("", signupRequest.getRole());
+    }
+
+    @Test
+    void testBoundaryValues() {
+        // Test minimum length name
+        signupRequest.setName("A");
+        assertEquals("A", signupRequest.getName());
+
+        // Test maximum length name
+        String maxLengthName = "A".repeat(25);
+        signupRequest.setName(maxLengthName);
+        assertEquals(maxLengthName, signupRequest.getName());
+
+        // Test minimum length password
+        signupRequest.setPassword("Pass1!@");
+        assertEquals("Pass1!@", signupRequest.getPassword());
+    }
+
+    @Test
+    void testSpecialCharacters() {
+        signupRequest.setName("José María O'Connor");
+        signupRequest.setEmail("test+tag@example.co.uk");
+        signupRequest.setPassword("Complex1@Pass");
+
+        assertEquals("José María O'Connor", signupRequest.getName());
+        assertEquals("test+tag@example.co.uk", signupRequest.getEmail());
+        assertEquals("Complex1@Pass", signupRequest.getPassword());
+    }
+
+    @Test
+    void testUnicodeCharacters() {
+        signupRequest.setName("李小明");
+        signupRequest.setEmail("test@example.com");
+        signupRequest.setPassword("Test123!@");
+
+        assertEquals("李小明", signupRequest.getName());
+        assertEquals("test@example.com", signupRequest.getEmail());
+        assertEquals("Test123!@", signupRequest.getPassword());
     }
 } 

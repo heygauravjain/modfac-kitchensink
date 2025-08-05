@@ -169,9 +169,97 @@ class AuthServiceTest {
     }
 
     @Test
+    void registerUser_WithLowerCaseRole_ShouldConvertToUpperCase() {
+        // Given
+        signupRequest.setRole("user");
+        when(memberRepository.findByEmail(anyString())).thenReturn(Optional.empty());
+        when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
+        when(memberRepository.save(any(MemberDocument.class))).thenReturn(memberDocument);
+        when(jwtTokenService.generateAccessToken(anyString(), anyString())).thenReturn("accessToken");
+        when(jwtTokenService.generateRefreshToken(anyString())).thenReturn("refreshToken");
+        when(jwtTokenService.getAccessTokenExpiration()).thenReturn(900000L);
+
+        // When
+        AuthResponse response = authService.registerUser(signupRequest);
+
+        // Then
+        assertEquals("ROLE_USER", response.getRole());
+        verify(jwtTokenService).generateAccessToken("test@example.com", "ROLE_USER");
+    }
+
+    @Test
+    void registerUser_WithMixedCaseRole_ShouldConvertToUpperCase() {
+        // Given
+        signupRequest.setRole("AdMiN");
+        signupRequest.setEmail("admin@example.com");
+        when(memberRepository.findByEmail(anyString())).thenReturn(Optional.empty());
+        when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
+        
+        MemberDocument adminMember = new MemberDocument();
+        adminMember.setId("2");
+        adminMember.setName("Admin User");
+        adminMember.setEmail("admin@example.com");
+        adminMember.setPassword("encodedPassword");
+        adminMember.setRole("ROLE_ADMIN");
+        adminMember.setPhoneNumber("1234567890");
+        
+        when(memberRepository.save(any(MemberDocument.class))).thenReturn(adminMember);
+        when(jwtTokenService.generateAccessToken(anyString(), anyString())).thenReturn("accessToken");
+        when(jwtTokenService.generateRefreshToken(anyString())).thenReturn("refreshToken");
+        when(jwtTokenService.getAccessTokenExpiration()).thenReturn(900000L);
+
+        // When
+        AuthResponse response = authService.registerUser(signupRequest);
+
+        // Then
+        assertEquals("ROLE_ADMIN", response.getRole());
+        verify(jwtTokenService).generateAccessToken("admin@example.com", "ROLE_ADMIN");
+    }
+
+    @Test
     void registerUser_WithoutPhoneNumber_ShouldRegisterSuccessfully() {
         // Given
         signupRequest.setPhoneNumber(null);
+        when(memberRepository.findByEmail(anyString())).thenReturn(Optional.empty());
+        when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
+        when(memberRepository.save(any(MemberDocument.class))).thenReturn(memberDocument);
+        when(jwtTokenService.generateAccessToken(anyString(), anyString())).thenReturn("accessToken");
+        when(jwtTokenService.generateRefreshToken(anyString())).thenReturn("refreshToken");
+        when(jwtTokenService.getAccessTokenExpiration()).thenReturn(900000L);
+
+        // When
+        AuthResponse response = authService.registerUser(signupRequest);
+
+        // Then
+        assertNotNull(response);
+        assertEquals("ROLE_USER", response.getRole());
+        verify(memberRepository).save(any(MemberDocument.class));
+    }
+
+    @Test
+    void registerUser_WithEmptyPhoneNumber_ShouldRegisterSuccessfully() {
+        // Given
+        signupRequest.setPhoneNumber("");
+        when(memberRepository.findByEmail(anyString())).thenReturn(Optional.empty());
+        when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
+        when(memberRepository.save(any(MemberDocument.class))).thenReturn(memberDocument);
+        when(jwtTokenService.generateAccessToken(anyString(), anyString())).thenReturn("accessToken");
+        when(jwtTokenService.generateRefreshToken(anyString())).thenReturn("refreshToken");
+        when(jwtTokenService.getAccessTokenExpiration()).thenReturn(900000L);
+
+        // When
+        AuthResponse response = authService.registerUser(signupRequest);
+
+        // Then
+        assertNotNull(response);
+        assertEquals("ROLE_USER", response.getRole());
+        verify(memberRepository).save(any(MemberDocument.class));
+    }
+
+    @Test
+    void registerUser_WithNullName_ShouldRegisterSuccessfully() {
+        // Given
+        signupRequest.setName(null);
         when(memberRepository.findByEmail(anyString())).thenReturn(Optional.empty());
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
         when(memberRepository.save(any(MemberDocument.class))).thenReturn(memberDocument);
@@ -249,5 +337,63 @@ class AuthServiceTest {
         verify(jwtTokenService).isTokenValid(refreshToken);
         verify(jwtTokenService).extractUsername(refreshToken);
         verify(memberRepository).findByEmail("test@example.com");
+    }
+
+    @Test
+    void refreshToken_WithNullToken_ShouldThrowException() {
+        // Given
+        String refreshToken = null;
+        when(jwtTokenService.isTokenValid(refreshToken)).thenReturn(false);
+
+        // When & Then
+        RuntimeException exception = assertThrows(RuntimeException.class, 
+            () -> authService.refreshToken(refreshToken));
+        assertEquals("Invalid refresh token", exception.getMessage());
+
+        verify(jwtTokenService).isTokenValid(refreshToken);
+        verify(memberRepository, never()).findByEmail(anyString());
+    }
+
+    @Test
+    void refreshToken_WithEmptyToken_ShouldThrowException() {
+        // Given
+        String refreshToken = "";
+        when(jwtTokenService.isTokenValid(refreshToken)).thenReturn(false);
+
+        // When & Then
+        RuntimeException exception = assertThrows(RuntimeException.class, 
+            () -> authService.refreshToken(refreshToken));
+        assertEquals("Invalid refresh token", exception.getMessage());
+
+        verify(jwtTokenService).isTokenValid(refreshToken);
+        verify(memberRepository, never()).findByEmail(anyString());
+    }
+
+    @Test
+    void refreshToken_WithAdminUser_ShouldReturnAdminRole() {
+        // Given
+        String refreshToken = "validRefreshToken";
+        MemberDocument adminMember = new MemberDocument();
+        adminMember.setId("2");
+        adminMember.setName("Admin User");
+        adminMember.setEmail("admin@example.com");
+        adminMember.setPassword("encodedPassword");
+        adminMember.setRole("ROLE_ADMIN");
+        adminMember.setPhoneNumber("1234567890");
+        
+        when(jwtTokenService.isTokenValid(refreshToken)).thenReturn(true);
+        when(jwtTokenService.extractUsername(refreshToken)).thenReturn("admin@example.com");
+        when(memberRepository.findByEmail("admin@example.com")).thenReturn(Optional.of(adminMember));
+        when(jwtTokenService.generateAccessToken(anyString(), anyString())).thenReturn("newAccessToken");
+        when(jwtTokenService.generateRefreshToken(anyString())).thenReturn("newRefreshToken");
+        when(jwtTokenService.getAccessTokenExpiration()).thenReturn(900000L);
+
+        // When
+        AuthResponse response = authService.refreshToken(refreshToken);
+
+        // Then
+        assertNotNull(response);
+        assertEquals("ROLE_ADMIN", response.getRole());
+        verify(jwtTokenService).generateAccessToken("admin@example.com", "ROLE_ADMIN");
     }
 } 

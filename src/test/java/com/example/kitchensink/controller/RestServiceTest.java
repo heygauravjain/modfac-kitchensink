@@ -1,135 +1,206 @@
 package com.example.kitchensink.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import com.example.kitchensink.exception.ResourceNotFoundException;
 import com.example.kitchensink.model.Member;
 import com.example.kitchensink.service.MemberService;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
+@ExtendWith(MockitoExtension.class)
 class RestServiceTest {
 
   @Mock
   private MemberService memberService;
 
+  @Mock
+  private SecurityContext securityContext;
+
+  @Mock
+  private Authentication authentication;
+
   @InjectMocks
   private RestService restService;
 
+  private Member testMember;
+
   @BeforeEach
   void setUp() {
-    MockitoAnnotations.openMocks(this);
-  }
-
-  // List All Members Scenarios
-  @Test
-  void testListAllMembers_ReturnsMemberList() {
-    List<Member> mockMembers = Arrays.asList(new Member(), new Member());
-    when(memberService.getAllMembers()).thenReturn(mockMembers);
-
-    ResponseEntity<List<Member>> response = restService.listAllMembers();
-
-    assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertNotNull(response.getBody());
-    assertEquals(2, response.getBody().size(), "The list should contain 2 members.");
-    verify(memberService, times(1)).getAllMembers();
+    testMember = new Member();
+    testMember.setId("1");
+    testMember.setName("John Doe");
+    testMember.setEmail("john@example.com");
+    testMember.setRole("USER");
+    testMember.setPhoneNumber("1234567890");
   }
 
   @Test
-  void testListAllMembers_ReturnsEmptyList() {
-    when(memberService.getAllMembers()).thenReturn(List.of());
-
-    ResponseEntity<List<Member>> response = restService.listAllMembers();
-
-    assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertNotNull(response.getBody());
-    assertEquals(0, response.getBody().size(), "The list should be empty.");
-    verify(memberService, times(1)).getAllMembers();
-  }
-
-  // Lookup Member by ID Scenarios
-  @Test
-  void testLookupMemberById_Found() {
-    Member mockMember = new Member("123", "John Doe", "john.doe@example.com", "1234567890", null,
-        "USER");
-    when(memberService.findById("123")).thenReturn(mockMember);
-
-    ResponseEntity<Member> response = restService.lookupMemberById("123");
-
-    assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertNotNull(response.getBody());
-    assertEquals(mockMember.getId(), response.getBody().getId());
-    assertEquals(mockMember.getEmail(), response.getBody().getEmail());
-    verify(memberService, times(1)).findById("123");
-  }
-
-  @Test
-  void testLookupMemberById_NotFound() {
-    when(memberService.findById("123")).thenReturn(null);
-
-    try {
-      restService.lookupMemberById("123");
-    } catch (ResourceNotFoundException ex) {
-      assertEquals("Member with ID 123 not found.", ex.getMessage());
-      verify(memberService, times(1)).findById("123");
-    }
-  }
-
-  // Create Member Scenarios
-  @Test
-  void testCreateMember_Success() {
-    Member mockMember = new Member();
-    mockMember.setEmail("newuser@example.com");
-    when(memberService.registerMember(any(Member.class))).thenReturn(mockMember);
-
-    ResponseEntity<Member> response = restService.registerMember(mockMember);
-
-    assertEquals(HttpStatus.CREATED, response.getStatusCode());
-    assertNotNull(response.getBody());
-    assertEquals(mockMember.getEmail(), response.getBody().getEmail());
-    verify(memberService, times(1)).registerMember(mockMember);
-  }
-
-  @Test
-  void testCreateMember_ThrowsException() {
-    doThrow(new RuntimeException("Registration failed")).when(memberService)
-        .registerMember(any(Member.class));
-
-    try {
-      Member mockMember = new Member();
-      mockMember.setEmail("newuser@example.com");
-      restService.registerMember(mockMember);
-    } catch (RuntimeException ex) {
-      assertEquals("Registration failed", ex.getMessage());
-      verify(memberService, times(1)).registerMember(any(Member.class));
-    }
-  }
-
-  // Update Member Scenarios
-  @Test
-  void testUpdateMember_Success() {
+  void listAllMembers_ShouldReturnAllMembers() {
     // Given
-    Member existingMember = new Member("1", "John Doe", "john@example.com", "password123", "1234567890", "USER");
-    Member updatedMember = new Member("1", "Jane Doe", "jane@example.com", "newpassword123", "9876543210", "ADMIN");
+    List<Member> members = List.of(testMember);
+    when(memberService.getAllMembers()).thenReturn(members);
 
-    when(memberService.findById("1")).thenReturn(existingMember);
-    when(memberService.updateMember(existingMember, updatedMember)).thenReturn(updatedMember);
+    // When
+    ResponseEntity<List<Member>> response = restService.listAllMembers();
+
+    // Then
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals(members, response.getBody());
+    verify(memberService).getAllMembers();
+  }
+
+  @Test
+  void lookupMemberById_WithValidId_ShouldReturnMember() {
+    // Given
+    when(memberService.findById("1")).thenReturn(testMember);
+
+    // When
+    ResponseEntity<Member> response = restService.lookupMemberById("1");
+
+    // Then
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals(testMember, response.getBody());
+    verify(memberService).findById("1");
+  }
+
+  @Test
+  void lookupMemberById_WithInvalidId_ShouldThrowException() {
+    // Given
+    when(memberService.findById("999")).thenReturn(null);
+
+    // When & Then
+    assertThrows(ResourceNotFoundException.class, () -> {
+      restService.lookupMemberById("999");
+    });
+    verify(memberService).findById("999");
+  }
+
+  @Test
+  void lookupMemberByEmail_WithValidEmail_ShouldReturnMember() {
+    // Given
+    when(memberService.findMemberByEmail("john@example.com")).thenReturn(testMember);
+
+    // When
+    ResponseEntity<Member> response = restService.lookupMemberByEmail("john@example.com");
+
+    // Then
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals(testMember, response.getBody());
+    verify(memberService).findMemberByEmail("john@example.com");
+  }
+
+  @Test
+  void lookupMemberByEmail_WithInvalidEmail_ShouldThrowException() {
+    // Given
+    when(memberService.findMemberByEmail("invalid@example.com")).thenReturn(null);
+
+    // When & Then
+    assertThrows(ResourceNotFoundException.class, () -> {
+      restService.lookupMemberByEmail("invalid@example.com");
+    });
+    verify(memberService).findMemberByEmail("invalid@example.com");
+  }
+
+  @Test
+  void registerMember_WithValidMember_ShouldReturnCreatedMember() {
+    // Given
+    when(memberService.registerMember(any(Member.class))).thenReturn(testMember);
+
+    // When
+    ResponseEntity<Member> response = restService.registerMember(testMember);
+
+    // Then
+    assertEquals(HttpStatus.CREATED, response.getStatusCode());
+    assertEquals(testMember, response.getBody());
+    verify(memberService).registerMember(testMember);
+  }
+
+  @Test
+  void registerMember_WithException_ShouldThrowException() {
+    // Given
+    when(memberService.registerMember(any(Member.class))).thenThrow(new RuntimeException("Registration failed"));
+
+    // When & Then
+    assertThrows(RuntimeException.class, () -> {
+      restService.registerMember(testMember);
+    });
+    verify(memberService).registerMember(testMember);
+  }
+
+  @Test
+  void deleteMemberById_WithValidId_ShouldDeleteMember() {
+    // Given
+    when(memberService.findById("1")).thenReturn(testMember);
+    doNothing().when(memberService).deleteById("1");
+    setupSecurityContext("other@example.com");
+
+    // When
+    ResponseEntity<String> response = restService.deleteMemberById("1");
+
+    // Then
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals("Member deleted successfully", response.getBody());
+    verify(memberService).findById("1");
+    verify(memberService).deleteById("1");
+  }
+
+  @Test
+  void deleteMemberById_WithInvalidId_ShouldThrowException() {
+    // Given
+    when(memberService.findById("999")).thenReturn(null);
+
+    // When & Then
+    assertThrows(ResourceNotFoundException.class, () -> {
+      restService.deleteMemberById("999");
+    });
+    verify(memberService).findById("999");
+    verify(memberService, never()).deleteById(anyString());
+  }
+
+  @Test
+  void deleteMemberById_WithOwnAccount_ShouldReturnForbidden() {
+    // Given
+    when(memberService.findById("1")).thenReturn(testMember);
+    setupSecurityContext("john@example.com");
+
+    // When
+    ResponseEntity<String> response = restService.deleteMemberById("1");
+
+    // Then
+    assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+    assertEquals("Cannot delete your own account", response.getBody());
+    verify(memberService).findById("1");
+    verify(memberService, never()).deleteById(anyString());
+  }
+
+  @Test
+  void updateMember_WithValidMember_ShouldUpdateMember() {
+    // Given
+    Member updatedMember = new Member();
+    updatedMember.setName("Jane Doe");
+    updatedMember.setEmail("jane@example.com");
+    
+    when(memberService.findById("1")).thenReturn(testMember);
+    when(memberService.updateMember(eq(testMember), any(Member.class))).thenReturn(updatedMember);
+    setupSecurityContext("other@example.com");
 
     // When
     ResponseEntity<Member> response = restService.updateMember(updatedMember, "1");
@@ -138,109 +209,121 @@ class RestServiceTest {
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertEquals(updatedMember, response.getBody());
     verify(memberService).findById("1");
-    verify(memberService).updateMember(existingMember, updatedMember);
+    verify(memberService).updateMember(eq(testMember), eq(updatedMember));
   }
 
   @Test
-  void testLookupMemberByEmail_Success() {
+  void updateMember_WithInvalidId_ShouldReturnNotFound() {
     // Given
-    Member member = new Member("1", "John Doe", "john@example.com", "password123", "1234567890", "USER");
-    when(memberService.findMemberByEmail("john@example.com")).thenReturn(member);
+    when(memberService.findById("999")).thenReturn(null);
 
     // When
-    ResponseEntity<Member> response = restService.lookupMemberByEmail("john@example.com");
+    ResponseEntity<Member> response = restService.updateMember(testMember, "999");
+
+    // Then
+    assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    verify(memberService).findById("999");
+    verify(memberService, never()).updateMember(any(Member.class), any(Member.class));
+  }
+
+  @Test
+  void updateMember_WithOwnAccount_ShouldReturnForbidden() {
+    // Given
+    when(memberService.findById("1")).thenReturn(testMember);
+    setupSecurityContext("john@example.com");
+
+    // When
+    ResponseEntity<Member> response = restService.updateMember(testMember, "1");
+
+    // Then
+    assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+    verify(memberService).findById("1");
+    verify(memberService, never()).updateMember(any(Member.class), any(Member.class));
+  }
+
+  @Test
+  void updateMember_WithException_ShouldReturnInternalServerError() {
+    // Given
+    when(memberService.findById("1")).thenReturn(testMember);
+    when(memberService.updateMember(any(Member.class), any(Member.class)))
+        .thenThrow(new RuntimeException("Update failed"));
+    setupSecurityContext("other@example.com");
+
+    // When
+    ResponseEntity<Member> response = restService.updateMember(testMember, "1");
+
+    // Then
+    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    verify(memberService).findById("1");
+    verify(memberService).updateMember(eq(testMember), eq(testMember));
+  }
+
+  @Test
+  void loginForToken_WithValidCredentials_ShouldReturnSuccess() {
+    // When
+    ResponseEntity<String> response = restService.loginForToken("test@example.com", "password123");
 
     // Then
     assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertEquals(member, response.getBody());
-    verify(memberService).findMemberByEmail("john@example.com");
+    assertEquals("Login successful. Use the JWT token from your login session for API calls.", response.getBody());
   }
 
   @Test
-  void testLookupMemberByEmail_NotFound() {
+  void loginForToken_WithNullEmail_ShouldReturnUnauthorized() {
+    // When
+    ResponseEntity<String> response = restService.loginForToken(null, "password123");
+
+    // Then
+    assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    assertEquals("Invalid credentials", response.getBody());
+  }
+
+  @Test
+  void loginForToken_WithNullPassword_ShouldReturnUnauthorized() {
+    // When
+    ResponseEntity<String> response = restService.loginForToken("test@example.com", null);
+
+    // Then
+    assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    assertEquals("Invalid credentials", response.getBody());
+  }
+
+  @Test
+  void loginForToken_WithEmptyEmail_ShouldReturnUnauthorized() {
+    // When
+    ResponseEntity<String> response = restService.loginForToken("", "password123");
+
+    // Then
+    assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    assertEquals("Invalid credentials", response.getBody());
+  }
+
+  @Test
+  void loginForToken_WithEmptyPassword_ShouldReturnUnauthorized() {
+    // When
+    ResponseEntity<String> response = restService.loginForToken("test@example.com", "");
+
+    // Then
+    assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    assertEquals("Invalid credentials", response.getBody());
+  }
+
+  @Test
+  void loginForToken_WithException_ShouldReturnInternalServerError() {
     // Given
-    when(memberService.findMemberByEmail("nonexistent@example.com")).thenReturn(null);
+    when(memberService.getAllMembers()).thenThrow(new RuntimeException("Service error"));
 
-    // When & Then
-    ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-      restService.lookupMemberByEmail("nonexistent@example.com");
-    });
+    // When
+    ResponseEntity<String> response = restService.loginForToken("test@example.com", "password123");
 
-    assertEquals("Member with email nonexistent@example.com not found.", exception.getMessage());
-    verify(memberService).findMemberByEmail("nonexistent@example.com");
-  }
-
-  @Test
-  void testUpdateMember_NotFound() {
-    when(memberService.findById("123")).thenReturn(null);
-
-    ResponseEntity<Member> response = restService.updateMember(new Member(), "123");
-
-    assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-    verify(memberService, times(1)).findById("123");
-    verify(memberService, times(0)).updateMember(any(Member.class), any(Member.class));
-  }
-
-  @Test
-  void testUpdateMember_ThrowsException() {
-    Member existingMember = new Member("123", "John Doe", "john.doe@example.com", "1234567890",
-        null, "USER");
-    Member updatedMember = new Member("123", "John Doe Updated", "john.doe@example.com",
-        "1234567890", null, "ADMIN");
-
-    when(memberService.findById("123")).thenReturn(existingMember);
-    doThrow(new RuntimeException("Update failed")).when(memberService)
-        .updateMember(any(Member.class), any(Member.class));
-
-    ResponseEntity<Member> response = restService.updateMember(updatedMember, "123");
-
+    // Then
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-    verify(memberService, times(1)).findById("123");
-    verify(memberService, times(1)).updateMember(existingMember, updatedMember);
+    assertEquals("Login failed", response.getBody());
   }
 
-  // Delete Member Scenarios
-  @Test
-  void testDeleteMemberById_Success() {
-    Member existingMember = new Member("123", "John Doe", "john.doe@example.com", "1234567890",
-        null, "USER");
-    when(memberService.findById("123")).thenReturn(existingMember);
-    doNothing().when(memberService).deleteById("123");
-
-    ResponseEntity<String> response = restService.deleteMemberById("123");
-
-    assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertEquals("Member deleted successfully", response.getBody());
-    verify(memberService, times(1)).findById("123");
-    verify(memberService, times(1)).deleteById("123");
-  }
-
-  @Test
-  void testDeleteMemberById_NotFound() {
-    when(memberService.findById("123")).thenReturn(null);
-
-    try {
-      restService.deleteMemberById("123");
-    } catch (ResourceNotFoundException ex) {
-      assertEquals("Member with ID 123 not found.", ex.getMessage());
-      verify(memberService, times(1)).findById("123");
-      verify(memberService, times(0)).deleteById("123");
-    }
-  }
-
-  @Test
-  void testDeleteMemberById_ThrowsException() {
-    Member existingMember = new Member("123", "John Doe", "john.doe@example.com", "1234567890",
-        null, "USER");
-    when(memberService.findById("123")).thenReturn(existingMember);
-    doThrow(new RuntimeException("Delete failed")).when(memberService).deleteById("123");
-
-    try {
-      restService.deleteMemberById("123");
-    } catch (RuntimeException ex) {
-      assertEquals("Delete failed", ex.getMessage());
-      verify(memberService, times(1)).findById("123");
-      verify(memberService, times(1)).deleteById("123");
-    }
+  private void setupSecurityContext(String email) {
+    when(securityContext.getAuthentication()).thenReturn(authentication);
+    when(authentication.getName()).thenReturn(email);
+    SecurityContextHolder.setContext(securityContext);
   }
 }

@@ -21,11 +21,11 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ContextConfiguration;
 import com.example.kitchensink.config.TestSecurityConfig;
 
 import java.util.Collections;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -97,6 +97,57 @@ class AuthControllerTest {
     }
 
     @Test
+    void testLogin_WithAdminRole_Success() throws Exception {
+        // Given
+        AuthRequest request = new AuthRequest("admin@example.com", "password123");
+        UserDetails adminUserDetails = new User("admin@example.com", "password", 
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN")));
+        Authentication adminAuth = new UsernamePasswordAuthenticationToken(adminUserDetails, null, adminUserDetails.getAuthorities());
+        
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+                .thenReturn(adminAuth);
+        when(jwtTokenService.generateAccessToken(anyString(), anyString()))
+                .thenReturn("admin_access_token");
+        when(jwtTokenService.generateRefreshToken(anyString()))
+                .thenReturn("admin_refresh_token");
+        when(jwtTokenService.getAccessTokenExpiration())
+                .thenReturn(3600L);
+
+        // When & Then
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").value("admin_access_token"))
+                .andExpect(jsonPath("$.refreshToken").value("admin_refresh_token"))
+                .andExpect(jsonPath("$.role").value("ROLE_ADMIN"));
+    }
+
+    @Test
+    void testLogin_WithNoAuthorities_ShouldUseDefaultRole() throws Exception {
+        // Given
+        AuthRequest request = new AuthRequest("user@example.com", "password123");
+        UserDetails userWithoutAuthorities = new User("user@example.com", "password", Collections.emptyList());
+        Authentication authWithoutAuthorities = new UsernamePasswordAuthenticationToken(userWithoutAuthorities, null, Collections.emptyList());
+        
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+                .thenReturn(authWithoutAuthorities);
+        when(jwtTokenService.generateAccessToken(anyString(), anyString()))
+                .thenReturn("access_token_123");
+        when(jwtTokenService.generateRefreshToken(anyString()))
+                .thenReturn("refresh_token_456");
+        when(jwtTokenService.getAccessTokenExpiration())
+                .thenReturn(3600L);
+
+        // When & Then
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.role").value("ROLE_USER"));
+    }
+
+    @Test
     void testLogin_AuthenticationFailure() throws Exception {
         // Given
         AuthRequest request = new AuthRequest("test@example.com", "wrongpassword");
@@ -109,6 +160,8 @@ class AuthControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isUnauthorized());
     }
+
+
 
     @Test
     void testSignup_Success() throws Exception {
@@ -129,6 +182,39 @@ class AuthControllerTest {
     }
 
     @Test
+    void testSignup_WithAdminRole_Success() throws Exception {
+        // Given
+        SignupRequest request = new SignupRequest("Admin User", "admin@example.com", "Password123!", "1234567890", "ADMIN");
+        AuthResponse response = AuthResponse.of("admin_access_token", "admin_refresh_token", 3600L, "admin@example.com", "ADMIN");
+        
+        when(authService.registerUser(any(SignupRequest.class)))
+                .thenReturn(response);
+
+        // When & Then
+        mockMvc.perform(post("/api/auth/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.role").value("ADMIN"));
+    }
+
+    @Test
+    void testSignup_WithNullRole_ShouldUseDefaultRole() throws Exception {
+        // Given
+        SignupRequest request = new SignupRequest("John Doe", "test@example.com", "Password123!", "1234567890", null);
+        AuthResponse response = AuthResponse.of("access_token_123", "refresh_token_456", 3600L, "test@example.com", "USER");
+        
+        when(authService.registerUser(any(SignupRequest.class)))
+                .thenReturn(response);
+
+        // When & Then
+        mockMvc.perform(post("/api/auth/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated());
+    }
+
+    @Test
     void testSignup_UserAlreadyExists() throws Exception {
         // Given
         SignupRequest request = new SignupRequest("John Doe", "test@example.com", "Password123!", "1234567890", "USER");
@@ -140,6 +226,18 @@ class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isConflict());
+    }
+
+    @Test
+    void testSignup_WithInvalidData_ShouldReturnBadRequest() throws Exception {
+        // Given
+        SignupRequest request = new SignupRequest("", "", "", "", "");
+
+        // When & Then
+        mockMvc.perform(post("/api/auth/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -173,6 +271,8 @@ class AuthControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isUnauthorized());
     }
+
+
 
     @Test
     void testValidateToken_ValidToken() throws Exception {
@@ -223,6 +323,30 @@ class AuthControllerTest {
     void testValidateToken_NullAuthorizationHeader() throws Exception {
         // When & Then
         mockMvc.perform(post("/api/auth/validate"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void testValidateToken_EmptyAuthorizationHeader() throws Exception {
+        // When & Then
+        mockMvc.perform(post("/api/auth/validate")
+                        .header("Authorization", ""))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void testValidateToken_AuthorizationHeaderWithoutBearer() throws Exception {
+        // When & Then
+        mockMvc.perform(post("/api/auth/validate")
+                        .header("Authorization", "token_only"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void testValidateToken_AuthorizationHeaderWithOnlyBearer() throws Exception {
+        // When & Then
+        mockMvc.perform(post("/api/auth/validate")
+                        .header("Authorization", "Bearer "))
                 .andExpect(status().isUnauthorized());
     }
 } 

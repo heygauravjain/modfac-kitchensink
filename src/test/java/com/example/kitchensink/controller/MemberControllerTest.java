@@ -118,6 +118,39 @@ class MemberControllerTest {
   }
 
   @Test
+  void showAdminHome_WithNullClearSession_ShouldReturnIndexView() {
+    when(memberService.getAllMembers()).thenReturn(new ArrayList<>());
+    when(session.getAttribute("userEmail")).thenReturn("test@test.com");
+
+    String viewName = memberController.showAdminHome(model, principal, response, null, session);
+
+    assertEquals("index", viewName);
+    verify(session, never()).removeAttribute(anyString());
+  }
+
+  @Test
+  void showAdminHome_WithEmptyClearSession_ShouldReturnIndexView() {
+    when(memberService.getAllMembers()).thenReturn(new ArrayList<>());
+    when(session.getAttribute("userEmail")).thenReturn("test@test.com");
+
+    String viewName = memberController.showAdminHome(model, principal, response, "", session);
+
+    assertEquals("index", viewName);
+    verify(session, never()).removeAttribute(anyString());
+  }
+
+  @Test
+  void showAdminHome_WithFalseClearSession_ShouldReturnIndexView() {
+    when(memberService.getAllMembers()).thenReturn(new ArrayList<>());
+    when(session.getAttribute("userEmail")).thenReturn("test@test.com");
+
+    String viewName = memberController.showAdminHome(model, principal, response, "false", session);
+
+    assertEquals("index", viewName);
+    verify(session, never()).removeAttribute(anyString());
+  }
+
+  @Test
   void registerMember_WhenSourceIsIndex_AndUserExists_ShouldReturnError() {
     Member member = new Member();
     member.setEmail("test@test.com");
@@ -208,6 +241,8 @@ class MemberControllerTest {
     verify(redirectAttributes).addFlashAttribute("successMessage", "User successfully registered!");
   }
 
+
+
   @Test
   void redirectToJwtLogin_ShouldReturnRedirectToJwtLogin() {
     String viewName = memberController.redirectToJwtLogin();
@@ -263,6 +298,64 @@ class MemberControllerTest {
     verify(session).removeAttribute("refreshToken");
     verify(session).removeAttribute("userEmail");
     verify(session).removeAttribute("userRole");
+  }
+
+  @Test
+  void showUserProfile_WithNullClearSession_ShouldReturnUserProfileView() {
+    String email = "test@example.com";
+    MemberDocument memberDocument = new MemberDocument("1", "John Doe", email, "1234567890",
+        "password", "USER");
+
+    when(authentication.getName()).thenReturn(email);
+    when(memberService.findByEmail(email)).thenReturn(Optional.of(memberDocument));
+
+    String viewName = memberController.showUserProfile(model, authentication, null, session);
+
+    assertEquals("user-profile", viewName);
+    verify(session, never()).removeAttribute(anyString());
+  }
+
+  @Test
+  void showUserProfile_WithEmptyClearSession_ShouldReturnUserProfileView() {
+    String email = "test@example.com";
+    MemberDocument memberDocument = new MemberDocument("1", "John Doe", email, "1234567890",
+        "password", "USER");
+
+    when(authentication.getName()).thenReturn(email);
+    when(memberService.findByEmail(email)).thenReturn(Optional.of(memberDocument));
+
+    String viewName = memberController.showUserProfile(model, authentication, "", session);
+
+    assertEquals("user-profile", viewName);
+    verify(session, never()).removeAttribute(anyString());
+  }
+
+  @Test
+  void showUserProfile_WithFalseClearSession_ShouldReturnUserProfileView() {
+    String email = "test@example.com";
+    MemberDocument memberDocument = new MemberDocument("1", "John Doe", email, "1234567890",
+        "password", "USER");
+
+    when(authentication.getName()).thenReturn(email);
+    when(memberService.findByEmail(email)).thenReturn(Optional.of(memberDocument));
+
+    String viewName = memberController.showUserProfile(model, authentication, "false", session);
+
+    assertEquals("user-profile", viewName);
+    verify(session, never()).removeAttribute(anyString());
+  }
+
+  @Test
+  void showUserProfile_WithUserNotFound_ShouldReturnUserProfileView() {
+    String email = "test@example.com";
+
+    when(authentication.getName()).thenReturn(email);
+    when(memberService.findByEmail(email)).thenReturn(Optional.empty());
+
+    String viewName = memberController.showUserProfile(model, authentication, null, session);
+
+    assertEquals("user-profile", viewName);
+    verify(model).addAttribute(eq("member"), any(Member.class));
   }
 
   @Test
