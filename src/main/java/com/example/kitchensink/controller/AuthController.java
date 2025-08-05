@@ -56,10 +56,9 @@ public class AuthController {
             String accessToken = jwtTokenService.generateAccessToken(userDetails.getUsername(), role);
             String refreshToken = jwtTokenService.generateRefreshToken(userDetails.getUsername());
 
-            AuthResponse response = new AuthResponse(
+            AuthResponse response = AuthResponse.of(
                     accessToken,
                     refreshToken,
-                    "Bearer",
                     jwtTokenService.getAccessTokenExpiration(),
                     userDetails.getUsername(),
                     role

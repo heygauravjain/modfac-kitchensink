@@ -1,0 +1,147 @@
+package com.example.kitchensink.model;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+ * Test class for AuthResponse model.
+ * Tests builder pattern, static factory method, and Lombok functionality.
+ */
+class AuthResponseTest {
+
+    private AuthResponse authResponse;
+
+    @BeforeEach
+    void setUp() {
+        authResponse = new AuthResponse();
+    }
+
+    @Test
+    void testNoArgsConstructor() {
+        assertNotNull(authResponse);
+        assertNull(authResponse.getAccessToken());
+        assertNull(authResponse.getRefreshToken());
+        assertNull(authResponse.getTokenType());
+        assertNull(authResponse.getExpiresIn());
+        assertNull(authResponse.getEmail());
+        assertNull(authResponse.getRole());
+    }
+
+    @Test
+    void testAllArgsConstructor() {
+        AuthResponse response = new AuthResponse("access123", "refresh456", "Bearer", 3600L, "user@example.com", "USER");
+        assertEquals("access123", response.getAccessToken());
+        assertEquals("refresh456", response.getRefreshToken());
+        assertEquals("Bearer", response.getTokenType());
+        assertEquals(3600L, response.getExpiresIn());
+        assertEquals("user@example.com", response.getEmail());
+        assertEquals("USER", response.getRole());
+    }
+
+    @Test
+    void testBuilder() {
+        AuthResponse response = AuthResponse.builder()
+                .accessToken("access123")
+                .refreshToken("refresh456")
+                .tokenType("Bearer")
+                .expiresIn(3600L)
+                .email("user@example.com")
+                .role("USER")
+                .build();
+
+        assertEquals("access123", response.getAccessToken());
+        assertEquals("refresh456", response.getRefreshToken());
+        assertEquals("Bearer", response.getTokenType());
+        assertEquals(3600L, response.getExpiresIn());
+        assertEquals("user@example.com", response.getEmail());
+        assertEquals("USER", response.getRole());
+    }
+
+    @Test
+    void testStaticFactoryMethod() {
+        AuthResponse response = AuthResponse.of("access123", "refresh456", 3600L, "user@example.com", "USER");
+
+        assertEquals("access123", response.getAccessToken());
+        assertEquals("refresh456", response.getRefreshToken());
+        assertEquals("Bearer", response.getTokenType()); // Default value
+        assertEquals(3600L, response.getExpiresIn());
+        assertEquals("user@example.com", response.getEmail());
+        assertEquals("USER", response.getRole());
+    }
+
+    @Test
+    void testSettersAndGetters() {
+        authResponse.setAccessToken("access123");
+        authResponse.setRefreshToken("refresh456");
+        authResponse.setTokenType("Bearer");
+        authResponse.setExpiresIn(3600L);
+        authResponse.setEmail("user@example.com");
+        authResponse.setRole("USER");
+
+        assertEquals("access123", authResponse.getAccessToken());
+        assertEquals("refresh456", authResponse.getRefreshToken());
+        assertEquals("Bearer", authResponse.getTokenType());
+        assertEquals(3600L, authResponse.getExpiresIn());
+        assertEquals("user@example.com", authResponse.getEmail());
+        assertEquals("USER", authResponse.getRole());
+    }
+
+    @Test
+    void testEqualsAndHashCode() {
+        AuthResponse response1 = new AuthResponse("access123", "refresh456", "Bearer", 3600L, "user@example.com", "USER");
+        AuthResponse response2 = new AuthResponse("access123", "refresh456", "Bearer", 3600L, "user@example.com", "USER");
+        AuthResponse response3 = new AuthResponse("different", "refresh456", "Bearer", 3600L, "user@example.com", "USER");
+
+        assertEquals(response1, response2);
+        assertNotEquals(response1, response3);
+        assertEquals(response1.hashCode(), response2.hashCode());
+        assertNotEquals(response1.hashCode(), response3.hashCode());
+    }
+
+    @Test
+    void testToString() {
+        AuthResponse response = new AuthResponse("access123", "refresh456", "Bearer", 3600L, "user@example.com", "USER");
+        String toString = response.toString();
+
+        assertTrue(toString.contains("access123"));
+        assertTrue(toString.contains("refresh456"));
+        assertTrue(toString.contains("Bearer"));
+        assertTrue(toString.contains("user@example.com"));
+        assertTrue(toString.contains("USER"));
+        assertTrue(toString.contains("AuthResponse"));
+    }
+
+    @Test
+    void testEqualsWithNull() {
+        AuthResponse response = new AuthResponse("access123", "refresh456", "Bearer", 3600L, "user@example.com", "USER");
+        assertNotEquals(null, response);
+    }
+
+    @Test
+    void testEqualsWithDifferentClass() {
+        AuthResponse response = new AuthResponse("access123", "refresh456", "Bearer", 3600L, "user@example.com", "USER");
+        assertNotEquals(response, "string");
+    }
+
+    @Test
+    void testEqualsWithSameObject() {
+        AuthResponse response = new AuthResponse("access123", "refresh456", "Bearer", 3600L, "user@example.com", "USER");
+        assertEquals(response, response);
+    }
+
+    @Test
+    void testBuilderWithPartialValues() {
+        AuthResponse response = AuthResponse.builder()
+                .accessToken("access123")
+                .email("user@example.com")
+                .build();
+
+        assertEquals("access123", response.getAccessToken());
+        assertEquals("user@example.com", response.getEmail());
+        assertNull(response.getRefreshToken());
+        assertNull(response.getTokenType());
+        assertNull(response.getExpiresIn());
+        assertNull(response.getRole());
+    }
+} 

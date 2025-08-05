@@ -13,8 +13,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class SignupRequest {
     @NotBlank(message = "Name is required")
-    @Size(min = 1, max = 25, message = "Name must be between 1 and 25 characters")
-    @Pattern(regexp = "[^0-9]*", message = "Name must not contain numbers")
+    @Size(min = ValidationPatterns.NAME_MIN_LENGTH, max = ValidationPatterns.NAME_MAX_LENGTH, message = "Name must be between 1 and 25 characters")
+    @Pattern(regexp = ValidationPatterns.NAME_PATTERN, message = ValidationPatterns.NAME_MESSAGE)
     private String name;
     
     @NotBlank(message = "Email is required")
@@ -22,13 +22,12 @@ public class SignupRequest {
     private String email;
     
     @NotBlank(message = "Password is required")
-    @Size(min = 8, message = "Password must be at least 8 characters long")
-    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$", 
-             message = "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character")
+    @Size(min = ValidationPatterns.PASSWORD_MIN_LENGTH, message = "Password must be at least 8 characters long")
+    @Pattern(regexp = ValidationPatterns.PASSWORD_PATTERN, message = ValidationPatterns.PASSWORD_MESSAGE)
     private String password;
     
     // Optional phone number - only validate if not empty
-    @Pattern(regexp = "^$|^\\d{10,12}$", message = "Phone number must be 10-12 digits or empty")
+    @Pattern(regexp = ValidationPatterns.PHONE_PATTERN, message = ValidationPatterns.PHONE_MESSAGE)
     private String phoneNumber;
     
     private String role = "USER"; // Default role

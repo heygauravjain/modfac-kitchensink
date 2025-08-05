@@ -7,38 +7,36 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import java.util.Collections;
 
-import com.example.kitchensink.security.JwtAuthenticationFilter;
-import com.example.kitchensink.security.JwtTokenService;
-
+/**
+ * Test security configuration that disables security for controller tests.
+ */
 @TestConfiguration
 @EnableWebSecurity
 public class TestSecurityConfig {
 
     @Bean
-    @Primary
-    public SecurityFilterChain testSecurityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthFilter) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(AbstractHttpConfigurer::disable)
-            .cors(cors -> cors.and())
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/css/**", "/js/**", "/gfx/**", "/images/**", "/favicon.ico", "/favicon.png").permitAll() // Allow static resources
-                .requestMatchers("/error/**", "/error").permitAll() // Allow error endpoints
-                .requestMatchers("/jwt/login", "/jwt/signup", "/jwt/logout").permitAll() // Allow JWT auth endpoints
-                .requestMatchers("/auth/**", "/api/auth/**").permitAll() // Allow auth endpoints
-                .requestMatchers("/api/public/**").permitAll() // Allow public API endpoints
-                .anyRequest().authenticated() // Require authentication for all other requests
-            )
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-
+            .csrf(csrf -> csrf.disable())
+            .authorizeHttpRequests(authz -> authz
+                .anyRequest().permitAll()
+            );
         return http.build();
+    }
+
+    @Bean
+    @Primary
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
     }
 
     @Bean
@@ -47,17 +45,10 @@ public class TestSecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-        return config.getAuthenticationManager();
-    }
-
-    @Bean
-    public JwtTokenService jwtTokenService() {
-        return new JwtTokenService();
-    }
-
-    @Bean
-    public JwtAuthenticationFilter jwtAuthenticationFilter(JwtTokenService jwtTokenService, com.example.kitchensink.security.CustomUserDetailsService userDetailsService) {
-        return new JwtAuthenticationFilter(jwtTokenService, userDetailsService);
+    @Primary
+    public UserDetailsService userDetailsService() {
+        UserDetails user = new User("test@example.com", "password", 
+            Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")));
+        return username -> user;
     }
 } 

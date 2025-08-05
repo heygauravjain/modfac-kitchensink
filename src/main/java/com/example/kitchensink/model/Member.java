@@ -1,6 +1,5 @@
 package com.example.kitchensink.model;
 
-import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -18,8 +17,8 @@ public class Member {
   private String id;
 
   @NotNull
-  @Size(min = 1, max = 25)
-  @Pattern(regexp = "[^0-9]*", message = "Must not contain numbers")
+  @Size(min = ValidationPatterns.NAME_MIN_LENGTH, max = ValidationPatterns.NAME_MAX_LENGTH)
+  @Pattern(regexp = ValidationPatterns.NAME_PATTERN, message = ValidationPatterns.NAME_MESSAGE)
   private String name;
 
   @NotNull
@@ -27,11 +26,11 @@ public class Member {
   @Email
   private String email;
 
-  @Size(min = 8, message = "Password must be at least 8 characters long")
+  @Size(min = ValidationPatterns.PASSWORD_MIN_LENGTH, message = ValidationPatterns.SIMPLE_PASSWORD_MESSAGE)
   private String password;
 
   // Made phone number truly optional - only validate if not empty
-  @Pattern(regexp = "^$|^\\d{10,12}$", message = "Phone number must be 10-12 digits or empty")
+  @Pattern(regexp = ValidationPatterns.PHONE_PATTERN, message = ValidationPatterns.PHONE_MESSAGE)
   private String phoneNumber;
 
   private String role = "USER";
