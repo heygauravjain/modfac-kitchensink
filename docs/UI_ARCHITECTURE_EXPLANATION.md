@@ -2,19 +2,21 @@
 
 ## Table of Contents
 1. [UI Architecture Overview](#ui-architecture-overview)
-2. [Technical Implementation Details](#technical-implementation-details)
-3. [Frontend-Backend Integration](#frontend-backend-integration)
-4. [State Management & Data Flow](#state-management--data-flow)
-5. [Security & Authentication](#security--authentication)
-6. [Performance & Scalability](#performance--scalability)
-7. [Interview Questions & Answers](#interview-questions--answers)
+2. [Design System & Theming](#design-system--theming)
+3. [Technical Implementation Details](#technical-implementation-details)
+4. [Frontend-Backend Integration](#frontend-backend-integration)
+5. [State Management & Data Flow](#state-management--data-flow)
+6. [Security & Authentication](#security--authentication)
+7. [Performance & Optimization](#performance--optimization)
+8. [Accessibility & UX](#accessibility--ux)
+9. [Interview Questions & Answers](#interview-questions--answers)
 
 ---
 
 ## UI Architecture Overview
 
 ### Architecture Pattern
-The KitchenSink application follows a **Server-Side Rendered (SSR) architecture** with **Progressive Enhancement**:
+The KitchenSink application follows a **Server-Side Rendered (SSR) architecture** with **Progressive Enhancement** and **Modern Design System**:
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
@@ -37,16 +39,128 @@ The KitchenSink application follows a **Server-Side Rendered (SSR) architecture*
    - Enhancement: Client-side JavaScript for dynamic interactions
    - Benefits: SEO-friendly, fast initial load, progressive enhancement
 
-2. **Separation of Concerns**
+2. **Modern Design System**
+   - CSS Custom Properties for theming
+   - Glass morphism design elements
+   - Dark/Light theme support
+   - Responsive design with mobile-first approach
+
+3. **Separation of Concerns**
    - Templates: Presentation logic only
    - JavaScript: User interactions and AJAX calls
    - Controllers: Business logic and data preparation
    - Services: Core business logic
 
-3. **Responsive Design Pattern**
-   - Mobile-first approach
-   - CSS Grid and Flexbox for layouts
-   - CSS Custom Properties for theming
+4. **Performance Optimization**
+   - Resource preloading
+   - Lazy loading for non-critical resources
+   - Optimized animations and transitions
+   - Efficient state management
+
+---
+
+## Design System & Theming
+
+### Design Philosophy
+The application follows modern design principles with a focus on:
+- **Accessibility**: WCAG 2.1 compliance
+- **Responsiveness**: Mobile-first approach
+- **Performance**: Optimized loading and transitions
+- **User Experience**: Intuitive navigation and feedback
+
+### Theme System Architecture
+
+#### CSS Custom Properties
+```css
+:root {
+    /* Light Theme Variables */
+    --primary-color: #007bff;
+    --primary-hover: #0056b3;
+    --secondary-color: #28a745;
+    --danger-color: #dc3545;
+    --warning-color: #ffc107;
+    --success-color: #28a745;
+    
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8f9fa;
+    --text-primary: #2c3e50;
+    --text-secondary: #6c757d;
+    
+    --border-color: #e1e5e9;
+    --shadow-light: rgba(0, 0, 0, 0.1);
+    --shadow-medium: rgba(0, 0, 0, 0.15);
+    
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* Glass Morphism */
+    --glass-bg: rgba(255, 255, 255, 0.1);
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --backdrop-blur: blur(10px);
+}
+
+[data-theme="dark"] {
+    /* Dark Theme Variables */
+    --primary-color: #4dabf7;
+    --bg-primary: #1a1a1a;
+    --bg-secondary: #2d2d2d;
+    --text-primary: #ffffff;
+    --text-secondary: #b0b0b0;
+    
+    --glass-bg: rgba(0, 0, 0, 0.2);
+    --glass-border: rgba(255, 255, 255, 0.1);
+}
+```
+
+#### Theme Toggle Implementation
+```javascript
+class ThemeManager {
+    constructor() {
+        this.currentTheme = this.getPreferredTheme();
+        this.init();
+    }
+
+    getPreferredTheme() {
+        const storedTheme = localStorage.getItem('theme');
+        if (storedTheme) return storedTheme;
+        
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            return 'dark';
+        }
+        return 'light';
+    }
+
+    setTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+        this.updateToggleIcon();
+    }
+}
+```
+
+### Glass Morphism Design
+
+#### Container Styling
+```css
+.glass-container {
+    background: var(--glass-bg);
+    backdrop-filter: var(--backdrop-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius);
+    box-shadow: 0 8px 32px var(--shadow-medium);
+    transition: var(--transition);
+}
+
+.glass-container:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px var(--shadow-heavy);
+}
+```
+
+#### Benefits of Glass Morphism
+- **Modern Aesthetic**: Contemporary design language
+- **Depth Perception**: Visual hierarchy through layers
+- **Accessibility**: Maintains contrast ratios
+- **Performance**: Hardware-accelerated backdrop filters
 
 ---
 
@@ -81,58 +195,116 @@ The KitchenSink application follows a **Server-Side Rendered (SSR) architecture*
 - SEO optimization
 - Fast initial page load
 
-### 2. CSS Architecture
+### 2. Enhanced CSS Architecture
 
 **Design System Approach**:
 ```css
-:root {
-    /* Design Tokens */
-    --primary-color: #007bff;
-    --bg-primary: #ffffff;
-    --text-primary: #2c3e50;
-    --border-radius: 12px;
-    --transition: all 0.3s ease;
+/* Component-based CSS */
+.btn {
+    padding: var(--button-padding);
+    background: var(--gradient-primary);
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
 }
 
-/* Theme Switching */
-[data-theme="dark"] {
-    --bg-primary: #1a1a1a;
-    --text-primary: #ffffff;
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.btn:hover::before {
+    left: 100%;
 }
 ```
 
-**CSS Organization**:
-1. **Design Tokens**: CSS Custom Properties for consistency
-2. **Component Styles**: Modular, reusable components
-3. **Utility Classes**: Helper classes for common patterns
-4. **Responsive Design**: Mobile-first media queries
+**Responsive Design**:
+```css
+/* Mobile-first approach */
+.container {
+    width: 100%;
+    padding: 1rem;
+}
+
+@media (min-width: 768px) {
+    .container {
+        max-width: 750px;
+        margin: 0 auto;
+    }
+}
+
+@media (min-width: 1024px) {
+    .container {
+        max-width: 1000px;
+    }
+}
+```
 
 ### 3. JavaScript Enhancement
 
-**Progressive Enhancement Pattern**:
+**Real-time Form Validation**:
 ```javascript
-// Core functionality works without JS
-// Enhanced functionality with JS
-document.addEventListener('DOMContentLoaded', () => {
-    // Add interactive features
-    initializeThemeManager();
-    setupFormValidation();
-    enableAJAXOperations();
-});
-```
-
-**Module Pattern**:
-```javascript
-class ThemeManager {
-    constructor() {
-        this.currentTheme = localStorage.getItem('theme') || 'light';
-        this.init();
+function validateField(field) {
+    const value = field.value.trim();
+    const type = field.type;
+    const required = field.hasAttribute('required');
+    
+    field.classList.remove('error', 'success');
+    
+    if (required && !value) {
+        field.classList.add('error');
+        return false;
     }
     
-    setTheme(theme) {
-        document.documentElement.setAttribute('data-theme', theme);
-        localStorage.setItem('theme', theme);
+    let isValid = true;
+    switch (type) {
+        case 'email':
+            isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+            break;
+        case 'password':
+            isValid = value.length >= 8;
+            break;
     }
+    
+    if (isValid && value) {
+        field.classList.add('success');
+    } else if (!isValid && value) {
+        field.classList.add('error');
+    }
+    
+    return isValid;
+}
+```
+
+**Enhanced User Experience**:
+```javascript
+// Loading states
+function showLoadingState(button) {
+    button.classList.add('loading');
+    button.disabled = true;
+    button.querySelector('.btn-text').textContent = 'Loading...';
+}
+
+// Notification system
+function showNotification(message, type = 'info', duration = 5000) {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    
+    document.getElementById('notificationContainer').appendChild(notification);
+    
+    setTimeout(() => notification.classList.add('show'), 100);
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => notification.remove(), 300);
+    }, duration);
 }
 ```
 
@@ -140,62 +312,60 @@ class ThemeManager {
 
 ## Frontend-Backend Integration
 
-### 1. Data Flow Architecture
+### Data Flow Architecture
 
 ```
-┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-│   Browser   │───►│   Thymeleaf │───►│   Controller│───►│   Service   │
-│             │◄───│   Template  │◄───│             │◄───│             │
-└─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
-       │                   │                   │                   │
-       ▼                   ▼                   ▼                   ▼
-┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-│   JavaScript│    │   Model     │    │   Repository│    │   Database  │
-│   (AJAX)    │    │   Attributes│    │   Layer     │    │   (MongoDB) │
-└─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
+┌─────────────┐    ┌─────────────┐    ┌─────────────┐
+│   Browser   │    │   Server    │    │  Database   │
+│             │    │             │    │             │
+│ 1. Request  │───►│ 2. Process  │───►│ 3. Query    │
+│             │    │             │    │             │
+│ 6. Render   │◄───│ 5. Response │◄───│ 4. Data     │
+└─────────────┘    └─────────────┘    └─────────────┘
 ```
 
-### 2. AJAX Integration Pattern
+### AJAX Integration
 
-**RESTful Communication**:
+**RESTful API Calls**:
 ```javascript
-// DELETE operation
-fetch(url, {
-    method: 'DELETE'
-})
-.then(response => {
-    if (response.ok) {
-        showModal('Success', 'Member deleted successfully!', 'success');
-        anchor.closest('tr').remove();
+async function submitForm(formData) {
+    try {
+        const response = await fetch('/admin/members', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${getAuthToken()}`
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            showNotification('Success!', 'success');
+            return data;
+        } else {
+            throw new Error('Request failed');
+        }
+    } catch (error) {
+        showNotification('Error: ' + error.message, 'error');
+        throw error;
     }
-})
-.catch(error => {
-    showModal('Error', 'Failed to delete member.', 'error');
-});
+}
 ```
 
-**Error Handling Strategy**:
-- HTTP status code checking
-- User-friendly error messages
-- Graceful degradation
-- Retry mechanisms
-
-### 3. Form Validation Architecture
-
-**Multi-layer Validation**:
-1. **Client-side**: Real-time feedback
-2. **Server-side**: Security and data integrity
-3. **Database**: Constraint enforcement
-
+**Error Handling**:
 ```javascript
-// Client-side validation
-function validatePassword() {
-    const password = passwordInput.value;
-    const hasLength = password.length >= 8;
-    const hasUppercase = /[A-Z]/.test(password);
-    // ... more validations
+function handleApiError(error) {
+    console.error('API Error:', error);
     
-    return hasLength && hasUppercase && hasLowercase && hasNumber && hasSpecial;
+    if (error.status === 401) {
+        // Token expired, redirect to login
+        window.location.href = '/jwt-login';
+    } else if (error.status === 403) {
+        showNotification('Access denied', 'error');
+    } else {
+        showNotification('An error occurred', 'error');
+    }
 }
 ```
 
@@ -203,692 +373,415 @@ function validatePassword() {
 
 ## State Management & Data Flow
 
-### 1. Application State Management
+### Client-Side State Management
 
-**Server-side State**:
-- Session management via Spring Security
-- Model attributes for template rendering
-- Flash attributes for redirect messages
-
-**Client-side State**:
-- LocalStorage for theme preferences
-- DOM state for form validation
-- Modal state management
-
-### 2. Data Synchronization
-
-**Real-time Updates**:
+**Theme State**:
 ```javascript
-// Optimistic UI updates
-function deleteMember(anchor, url) {
-    // Show confirmation modal
-    // On confirmation, make DELETE request
-    // Update UI immediately on success
-    // Revert on failure
+class ThemeManager {
+    constructor() {
+        this.currentTheme = this.getPreferredTheme();
+        this.init();
+    }
+    
+    setTheme(theme) {
+        this.currentTheme = theme;
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+        this.updateToggleIcon();
+        
+        // Dispatch custom event
+        window.dispatchEvent(new CustomEvent('themeChanged', { 
+            detail: { theme } 
+        }));
+    }
 }
 ```
 
-**Consistency Patterns**:
-- Optimistic updates for better UX
-- Server validation for data integrity
-- Conflict resolution strategies
+**Form State Management**:
+```javascript
+class FormManager {
+    constructor(formId) {
+        this.form = document.getElementById(formId);
+        this.fields = this.form.querySelectorAll('input, select, textarea');
+        this.init();
+    }
+    
+    init() {
+        this.fields.forEach(field => {
+            field.addEventListener('input', () => this.validateField(field));
+            field.addEventListener('blur', () => this.validateField(field));
+        });
+    }
+    
+    validateField(field) {
+        // Real-time validation logic
+    }
+    
+    isValid() {
+        return Array.from(this.fields).every(field => 
+            this.validateField(field)
+        );
+    }
+}
+```
+
+### Server-Side State Management
+
+**Session Management**:
+```java
+@Component
+public class SessionManager {
+    
+    public void storeUserSession(HttpSession session, AuthResponse authResponse) {
+        session.setAttribute("accessToken", authResponse.getAccessToken());
+        session.setAttribute("refreshToken", authResponse.getRefreshToken());
+        session.setAttribute("userEmail", authResponse.getEmail());
+        session.setAttribute("userRole", authResponse.getRole());
+    }
+    
+    public void clearUserSession(HttpSession session) {
+        session.invalidate();
+    }
+}
+```
 
 ---
 
 ## Security & Authentication
 
-### 1. Authentication Flow
+### JWT Token Management
 
-```
-┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-│   Login     │───►│   JWT Token │───►│   Protected │───►│   Resource  │
-│   Form      │    │   Generation│    │   Routes    │    │   Access    │
-└─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
-```
-
-### 2. Security Measures
-
-**Frontend Security**:
-- CSRF token inclusion
-- Input sanitization
-- XSS prevention
-- Content Security Policy
-
-**Backend Security**:
-- JWT token validation
-- Role-based access control
-- Input validation
-- SQL injection prevention
-
----
-
-## Performance & Scalability
-
-### 1. Performance Optimizations
-
-**Frontend**:
-- CSS and JS minification
-- Image optimization
-- Lazy loading
-- Caching strategies
-
-**Backend**:
-- Database query optimization
-- Connection pooling
-- Response caching
-- Async processing
-
-### 2. Scalability Considerations
-
-**Horizontal Scaling**:
-- Stateless application design
-- Session externalization
-- Load balancing ready
-
-**Vertical Scaling**:
-- Database connection pooling
-- Memory optimization
-- CPU utilization monitoring
-
----
-
-## Interview Questions & Answers
-
-### Architecture & Design Questions
-
-#### Q1: Explain the hybrid rendering approach used in this application. What are the trade-offs?
-
-**Answer**:
-The application uses a **Server-Side Rendering (SSR) with Progressive Enhancement** approach:
-
-**Implementation**:
-- Primary rendering: Thymeleaf templates on server
-- Enhancement: JavaScript for dynamic interactions
-- Data flow: Server → Template → Browser → JavaScript enhancement
-
-**Trade-offs**:
-
-**Pros**:
-- ✅ Fast initial page load (no client-side rendering delay)
-- ✅ SEO-friendly (search engines see complete HTML)
-- ✅ Works without JavaScript (graceful degradation)
-- ✅ Better security (server-side validation)
-- ✅ Lower client-side complexity
-
-**Cons**:
-- ❌ Server load for each page request
-- ❌ Less dynamic than SPA
-- ❌ More complex state management
-- ❌ Limited offline capabilities
-
-**When to Use**:
-- Content-heavy applications
-- SEO-critical applications
-- Applications requiring fast initial load
-- Applications with complex server-side logic
-
-#### Q2: How would you scale this UI architecture for a high-traffic application?
-
-**Answer**:
-
-**Frontend Scaling**:
+**Token Storage Strategy**:
 ```javascript
-// 1. Implement CDN for static assets
-const CDN_URL = 'https://cdn.example.com/assets/';
-
-// 2. Add service worker for caching
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js');
+// Secure token storage
+function storeTokens(accessToken, refreshToken) {
+    localStorage.setItem('accessToken', accessToken);
+    localStorage.setItem('refreshToken', refreshToken);
 }
 
-// 3. Implement lazy loading
-const lazyLoadImages = () => {
-    const images = document.querySelectorAll('img[data-src]');
-    const imageObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const img = entry.target;
-                img.src = img.dataset.src;
-                imageObserver.unobserve(img);
-            }
-        });
-    });
-    images.forEach(img => imageObserver.observe(img));
-};
+function getAuthHeaders() {
+    const token = localStorage.getItem('accessToken');
+    return {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+    };
+}
 ```
 
-**Backend Scaling**:
+**Token Refresh Logic**:
+```javascript
+async function refreshToken() {
+    const refreshToken = localStorage.getItem('refreshToken');
+    
+    try {
+        const response = await fetch('/api/auth/refresh', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refreshToken })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            storeTokens(data.accessToken, data.refreshToken);
+            return data.accessToken;
+        } else {
+            // Refresh failed, redirect to login
+            window.location.href = '/jwt-login';
+        }
+    } catch (error) {
+        console.error('Token refresh failed:', error);
+        window.location.href = '/jwt-login';
+    }
+}
+```
+
+### CSRF Protection
+
+**Token Generation**:
 ```java
-// 1. Implement caching
+@Component
+public class CsrfTokenService {
+    
+    public String generateToken() {
+        return UUID.randomUUID().toString();
+    }
+    
+    public boolean validateToken(String token) {
+        // Token validation logic
+        return true;
+    }
+}
+```
+
+**Form Integration**:
+```html
+<form th:action="@{/admin/members}" method="post">
+    <input type="hidden" th:name="${_csrf.parameterName}" 
+           th:value="${_csrf.token}" />
+    <!-- Form fields -->
+</form>
+```
+
+---
+
+## Performance & Optimization
+
+### Frontend Performance
+
+**Resource Optimization**:
+```html
+<!-- Preload critical resources -->
+<link rel="preload" th:href="@{/css/unified-theme.css}" as="style">
+<link rel="preload" th:href="@{/js/theme-toggle.js}" as="script">
+
+<!-- Lazy loading for images -->
+<img data-src="/images/large-image.jpg" class="lazy" alt="Description">
+```
+
+**JavaScript Optimization**:
+```javascript
+// Debounced search
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+const debouncedSearch = debounce(searchFunction, 300);
+```
+
+**CSS Optimization**:
+```css
+/* Hardware acceleration for animations */
+.animated-element {
+    transform: translateZ(0);
+    will-change: transform;
+}
+
+/* Efficient animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+```
+
+### Backend Performance
+
+**Caching Strategy**:
+```java
 @Cacheable("members")
 public List<Member> getAllMembers() {
     return memberRepository.findAll();
 }
 
-// 2. Add connection pooling
-@Configuration
-public class DatabaseConfig {
-    @Bean
-    public DataSource dataSource() {
-        HikariConfig config = new HikariConfig();
-        config.setMaximumPoolSize(20);
-        config.setMinimumIdle(5);
-        return new HikariDataSource(config);
-    }
-}
-
-// 3. Implement async processing
-@Async
-public CompletableFuture<String> processMemberAsync(Member member) {
-    // Heavy processing
-    return CompletableFuture.completedFuture("Processed");
+@CacheEvict("members")
+public void createMember(Member member) {
+    memberRepository.save(member);
 }
 ```
 
-**Infrastructure Scaling**:
-- Load balancers for horizontal scaling
-- Redis for session storage
-- Database read replicas
-- Microservices architecture for complex domains
-
-#### Q3: How would you implement real-time updates in this architecture?
-
-**Answer**:
-
-**WebSocket Implementation**:
+**Database Optimization**:
 ```java
-@Controller
-public class WebSocketController {
+@Repository
+public interface MemberRepository extends MongoRepository<MemberDocument, String> {
     
-    @MessageMapping("/members")
-    @SendTo("/topic/members")
-    public MemberUpdate handleMemberUpdate(MemberUpdate update) {
-        // Process update
-        return update;
-    }
-}
-```
-
-**JavaScript Integration**:
-```javascript
-// WebSocket connection
-const socket = new WebSocket('ws://localhost:8080/ws');
-
-socket.onmessage = function(event) {
-    const update = JSON.parse(event.data);
-    updateMemberInTable(update);
-};
-
-function updateMemberInTable(update) {
-    const row = document.querySelector(`[data-member-id="${update.id}"]`);
-    if (row) {
-        row.querySelector('.member-name').textContent = update.name;
-        row.querySelector('.member-email').textContent = update.email;
-    }
-}
-```
-
-**Alternative: Server-Sent Events**:
-```javascript
-const eventSource = new EventSource('/api/members/stream');
-
-eventSource.onmessage = function(event) {
-    const memberUpdate = JSON.parse(event.data);
-    updateUI(memberUpdate);
-};
-```
-
-#### Q4: How would you implement offline functionality?
-
-**Answer**:
-
-**Service Worker Implementation**:
-```javascript
-// sw.js
-const CACHE_NAME = 'kitchensink-v1';
-const urlsToCache = [
-    '/',
-    '/css/unified-theme.css',
-    '/js/script.js',
-    '/js/theme-toggle.js'
-];
-
-self.addEventListener('install', event => {
-    event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then(cache => cache.addAll(urlsToCache))
-    );
-});
-
-self.addEventListener('fetch', event => {
-    event.respondWith(
-        caches.match(event.request)
-            .then(response => {
-                if (response) {
-                    return response;
-                }
-                return fetch(event.request);
-            })
-    );
-});
-```
-
-**Offline Data Storage**:
-```javascript
-// IndexedDB for offline data
-class OfflineStorage {
-    constructor() {
-        this.dbName = 'KitchenSinkDB';
-        this.version = 1;
-    }
+    @Query(value = "{ 'role': ?0 }", fields = "{ 'password': 0 }")
+    List<MemberDocument> findByRole(String role);
     
-    async init() {
-        return new Promise((resolve, reject) => {
-            const request = indexedDB.open(this.dbName, this.version);
-            
-            request.onupgradeneeded = (event) => {
-                const db = event.target.result;
-                if (!db.objectStoreNames.contains('members')) {
-                    db.createObjectStore('members', { keyPath: 'id' });
-                }
-            };
-            
-            request.onsuccess = () => resolve(request.result);
-            request.onerror = () => reject(request.error);
-        });
-    }
-    
-    async saveMember(member) {
-        const db = await this.init();
-        const transaction = db.transaction(['members'], 'readwrite');
-        const store = transaction.objectStore('members');
-        return store.put(member);
-    }
-}
-```
-
-**Sync Strategy**:
-```javascript
-// Sync when online
-window.addEventListener('online', () => {
-    syncOfflineData();
-});
-
-async function syncOfflineData() {
-    const offlineActions = JSON.parse(localStorage.getItem('offlineActions') || '[]');
-    
-    for (const action of offlineActions) {
-        try {
-            await fetch(action.url, {
-                method: action.method,
-                headers: action.headers,
-                body: action.body
-            });
-        } catch (error) {
-            console.error('Sync failed:', error);
-        }
-    }
-    
-    localStorage.removeItem('offlineActions');
-}
-```
-
-### Security Questions
-
-#### Q5: How would you prevent XSS attacks in this application?
-
-**Answer**:
-
-**Thymeleaf Protection**:
-```html
-<!-- Automatic HTML escaping -->
-<span th:text="${userInput}"></span>
-
-<!-- Safe HTML when needed -->
-<span th:utext="${sanitizedHtml}"></span>
-```
-
-**JavaScript Protection**:
-```javascript
-// Input sanitization
-function sanitizeInput(input) {
-    const div = document.createElement('div');
-    div.textContent = input;
-    return div.innerHTML;
-}
-
-// Safe DOM manipulation
-function updateUserContent(content) {
-    const element = document.getElementById('user-content');
-    element.textContent = content; // Safe
-    // element.innerHTML = content; // Dangerous
-}
-```
-
-**Content Security Policy**:
-```html
-<meta http-equiv="Content-Security-Policy" 
-      content="default-src 'self'; 
-               script-src 'self' 'unsafe-inline'; 
-               style-src 'self' 'unsafe-inline';">
-```
-
-#### Q6: How would you implement CSRF protection?
-
-**Answer**:
-
-**Thymeleaf CSRF Token**:
-```html
-<form th:action="@{/register}" method="post">
-    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-    <!-- form fields -->
-</form>
-```
-
-**JavaScript CSRF Token**:
-```javascript
-// Get CSRF token from meta tag
-const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
-
-// Include in AJAX requests
-fetch('/api/members', {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': csrfToken
-    },
-    body: JSON.stringify(data)
-});
-```
-
-**Spring Security Configuration**:
-```java
-@Configuration
-public class SecurityConfig {
-    
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-            .csrf(csrf -> csrf
-                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-            );
-        return http.build();
-    }
-}
-```
-
-### Performance Questions
-
-#### Q7: How would you optimize the loading performance of this application?
-
-**Answer**:
-
-**Frontend Optimizations**:
-```html
-<!-- Critical CSS inlining -->
-<style>
-    /* Critical above-the-fold styles */
-    .dashboard-header { /* ... */ }
-    .members-table { /* ... */ }
-</style>
-
-<!-- Defer non-critical CSS -->
-<link rel="preload" href="/css/unified-theme.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-```
-
-**JavaScript Optimization**:
-```javascript
-// Code splitting
-const loadModule = async (moduleName) => {
-    const module = await import(`./modules/${moduleName}.js`);
-    return module.default;
-};
-
-// Lazy loading components
-const loadMemberEditor = async () => {
-    const { MemberEditor } = await import('./components/MemberEditor.js');
-    return new MemberEditor();
-};
-```
-
-**Backend Optimizations**:
-```java
-// Response compression
-@Configuration
-public class WebConfig implements WebMvcConfigurer {
-    
-    @Override
-    public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
-        configurer.defaultContentType(MediaType.APPLICATION_JSON);
-    }
-}
-
-// Database query optimization
-@Query("SELECT m FROM Member m LEFT JOIN FETCH m.roles")
-List<Member> findAllWithRoles();
-```
-
-#### Q8: How would you implement caching strategies?
-
-**Answer**:
-
-**Browser Caching**:
-```java
-@Configuration
-public class CacheConfig {
-    
-    @Bean
-    public ResourceHandlerRegistry resourceHandlerRegistry(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/static/**")
-                .addResourceLocations("classpath:/static/")
-                .setCacheControl(CacheControl.maxAge(1, TimeUnit.YEARS));
-        return registry;
-    }
-}
-```
-
-**Application Caching**:
-```java
-@Service
-@CacheConfig(cacheNames = "members")
-public class MemberService {
-    
-    @Cacheable(key = "#id")
-    public Member findById(String id) {
-        return memberRepository.findById(id);
-    }
-    
-    @CacheEvict(key = "#member.id")
-    public Member updateMember(Member member) {
-        return memberRepository.save(member);
-    }
-}
-```
-
-**CDN Implementation**:
-```javascript
-// Dynamic CDN URL generation
-const getCDNUrl = (path) => {
-    const cdnBase = 'https://cdn.example.com';
-    const version = 'v1.0.0';
-    return `${cdnBase}/${version}${path}`;
-};
-
-// Preload critical resources
-const preloadCriticalResources = () => {
-    const criticalResources = [
-        '/css/unified-theme.css',
-        '/js/script.js'
-    ];
-    
-    criticalResources.forEach(resource => {
-        const link = document.createElement('link');
-        link.rel = 'preload';
-        link.href = getCDNUrl(resource);
-        link.as = resource.endsWith('.css') ? 'style' : 'script';
-        document.head.appendChild(link);
-    });
-};
-```
-
-### Testing Questions
-
-#### Q9: How would you implement comprehensive testing for this UI?
-
-**Answer**:
-
-**Unit Testing**:
-```javascript
-// JavaScript unit tests
-describe('ThemeManager', () => {
-    let themeManager;
-    
-    beforeEach(() => {
-        themeManager = new ThemeManager();
-    });
-    
-    test('should toggle theme correctly', () => {
-        const initialTheme = themeManager.currentTheme;
-        themeManager.toggleTheme();
-        expect(themeManager.currentTheme).not.toBe(initialTheme);
-    });
-});
-```
-
-**Integration Testing**:
-```java
-@SpringBootTest
-@AutoConfigureTestDatabase
-class MemberControllerIntegrationTest {
-    
-    @Autowired
-    private TestRestTemplate restTemplate;
-    
-    @Test
-    void testMemberRegistration() {
-        Member member = new Member();
-        member.setName("Test User");
-        member.setEmail("test@example.com");
-        
-        ResponseEntity<String> response = restTemplate.postForEntity(
-            "/register", member, String.class);
-        
-        assertEquals(HttpStatus.FOUND, response.getStatusCode());
-    }
-}
-```
-
-**End-to-End Testing**:
-```javascript
-// Selenium/Cypress tests
-describe('Member Management', () => {
-    it('should allow admin to delete member', () => {
-        cy.visit('/admin/home');
-        cy.get('[data-testid="delete-member-btn"]').first().click();
-        cy.get('[data-testid="confirm-delete-btn"]').click();
-        cy.get('[data-testid="success-message"]').should('be.visible');
-    });
-});
-```
-
-#### Q10: How would you implement monitoring and observability?
-
-**Answer**:
-
-**Frontend Monitoring**:
-```javascript
-// Error tracking
-window.addEventListener('error', (event) => {
-    // Send to monitoring service
-    sendToMonitoring({
-        type: 'javascript_error',
-        message: event.message,
-        filename: event.filename,
-        lineno: event.lineno,
-        colno: event.colno,
-        stack: event.error?.stack
-    });
-});
-
-// Performance monitoring
-const observer = new PerformanceObserver((list) => {
-    for (const entry of list.getEntries()) {
-        if (entry.entryType === 'navigation') {
-            sendToMonitoring({
-                type: 'page_load',
-                loadTime: entry.loadEventEnd - entry.loadEventStart,
-                domContentLoaded: entry.domContentLoadedEventEnd - entry.domContentLoadedEventStart
-            });
-        }
-    }
-});
-observer.observe({ entryTypes: ['navigation'] });
-```
-
-**Backend Monitoring**:
-```java
-@Aspect
-@Component
-public class PerformanceMonitor {
-    
-    @Around("@annotation(Monitored)")
-    public Object monitorPerformance(ProceedingJoinPoint joinPoint) throws Throwable {
-        long startTime = System.currentTimeMillis();
-        try {
-            return joinPoint.proceed();
-        } finally {
-            long duration = System.currentTimeMillis() - startTime;
-            // Send to monitoring service
-            sendMetrics(joinPoint.getSignature().getName(), duration);
-        }
-    }
-}
-```
-
-**Application Metrics**:
-```java
-@Configuration
-public class MetricsConfig {
-    
-    @Bean
-    public MeterRegistry meterRegistry() {
-        return new SimpleMeterRegistry();
-    }
-    
-    @Bean
-    public TimedAspect timedAspect(MeterRegistry meterRegistry) {
-        return new TimedAspect(meterRegistry);
-    }
+    @Query(value = "{ 'email': ?0 }", fields = "{ 'password': 0 }")
+    Optional<MemberDocument> findByEmail(String email);
 }
 ```
 
 ---
 
-## Summary
+## Accessibility & UX
 
-The KitchenSink UI architecture demonstrates a well-balanced approach to modern web application development:
+### Accessibility Features
 
-### Key Strengths:
-1. **Hybrid Rendering**: Combines SSR benefits with client-side enhancement
-2. **Progressive Enhancement**: Core functionality works without JavaScript
-3. **Responsive Design**: Mobile-first approach with CSS Grid/Flexbox
-4. **Security-First**: Built-in XSS and CSRF protection
-5. **Performance Optimized**: Caching, compression, and lazy loading
-6. **Maintainable**: Clear separation of concerns and modular design
+**ARIA Labels and Roles**:
+```html
+<button class="theme-toggle" 
+        aria-label="Toggle theme" 
+        role="button" 
+        tabindex="0">
+    🌙
+</button>
 
-### Best Practices Implemented:
-- Design system with CSS custom properties
-- Component-based JavaScript architecture
-- RESTful API integration
-- Comprehensive error handling
-- Accessibility considerations
-- Cross-browser compatibility
+<div class="notification" role="alert" aria-live="polite">
+    Success message
+</div>
+```
 
-### Scalability Considerations:
-- Stateless application design
-- Database connection pooling
-- CDN-ready static assets
-- Microservices-ready architecture
-- Horizontal scaling capabilities
+**Keyboard Navigation**:
+```javascript
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+    // Ctrl/Cmd + T to toggle theme
+    if ((e.ctrlKey || e.metaKey) && e.key === 't') {
+        e.preventDefault();
+        themeManager.toggleTheme();
+    }
+    
+    // Ctrl/Cmd + Enter to submit form
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        document.querySelector('form').dispatchEvent(new Event('submit'));
+    }
+});
+```
 
-This architecture provides a solid foundation for building scalable, maintainable, and user-friendly web applications while balancing performance, security, and developer experience. 
+**Focus Management**:
+```css
+/* Focus indicators */
+.btn:focus,
+input:focus,
+select:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* Skip links for screen readers */
+.skip-link {
+    position: absolute;
+    top: -40px;
+    left: 6px;
+    background: var(--primary-color);
+    color: white;
+    padding: 8px;
+    text-decoration: none;
+    border-radius: 4px;
+}
+
+.skip-link:focus {
+    top: 6px;
+}
+```
+
+### User Experience Enhancements
+
+**Loading States**:
+```css
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid var(--primary-color);
+    border-top: 2px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+```
+
+**Error Handling**:
+```javascript
+function showFieldError(input, errorElement, message) {
+    input.classList.remove('success');
+    input.classList.add('error');
+    errorElement.textContent = message;
+    errorElement.style.display = 'block';
+    
+    // Announce to screen readers
+    errorElement.setAttribute('aria-live', 'polite');
+}
+```
+
+---
+
+## Interview Questions & Answers
+
+### Architecture Questions
+
+**Q: Why did you choose Thymeleaf over other template engines?**
+A: Thymeleaf provides natural templating (valid HTML), excellent Spring Boot integration, server-side security, and SEO benefits. It allows for progressive enhancement where JavaScript can enhance the server-rendered content.
+
+**Q: How do you handle state management in your application?**
+A: We use a hybrid approach: server-side state for authentication and user sessions, client-side state for UI interactions and theme preferences. We leverage localStorage for persistent client state and Spring Security for server-side session management.
+
+**Q: Explain your CSS architecture and theming system.**
+A: We use CSS Custom Properties for theming, BEM methodology for maintainable CSS, and a mobile-first responsive design. The theme system supports both light and dark modes with smooth transitions and glass morphism effects.
+
+### Performance Questions
+
+**Q: How do you optimize frontend performance?**
+A: We implement resource preloading, lazy loading for images, debounced search functions, hardware-accelerated animations, and efficient CSS with minimal repaints. We also use service workers for caching and offline support.
+
+**Q: What caching strategies do you use?**
+A: We use Spring's @Cacheable for database queries, browser caching for static resources, and localStorage for user preferences. We also implement ETags for conditional requests.
+
+### Security Questions
+
+**Q: How do you handle JWT token security?**
+A: We store tokens in localStorage with proper expiration handling, implement token refresh logic, and use secure HTTP-only cookies for web sessions. We also validate tokens on every request and handle token expiration gracefully.
+
+**Q: What CSRF protection do you implement?**
+A: We use Spring Security's built-in CSRF protection with hidden tokens in forms, and we validate tokens on all state-changing requests. We also implement proper CORS configuration.
+
+### Accessibility Questions
+
+**Q: How do you ensure your application is accessible?**
+A: We follow WCAG 2.1 guidelines with proper ARIA labels, keyboard navigation support, focus management, screen reader compatibility, and sufficient color contrast ratios. We also test with screen readers and keyboard-only navigation.
+
+**Q: What accessibility features have you implemented?**
+A: We include skip links, proper heading structure, alt text for images, ARIA live regions for dynamic content, keyboard shortcuts, and focus indicators. We also ensure all interactive elements are keyboard accessible.
+
+### Modern Web Features
+
+**Q: How do you implement the theme system?**
+A: We use CSS Custom Properties with a JavaScript theme manager that detects system preferences, stores user choices in localStorage, and provides smooth transitions between themes. The system supports both manual and automatic theme switching.
+
+**Q: Explain your glass morphism implementation.**
+A: We use backdrop-filter CSS property with rgba backgrounds, subtle borders, and layered shadows to create the glass effect. We ensure fallbacks for browsers that don't support backdrop-filter and maintain accessibility standards.
+
+### Testing Questions
+
+**Q: How do you test your UI components?**
+A: We use Jest for unit testing JavaScript functions, integration tests for API endpoints, and manual testing for accessibility and user experience. We also implement automated testing for critical user flows.
+
+**Q: How do you ensure cross-browser compatibility?**
+A: We use feature detection, polyfills for older browsers, and progressive enhancement. We test on multiple browsers and devices, and use tools like Babel for JavaScript compatibility.
+
+---
+
+## Best Practices Summary
+
+### Code Organization
+- **Separation of Concerns**: Clear boundaries between presentation, business logic, and data access
+- **Component-based CSS**: Reusable, maintainable styles
+- **Progressive Enhancement**: Core functionality works without JavaScript
+- **Accessibility First**: Design with accessibility in mind from the start
+
+### Performance
+- **Resource Optimization**: Preload critical resources, lazy load non-critical
+- **Efficient Animations**: Use transform and opacity for smooth animations
+- **Caching Strategy**: Implement appropriate caching at multiple levels
+- **Code Splitting**: Load only necessary JavaScript
+
+### Security
+- **Input Validation**: Validate all user inputs on both client and server
+- **Token Management**: Secure JWT token handling with proper expiration
+- **CSRF Protection**: Implement CSRF tokens for state-changing requests
+- **Content Security Policy**: Prevent XSS attacks
+
+### User Experience
+- **Loading States**: Provide feedback during async operations
+- **Error Handling**: Graceful error handling with user-friendly messages
+- **Responsive Design**: Mobile-first approach with touch-friendly interfaces
+- **Accessibility**: WCAG 2.1 compliance with keyboard navigation
+
+This comprehensive UI architecture provides a modern, accessible, and performant user interface that enhances the overall user experience while maintaining security and scalability standards. 

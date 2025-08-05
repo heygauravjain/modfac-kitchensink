@@ -1,383 +1,684 @@
-# Build Guide
+# KitchenSink Build Guide
 
-## Quick Start
+## Table of Contents
+1. [Prerequisites](#prerequisites)
+2. [Development Setup](#development-setup)
+3. [Build Process](#build-process)
+4. [Testing](#testing)
+5. [Deployment](#deployment)
+6. [Troubleshooting](#troubleshooting)
+7. [Performance Optimization](#performance-optimization)
 
-### Prerequisites
-- Java 21
-- Maven 3.8+
-- Docker (optional)
+---
 
-### Build Commands
+## Prerequisites
 
-#### 1. Simple Build (Skip Tests)
+### System Requirements
+- **Java**: JDK 21 or higher
+- **Maven**: 3.6 or higher
+- **MongoDB**: 4.4 or higher
+- **Git**: Latest version
+- **Memory**: Minimum 2GB RAM (4GB recommended)
+- **Storage**: 1GB free space
+
+### Development Tools
+- **IDE**: IntelliJ IDEA, Eclipse, or VS Code
+- **Browser**: Chrome, Firefox, Safari, or Edge (latest versions)
+- **Docker**: Optional for containerized development
+- **Node.js**: Optional for frontend tooling
+
+### Required Software Installation
+
+#### Java 21 Installation
 ```bash
-mvn clean package -DskipTests
-```
+# Ubuntu/Debian
+sudo apt update
+sudo apt install openjdk-21-jdk
 
-#### 2. Build with Tests
-```bash
-mvn clean install
-```
+# macOS (using Homebrew)
+brew install openjdk@21
 
-#### 3. Run Tests Only
-```bash
-mvn test
-```
+# Windows
+# Download from Oracle or use Chocolatey
+choco install openjdk21
 
-#### 4. Compile Only
-```bash
-mvn clean compile
-```
-
-## Troubleshooting Build Issues
-
-### Common Issues and Solutions
-
-#### 1. Java Version Issues
-**Problem**: `UnsupportedClassVersionError`
-**Solution**: Ensure Java 21 is installed and JAVA_HOME is set correctly
-
-```bash
-# Check Java version
+# Verify installation
 java -version
-
-# Set JAVA_HOME (Windows)
-set JAVA_HOME=C:\Program Files\Java\jdk-21
-
-# Set JAVA_HOME (Linux/Mac)
-export JAVA_HOME=/usr/lib/jvm/java-21-openjdk
+javac -version
 ```
 
-#### 2. Maven Issues
-**Problem**: `mvn command not found`
-**Solution**: Use Maven wrapper
-
+#### Maven Installation
 ```bash
-# Use Maven wrapper
-./mvnw clean install
+# Ubuntu/Debian
+sudo apt install maven
 
-# On Windows
-mvnw.cmd clean install
+# macOS
+brew install maven
+
+# Windows
+# Download from Apache Maven website
+
+# Verify installation
+mvn -version
 ```
 
-#### 3. Dependency Issues
-**Problem**: `Could not resolve dependencies`
-**Solution**: Clean and update dependencies
-
+#### MongoDB Installation
 ```bash
-# Clean Maven cache
+# Ubuntu/Debian
+sudo apt install mongodb
+
+# macOS
+brew install mongodb-community
+
+# Windows
+# Download from MongoDB website
+
+# Start MongoDB
+sudo systemctl start mongod
+sudo systemctl enable mongod
+```
+
+---
+
+## Development Setup
+
+### 1. Clone Repository
+```bash
+git clone <repository-url>
+cd modfac-kitchensink
+```
+
+### 2. Configure Environment
+
+#### Application Properties
+Create `src/main/resources/application-dev.yml`:
+```yaml
+spring:
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/kitchensink-dev
+  security:
+    jwt:
+      secret: your-development-secret-key
+      expiration: 86400000
+      refresh-expiration: 604800000
+
+logging:
+  level:
+    com.example.kitchensink: DEBUG
+    org.springframework.security: DEBUG
+```
+
+#### Environment Variables
+```bash
+# Development environment
+export SPRING_PROFILES_ACTIVE=dev
+export MONGODB_URI=mongodb://localhost:27017/kitchensink-dev
+export JWT_SECRET=your-development-secret-key
+
+# Production environment
+export SPRING_PROFILES_ACTIVE=prod
+export MONGODB_URI=mongodb://prod-mongo:27017/kitchensink
+export JWT_SECRET=your-production-secret-key
+```
+
+### 3. IDE Configuration
+
+#### IntelliJ IDEA Setup
+1. **Open Project**: File → Open → Select project folder
+2. **Import Maven Project**: Import as Maven project
+3. **Configure SDK**: File → Project Structure → SDK → Java 21
+4. **Enable Annotation Processing**: Settings → Build → Compiler → Annotation Processors → Enable
+5. **Install Plugins**:
+   - Lombok
+   - Spring Boot
+   - Thymeleaf
+
+#### Eclipse Setup
+1. **Import Project**: File → Import → Maven → Existing Maven Projects
+2. **Configure JRE**: Project Properties → Java Build Path → Libraries → Add Library → JRE System Library
+3. **Install Plugins**:
+   - Spring Tools Suite
+   - Lombok
+
+#### VS Code Setup
+1. **Install Extensions**:
+   - Extension Pack for Java
+   - Spring Boot Extension Pack
+   - Thymeleaf Support
+2. **Configure Java**: Set Java 21 as default
+3. **Install Lombok**: Download and install Lombok jar
+
+### 4. Database Setup
+
+#### MongoDB Configuration
+```bash
+# Start MongoDB
+sudo systemctl start mongod
+
+# Verify connection
+mongo --eval "db.runCommand('ping')"
+
+# Create database
+mongo
+use kitchensink-dev
+db.createUser({
+  user: "kitchensink",
+  pwd: "password",
+  roles: ["readWrite"]
+})
+```
+
+#### Docker MongoDB (Alternative)
+```bash
+# Run MongoDB in Docker
+docker run -d \
+  --name mongodb \
+  -p 27017:27017 \
+  -e MONGO_INITDB_ROOT_USERNAME=admin \
+  -e MONGO_INITDB_ROOT_PASSWORD=password \
+  mongo:latest
+
+# Connect to MongoDB
+docker exec -it mongodb mongosh
+```
+
+---
+
+## Build Process
+
+### 1. Clean Build
+```bash
+# Clean previous builds
 mvn clean
 
-# Update dependencies
-mvn dependency:resolve
-
-# Force update
-mvn clean install -U
-```
-
-#### 4. Test Issues
-**Problem**: Tests fail due to MongoDB connection
-**Solution**: Skip tests for build
-
-```bash
-# Build without tests
-mvn clean package -DskipTests
-
-# Run only specific tests
-mvn test -Dtest=KitchenSinkApplicationTests
-```
-
-#### 5. Compilation Issues
-**Problem**: Compilation errors
-**Solution**: Check for missing imports or syntax errors
-
-```bash
-# Compile with verbose output
-mvn clean compile -X
-
-# Check specific compilation errors
-mvn clean compile -e
-```
-
-## Build Scripts
-
-### Windows
-```bash
-# Run diagnostic script
-diagnose-build.bat
-
-# Run build test
-build-test.bat
-```
-
-### Linux/Mac
-```bash
-# Run diagnostic script
-./diagnose-build.sh
-
-# Run build test
-./build-test.sh
-```
-
-## Docker Build
-
-### Build Docker Image
-```bash
-docker build -t kitchensink-app .
-```
-
-### Run with Docker Compose
-```bash
-docker-compose up --build
-```
-
-### Test Docker Build
-```bash
-./docker-test.sh
-```
-
-## Project Structure
-
-```
-modfac-kitchensink/
-├── src/
-│   ├── main/
-│   │   ├── java/
-│   │   │   └── com/example/kitchensink/
-│   │   │       ├── controller/
-│   │   │       ├── service/
-│   │   │       ├── security/
-│   │   │       ├── entity/
-│   │   │       ├── model/
-│   │   │       └── config/
-│   │   └── resources/
-│   │       ├── application.yml
-│   │       └── templates/
-│   └── test/
-│       ├── java/
-│       │   └── com/example/kitchensink/
-│       └── resources/
-│           └── application-test.yml
-├── pom.xml
-├── Dockerfile
-├── docker-compose.yml
-└── README.md
-```
-
-## Configuration Files
-
-### Main Application Configuration
-- `src/main/resources/application.yml` - Main application config
-- `src/main/resources/application-docker.yml` - Docker profile config
-
-### Test Configuration
-- `src/test/resources/application-test.yml` - Test profile config
-
-### Build Configuration
-- `pom.xml` - Maven dependencies and plugins
-- `Dockerfile` - Docker image configuration
-- `docker-compose.yml` - Docker services configuration
-
-## Key Dependencies
-
-### Spring Boot Starters
-- `spring-boot-starter-web` - Web application
-- `spring-boot-starter-security` - Security framework
-- `spring-boot-starter-data-mongodb` - MongoDB integration
-- `spring-boot-starter-thymeleaf` - Template engine
-- `spring-boot-starter-validation` - Validation framework
-
-### JWT Dependencies
-- `jjwt-api` - JWT API
-- `jjwt-impl` - JWT implementation
-- `jjwt-jackson` - JWT Jackson integration
-
-### Testing Dependencies
-- `junit-jupiter` - JUnit 5
-- `spring-boot-starter-test` - Spring Boot test support
-- `mockito-core` - Mocking framework
-- `spring-security-test` - Security testing
-
-## Build Phases
-
-### 1. Clean
-```bash
-mvn clean
-```
-- Removes target directory
-- Cleans compiled classes
-
-### 2. Compile
-```bash
-mvn compile
-```
-- Compiles main source code
-- Generates classes in target/classes
-
-### 3. Test Compile
-```bash
-mvn test-compile
-```
-- Compiles test source code
-- Generates test classes in target/test-classes
-
-### 4. Test
-```bash
-mvn test
-```
-- Runs unit tests
-- Generates test reports
-
-### 5. Package
-```bash
+# Compile and package
 mvn package
-```
-- Creates JAR file
-- Includes all dependencies
 
-### 6. Install
-```bash
-mvn install
-```
-- Installs JAR to local repository
-- Available for other projects
+# Run tests
+mvn test
 
-## Environment Variables
-
-### Development
-```bash
-export SPRING_PROFILES_ACTIVE=default
-export SPRING_DATA_MONGODB_URI=mongodb://localhost:27017/kitchensinkdb
+# Generate reports
+mvn jacoco:report
 ```
 
-### Docker
+### 2. Development Build
 ```bash
-export SPRING_PROFILES_ACTIVE=docker
-export SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/kitchensinkdb
-export JWT_SECRET_KEY=your-secret-key
+# Run with development profile
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
+
+# Run with debug mode
+mvn spring-boot:run -Dspring-boot.run.jvmArguments="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005"
 ```
 
-### Testing
+### 3. Production Build
 ```bash
-export SPRING_PROFILES_ACTIVE=test
+# Build for production
+mvn clean package -Pprod
+
+# Create Docker image
+docker build -t kitchensink:latest .
+
+# Run with production profile
+java -jar target/kitchensink-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod
 ```
 
-## Performance Optimization
+### 4. Docker Build
+```dockerfile
+# Dockerfile
+FROM openjdk:21-jdk-slim
 
-### Maven Build Optimization
-```bash
-# Parallel build
-mvn clean install -T 1C
+WORKDIR /app
 
-# Skip tests for faster build
-mvn clean package -DskipTests
+COPY target/kitchensink-0.0.1-SNAPSHOT.jar app.jar
 
-# Use Maven wrapper
-./mvnw clean install
+EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:8080/actuator/health || exit 1
+
+ENTRYPOINT ["java", "-jar", "app.jar"]
 ```
 
-### Docker Build Optimization
 ```bash
-# Use build cache
-docker build --cache-from kitchensink-app .
+# Build Docker image
+docker build -t kitchensink .
 
-# Multi-stage build (already configured)
-docker build -t kitchensink-app .
+# Run container
+docker run -p 8080:8080 \
+  -e SPRING_PROFILES_ACTIVE=prod \
+  -e MONGODB_URI=mongodb://host.docker.internal:27017/kitchensink \
+  kitchensink
 ```
 
-## Monitoring and Debugging
+---
 
-### Build Logs
+## Testing
+
+### 1. Unit Tests
 ```bash
-# Verbose output
-mvn clean install -X
+# Run all unit tests
+mvn test
 
-# Debug output
-mvn clean install -e
+# Run specific test class
+mvn test -Dtest=AuthServiceTest
 
-# Quiet output
-mvn clean install -q
-```
-
-### Test Reports
-```bash
-# Generate test reports
+# Run tests with coverage
 mvn test jacoco:report
 
-# View test results
+# View coverage report
 open target/site/jacoco/index.html
 ```
 
-### Docker Logs
+### 2. Integration Tests
 ```bash
-# View container logs
-docker-compose logs
+# Run integration tests
+mvn test -Dtest=*IntegrationTest
 
-# Follow logs
-docker-compose logs -f
-
-# View specific service logs
-docker-compose logs backend
+# Run with test profile
+mvn test -Dspring.profiles.active=test
 ```
 
-## Common Commands
-
-### Development
+### 3. Security Tests
 ```bash
+# Run security tests
+mvn test -Dtest=*SecurityTest
+
+# Test authentication flows
+mvn test -Dtest=JwtAuthenticationFilterTest
+```
+
+### 4. UI Tests
+```bash
+# Manual UI testing checklist
+- [ ] Login functionality
+- [ ] Theme switching
+- [ ] Form validation
+- [ ] Responsive design
+- [ ] Accessibility features
+- [ ] Error handling
+```
+
+### 5. Performance Tests
+```bash
+# Load testing with Apache Bench
+ab -n 1000 -c 10 http://localhost:8080/
+
+# Memory profiling
+java -Xprof -jar target/kitchensink-0.0.1-SNAPSHOT.jar
+```
+
+---
+
+## Deployment
+
+### 1. Local Deployment
+```bash
+# Build application
+mvn clean package
+
 # Run application
-mvn spring-boot:run
+java -jar target/kitchensink-0.0.1-SNAPSHOT.jar
 
-# Run with profile
-mvn spring-boot:run -Dspring.profiles.active=docker
+# Access application
+open http://localhost:8080
 ```
 
-### Testing
+### 2. Docker Deployment
 ```bash
-# Run all tests
-mvn test
+# Build and run with Docker Compose
+docker-compose up -d
 
-# Run specific test
-mvn test -Dtest=SimpleBuildTest
+# Check status
+docker-compose ps
 
-# Run with coverage
-mvn test jacoco:report
+# View logs
+docker-compose logs -f app
 ```
 
-### Docker
+### 3. Kubernetes Deployment
+```yaml
+# deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kitchensink
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: kitchensink
+  template:
+    metadata:
+      labels:
+        app: kitchensink
+    spec:
+      containers:
+      - name: kitchensink
+        image: kitchensink:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: "prod"
+        - name: MONGODB_URI
+          valueFrom:
+            secretKeyRef:
+              name: mongodb-secret
+              key: uri
+```
+
 ```bash
-# Build and run
-docker-compose up --build
-
-# Stop services
-docker-compose down
-
-# Clean up
-docker-compose down -v
-docker system prune -f
+# Deploy to Kubernetes
+kubectl apply -f deployment.yaml
+kubectl apply -f service.yaml
+kubectl apply -f ingress.yaml
 ```
+
+### 4. Cloud Deployment
+
+#### AWS Deployment
+```bash
+# Build Docker image
+docker build -t kitchensink .
+
+# Tag for ECR
+docker tag kitchensink:latest 123456789012.dkr.ecr.us-east-1.amazonaws.com/kitchensink:latest
+
+# Push to ECR
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 123456789012.dkr.ecr.us-east-1.amazonaws.com
+docker push 123456789012.dkr.ecr.us-east-1.amazonaws.com/kitchensink:latest
+
+# Deploy to ECS
+aws ecs update-service --cluster kitchensink-cluster --service kitchensink-service --force-new-deployment
+```
+
+#### Google Cloud Deployment
+```bash
+# Build and push to Container Registry
+gcloud builds submit --tag gcr.io/PROJECT_ID/kitchensink
+
+# Deploy to Cloud Run
+gcloud run deploy kitchensink \
+  --image gcr.io/PROJECT_ID/kitchensink \
+  --platform managed \
+  --region us-central1 \
+  --allow-unauthenticated
+```
+
+---
 
 ## Troubleshooting
 
-### Build Fails
-1. Check Java version: `java -version`
-2. Check Maven version: `mvn --version`
-3. Clean project: `mvn clean`
-4. Update dependencies: `mvn dependency:resolve`
-5. Run with verbose output: `mvn clean install -X`
+### Common Issues
 
-### Tests Fail
-1. Check test configuration: `application-test.yml`
-2. Run specific test: `mvn test -Dtest=SimpleBuildTest`
-3. Skip tests for build: `mvn clean package -DskipTests`
+#### 1. Build Failures
+```bash
+# Clean and rebuild
+mvn clean package
 
-### Docker Issues
-1. Check Docker installation: `docker --version`
-2. Check Docker Compose: `docker-compose --version`
-3. Clean Docker: `docker system prune -f`
-4. Rebuild: `docker-compose up --build`
+# Check Java version
+java -version
 
-### Runtime Issues
-1. Check application logs
-2. Verify configuration files
-3. Check environment variables
-4. Test endpoints: `curl http://localhost:8080/actuator/health` 
+# Check Maven version
+mvn -version
+
+# Update dependencies
+mvn dependency:resolve
+```
+
+#### 2. Database Connection Issues
+```bash
+# Check MongoDB status
+sudo systemctl status mongod
+
+# Check MongoDB logs
+sudo journalctl -u mongod
+
+# Test connection
+mongo --eval "db.runCommand('ping')"
+
+# Reset MongoDB
+sudo systemctl restart mongod
+```
+
+#### 3. Port Conflicts
+```bash
+# Check port usage
+netstat -tulpn | grep 8080
+
+# Kill process using port
+sudo kill -9 <PID>
+
+# Change port
+java -jar app.jar --server.port=8081
+```
+
+#### 4. Memory Issues
+```bash
+# Increase heap size
+java -Xmx2g -jar app.jar
+
+# Monitor memory usage
+jstat -gc <PID>
+
+# Check memory settings
+java -XX:+PrintFlagsFinal -version | grep -i heapsize
+```
+
+### Debug Mode
+```bash
+# Enable debug logging
+mvn spring-boot:run -Dlogging.level.com.example.kitchensink=DEBUG
+
+# Remote debugging
+mvn spring-boot:run -Dspring-boot.run.jvmArguments="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005"
+```
+
+### Performance Issues
+
+#### Database Performance
+```bash
+# Check MongoDB indexes
+mongo
+use kitchensink
+db.members.getIndexes()
+
+# Monitor slow queries
+db.setProfilingLevel(1, 100)
+
+# Optimize queries
+db.members.find().explain("executionStats")
+```
+
+#### Application Performance
+```bash
+# Monitor JVM metrics
+jstat -gc <PID>
+
+# Profile with JProfiler
+java -agentpath:/path/to/jprofiler/bin/linux-x64/libjprofilerti.so=port=8849 -jar app.jar
+
+# Use VisualVM
+jvisualvm
+```
+
+---
+
+## Performance Optimization
+
+### 1. JVM Optimization
+```bash
+# Production JVM settings
+java -server \
+  -Xms1g \
+  -Xmx2g \
+  -XX:+UseG1GC \
+  -XX:MaxGCPauseMillis=200 \
+  -XX:+UseStringDeduplication \
+  -jar app.jar
+```
+
+### 2. Database Optimization
+```javascript
+// Create indexes for better performance
+db.members.createIndex({ "email": 1 }, { unique: true })
+db.members.createIndex({ "role": 1 })
+db.members.createIndex({ "createdAt": -1 })
+
+// Monitor query performance
+db.members.find({ "role": "USER" }).explain("executionStats")
+```
+
+### 3. Application Optimization
+```java
+// Enable caching
+@EnableCaching
+@Configuration
+public class CacheConfig {
+    
+    @Bean
+    public CacheManager cacheManager() {
+        return new ConcurrentMapCacheManager("members", "users");
+    }
+}
+
+// Optimize database queries
+@Query(value = "{ 'role': ?0 }", fields = "{ 'password': 0 }")
+List<MemberDocument> findByRole(String role);
+```
+
+### 4. Frontend Optimization
+```html
+<!-- Preload critical resources -->
+<link rel="preload" th:href="@{/css/unified-theme.css}" as="style">
+<link rel="preload" th:href="@{/js/theme-toggle.js}" as="script">
+
+<!-- Lazy load images -->
+<img data-src="/images/large-image.jpg" class="lazy" alt="Description">
+```
+
+```javascript
+// Implement lazy loading
+const lazyLoadImages = () => {
+    const images = document.querySelectorAll('img[data-src]');
+    const imageObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const img = entry.target;
+                img.src = img.dataset.src;
+                imageObserver.unobserve(img);
+            }
+        });
+    });
+    images.forEach(img => imageObserver.observe(img));
+};
+```
+
+---
+
+## Monitoring and Health Checks
+
+### 1. Application Health
+```bash
+# Health check endpoint
+curl http://localhost:8080/actuator/health
+
+# Detailed health information
+curl http://localhost:8080/actuator/health/details
+
+# Application info
+curl http://localhost:8080/actuator/info
+```
+
+### 2. Metrics Monitoring
+```bash
+# Application metrics
+curl http://localhost:8080/actuator/metrics
+
+# JVM metrics
+curl http://localhost:8080/actuator/metrics/jvm.memory.used
+
+# HTTP metrics
+curl http://localhost:8080/actuator/metrics/http.server.requests
+```
+
+### 3. Log Monitoring
+```bash
+# View application logs
+tail -f logs/application.log
+
+# Filter error logs
+grep "ERROR" logs/application.log
+
+# Monitor specific components
+grep "com.example.kitchensink" logs/application.log
+```
+
+---
+
+## Security Considerations
+
+### 1. Production Security
+```bash
+# Use strong JWT secret
+export JWT_SECRET=$(openssl rand -base64 64)
+
+# Enable HTTPS
+server:
+  ssl:
+    key-store: classpath:keystore.p12
+    key-store-password: your-keystore-password
+    key-store-type: PKCS12
+
+# Configure CORS
+spring:
+  web:
+    cors:
+      allowed-origins: "https://yourdomain.com"
+      allowed-methods: "GET,POST,PUT,DELETE"
+```
+
+### 2. Database Security
+```javascript
+// Create secure database user
+use admin
+db.createUser({
+  user: "kitchensink",
+  pwd: "strong-password",
+  roles: [
+    { role: "readWrite", db: "kitchensink" }
+  ]
+})
+
+// Enable authentication
+security:
+  authorization: enabled
+```
+
+### 3. Network Security
+```bash
+# Configure firewall
+sudo ufw allow 8080
+sudo ufw allow 27017
+
+# Use VPN for remote access
+# Implement rate limiting
+# Enable DDoS protection
+```
+
+---
+
+## Summary
+
+This comprehensive build guide provides all the necessary steps to:
+
+1. **Set up the development environment** with all required tools
+2. **Build the application** for different environments
+3. **Test the application** thoroughly
+4. **Deploy the application** to various platforms
+5. **Troubleshoot common issues** effectively
+6. **Optimize performance** for production use
+7. **Monitor and maintain** the application
+
+The guide ensures that developers can successfully build, test, and deploy the KitchenSink application while following best practices for security, performance, and maintainability. 

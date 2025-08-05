@@ -5,28 +5,33 @@
 2. [Getting Started](#getting-started)
 3. [Development Setup](#development-setup)
 4. [Architecture Details](#architecture-details)
-5. [API Documentation](#api-documentation)
-6. [Database Schema](#database-schema)
-7. [Security Implementation](#security-implementation)
-8. [Testing Strategy](#testing-strategy)
-9. [Deployment Guide](#deployment-guide)
-10. [Troubleshooting](#troubleshooting)
-11. [Contributing](#contributing)
+5. [UI/UX Design System](#uiux-design-system)
+6. [API Documentation](#api-documentation)
+7. [Database Schema](#database-schema)
+8. [Security Implementation](#security-implementation)
+9. [Testing Strategy](#testing-strategy)
+10. [Performance & Optimization](#performance--optimization)
+11. [Deployment Guide](#deployment-guide)
+12. [Troubleshooting](#troubleshooting)
+13. [Contributing](#contributing)
 
 ## Project Overview
 
 ### Description
-KitchenSink is a comprehensive Spring Boot application that demonstrates modern web development practices including JWT authentication, MongoDB integration, role-based access control, and RESTful API design.
+KitchenSink is a comprehensive Spring Boot application that demonstrates modern web development practices including JWT authentication, MongoDB integration, role-based access control, and RESTful API design. The application features a modern, responsive UI with dark/light theme support and glass morphism design elements.
 
 ### Key Features
-- 🔐 **JWT Authentication**: Secure token-based authentication system
+- 🔐 **JWT Authentication**: Secure token-based authentication system with refresh tokens
 - 👥 **Role-based Access Control**: Admin and User roles with different permissions
 - 🗄️ **MongoDB Integration**: NoSQL database for flexible data storage
 - 🌐 **RESTful APIs**: Complete CRUD operations with OpenAPI documentation
-- 🎨 **Web Interface**: Thymeleaf templates for user interaction
+- 🎨 **Modern Web Interface**: Thymeleaf templates with enhanced UX/UI
 - 🛡️ **Security**: Spring Security with custom filters and handlers
 - 📊 **Monitoring**: Actuator endpoints for health checks and metrics
 - 🎯 **Strategy Pattern**: Dynamic registration behavior based on source context
+- 🌙 **Theme Support**: Dark/Light mode with smooth transitions
+- 📱 **Responsive Design**: Mobile-first approach with modern CSS
+- ⚡ **Performance Optimized**: Enhanced loading states and animations
 
 ### Technology Stack
 - **Backend**: Spring Boot 3.2.5
@@ -37,6 +42,8 @@ KitchenSink is a comprehensive Spring Boot application that demonstrates modern 
 - **Build Tool**: Maven
 - **Java Version**: 21
 - **Documentation**: OpenAPI 3.0 (Swagger)
+- **Frontend**: Modern CSS with Glass Morphism
+- **JavaScript**: Enhanced UX with real-time validation
 
 ## Getting Started
 
@@ -71,6 +78,7 @@ KitchenSink is a comprehensive Spring Boot application that demonstrates modern 
 
 4. **Access the Application**
    - Web Interface: http://localhost:8080
+   - Login Page: http://localhost:8080/jwt-login
    - API Documentation: http://localhost:8080/swagger-ui.html
    - Health Check: http://localhost:8080/actuator/health
 
@@ -79,6 +87,7 @@ KitchenSink is a comprehensive Spring Boot application that demonstrates modern 
 |-------|----------|------|--------|
 | admin@admin.com | admin123 | Admin | Full access |
 | user@user.com | user123 | User | Limited access |
+| g@g.com | password123 | Admin | Full access |
 
 ## Development Setup
 
@@ -100,377 +109,315 @@ KitchenSink is a comprehensive Spring Boot application that demonstrates modern 
 1. Install Java Extension Pack
 2. Install Spring Boot Extension Pack
 3. Configure Java 21
-4. Install Lombok extension
 
-### Development Environment Variables
+### Environment Configuration
 
-Create `application-dev.yml`:
+#### Application Properties
 ```yaml
+# application.yml
 spring:
   data:
     mongodb:
-      uri: mongodb://localhost:27017/kitchensink-dev
-  jpa:
-    show-sql: true
-    hibernate:
-      ddl-auto: create-drop
-
-logging:
-  level:
-    com.example.kitchensink: DEBUG
-    org.springframework.security: DEBUG
+      uri: mongodb://localhost:27017/kitchensink
+  security:
+    jwt:
+      secret: your-secret-key-here
+      expiration: 86400000 # 24 hours
+      refresh-expiration: 604800000 # 7 days
 ```
 
-### Running in Development Mode
+#### Docker Setup
+```yaml
+# docker-compose.yml
+version: '3.8'
+services:
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+  
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mongodb
+    environment:
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/kitchensink
 
-```bash
-# Run with development profile
-mvn spring-boot:run -Dspring-boot.run.profiles=dev
-
-# Run with debug mode
-mvn spring-boot:run -Dspring-boot.run.jvmArguments="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005"
+volumes:
+  mongodb_data:
 ```
 
 ## Architecture Details
 
+### System Architecture
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Web Layer     │    │  Business Layer │    │  Data Layer     │
+│   (Controllers) │◄──►│   (Services)    │◄──►│   (Repository)  │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                       │                       │
+         ▼                       ▼                       ▼
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Thymeleaf     │    │   Security      │    │   MongoDB       │
+│   Templates     │    │   (JWT)         │    │   Database      │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+```
+
 ### Package Structure
-
 ```
-src/main/java/com/example/kitchensink/
-├── KitchenSinkApplication.java          # Main application class
-├── config/
-│   └── DataInitializer.java            # Database initialization
-├── controller/
-│   ├── AuthController.java              # REST authentication APIs
-│   ├── JwtAuthController.java          # JWT web authentication
-│   ├── MemberController.java            # Web page controllers
-│   ├── RestService.java                # REST CRUD operations
-│   └── strategy/
-│       ├── AdminRegistrationStrategy.java
-│       ├── RegistrationContext.java
-│       ├── RegistrationStrategy.java
-│       └── UserRegistrationStrategy.java
-├── entity/
-│   └── MemberDocument.java             # MongoDB entity
-├── exception/
-│   ├── GlobalExceptionHandler.java     # Global error handling
-│   └── ResourceNotFoundException.java   # Custom exceptions
-├── mapper/
-│   └── MemberMapper.java               # MapStruct mapper
-├── model/
-│   ├── AuthRequest.java                # Authentication DTOs
-│   ├── AuthResponse.java
-│   ├── Member.java
-│   ├── RefreshTokenRequest.java
-│   └── SignupRequest.java
-├── repository/
-│   └── MemberRepository.java           # MongoDB repository
-├── security/
-│   ├── CustomUserDetailsService.java   # User details service
-│   ├── JwtAuthenticationFilter.java    # JWT header filter
-│   ├── JwtCookieAuthenticationFilter.java # JWT cookie filter
-│   ├── JwtTokenService.java           # JWT token management
-│   └── SecurityConfig.java            # Security configuration
-└── service/
-    ├── AuthService.java                # Authentication service
-    └── MemberService.java              # Member management service
+com.example.kitchensink/
+├── config/          # Configuration classes
+├── controller/      # REST and MVC controllers
+├── entity/          # MongoDB entities
+├── exception/       # Custom exceptions
+├── mapper/          # MapStruct mappers
+├── model/           # DTOs and request/response models
+├── repository/      # MongoDB repositories
+├── security/        # JWT and security configuration
+└── service/         # Business logic services
 ```
 
-### Design Patterns
+### Key Design Patterns
 
-1. **Strategy Pattern**: Used for different registration strategies (Admin vs User)
-2. **Factory Pattern**: MapStruct mapper factory
-3. **Repository Pattern**: MongoDB data access
-4. **Service Layer Pattern**: Business logic separation
-5. **Filter Pattern**: JWT authentication filters
+1. **Strategy Pattern**: Dynamic registration behavior
+2. **Repository Pattern**: Data access abstraction
+3. **DTO Pattern**: Data transfer objects
+4. **Builder Pattern**: Object construction
+5. **Observer Pattern**: Event handling
 
-### Security Architecture
+## UI/UX Design System
 
-```mermaid
-graph TD
-    A[HTTP Request] --> B[Security Filter Chain]
-    B --> C{JWT Token Present?}
-    C -->|Yes| D[JWT Authentication Filter]
-    C -->|No| E[Anonymous Authentication]
-    D --> F{Token Valid?}
-    F -->|Yes| G[Set Security Context]
-    F -->|No| H[Authentication Failed]
-    G --> I[Authorization Check]
-    I --> J{Has Required Role?}
-    J -->|Yes| K[Allow Access]
-    J -->|No| L[Access Denied]
+### Design Philosophy
+The application follows modern design principles with a focus on:
+- **Accessibility**: WCAG 2.1 compliance
+- **Responsiveness**: Mobile-first approach
+- **Performance**: Optimized loading and transitions
+- **User Experience**: Intuitive navigation and feedback
+
+### Theme System
+```css
+:root {
+    /* Light Theme */
+    --primary-color: #007bff;
+    --bg-primary: #ffffff;
+    --text-primary: #2c3e50;
+}
+
+[data-theme="dark"] {
+    /* Dark Theme */
+    --bg-primary: #1a1a1a;
+    --text-primary: #ffffff;
+}
 ```
+
+### Key UI Components
+
+1. **Glass Morphism Containers**
+   - Translucent backgrounds with backdrop blur
+   - Subtle borders and shadows
+   - Smooth hover effects
+
+2. **Enhanced Form Validation**
+   - Real-time validation feedback
+   - Password strength indicators
+   - Accessible error messages
+
+3. **Responsive Dashboard**
+   - Grid-based layout system
+   - Adaptive table design
+   - Mobile-optimized interactions
+
+4. **Theme Toggle**
+   - Smooth transitions between themes
+   - Persistent theme preference
+   - System theme detection
+
+### CSS Architecture
+- **CSS Custom Properties**: For theming and consistency
+- **BEM Methodology**: For maintainable CSS
+- **Mobile-First**: Responsive design approach
+- **Performance**: Optimized animations and transitions
 
 ## API Documentation
 
 ### Authentication Endpoints
 
-#### POST /api/auth/login
-Authenticate user and return JWT tokens.
+#### POST /jwt-login
+Authenticate user and generate JWT tokens.
 
-**Request Body:**
+**Request:**
 ```json
 {
-    "email": "admin@admin.com",
-    "password": "admin123"
+  "email": "user@example.com",
+  "password": "password123"
 }
 ```
 
 **Response:**
 ```json
 {
-    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "tokenType": "Bearer",
-    "expiresIn": 900000,
-    "email": "admin@admin.com",
-    "role": "ROLE_ADMIN"
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "tokenType": "Bearer",
+  "expiresIn": 86400000
 }
 ```
 
-#### POST /api/auth/signup
-Register a new user.
+#### POST /jwt-signup
+Register a new user account.
 
-**Request Body:**
+**Request:**
 ```json
 {
-    "name": "John Doe",
-    "email": "john@example.com",
-    "password": "password123",
-    "role": "USER"
+  "name": "John Doe",
+  "email": "john@example.com",
+  "password": "Password123!",
+  "phoneNumber": "1234567890",
+  "role": "USER"
 }
 ```
 
-#### POST /api/auth/refresh
-Refresh access token using refresh token.
-
-**Request Body:**
-```json
-{
-    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-}
-```
-
-### Admin Endpoints
+### Member Management Endpoints
 
 #### GET /admin/members
-Get all members (Admin only).
+Retrieve all members (Admin only).
 
-**Response:**
-```json
-[
-    {
-        "id": "507f1f77bcf86cd799439011",
-        "name": "Admin User",
-        "email": "admin@admin.com",
-        "phoneNumber": "1234567890",
-        "role": "ROLE_ADMIN"
-    }
-]
-```
-
-#### GET /admin/members/{id}
-Get member by ID.
+#### POST /admin/members
+Create a new member (Admin only).
 
 #### PUT /admin/members/{id}
-Update member information.
+Update member information (Admin only).
 
 #### DELETE /admin/members/{id}
-Delete member.
+Delete a member (Admin only).
 
-### Web Endpoints
+### Health Check Endpoints
 
-#### GET /
-Redirect to login page.
+#### GET /actuator/health
+Application health status.
 
-#### GET /login
-Display login page.
-
-#### POST /jwt-login
-Web-based JWT authentication.
-
-#### GET /admin/home
-Admin dashboard (Admin only).
-
-#### GET /user-profile
-User profile page (Authenticated users).
+#### GET /actuator/info
+Application information.
 
 ## Database Schema
 
-### MongoDB Collections
-
-#### members Collection
+### Member Document
 ```json
 {
-    "_id": "ObjectId",
-    "name": "String (required, max 25 chars)",
-    "email": "String (unique, required)",
-    "phoneNumber": "String (required, 10-12 digits)",
-    "password": "String (BCrypt encrypted)",
-    "role": "String (ROLE_ADMIN or ROLE_USER)"
+  "_id": "ObjectId",
+  "name": "String",
+  "email": "String",
+  "password": "String (encrypted)",
+  "phoneNumber": "String",
+  "role": "String (ROLE_ADMIN/ROLE_USER)",
+  "createdAt": "Date",
+  "updatedAt": "Date"
 }
 ```
 
 ### Indexes
-```javascript
-// Email index (unique)
-db.members.createIndex({ "email": 1 }, { unique: true })
-
-// Role index
-db.members.createIndex({ "role": 1 })
-
-// Name index
-db.members.createIndex({ "name": 1 })
-```
-
-### Data Initialization
-The application automatically creates default users on startup:
-- admin@admin.com (ROLE_ADMIN)
-- user@user.com (ROLE_USER)
+- `email`: Unique index for email addresses
+- `role`: Index for role-based queries
+- `createdAt`: Index for time-based queries
 
 ## Security Implementation
 
-### JWT Token Structure
+### JWT Authentication Flow
+1. **Login**: User provides credentials
+2. **Validation**: Server validates credentials
+3. **Token Generation**: Server generates access and refresh tokens
+4. **Token Storage**: Client stores tokens securely
+5. **API Requests**: Client includes token in Authorization header
+6. **Token Validation**: Server validates token on each request
+7. **Token Refresh**: Client uses refresh token to get new access token
 
-**Header:**
-```json
-{
-    "alg": "HS256",
-    "typ": "JWT"
-}
-```
+### Security Features
+- **Password Encryption**: BCrypt password hashing
+- **Token Expiration**: Configurable token lifetimes
+- **CORS Configuration**: Cross-origin resource sharing
+- **CSRF Protection**: Cross-site request forgery protection
+- **XSS Prevention**: Content Security Policy headers
 
-**Payload:**
-```json
-{
-    "sub": "user@example.com",
-    "role": "ROLE_ADMIN",
-    "iat": 1640995200,
-    "exp": 1640996100
-}
-```
-
-### Security Configuration
-
-```java
-@Configuration
-@EnableWebSecurity
-public class SecurityConfig {
-    
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) {
-        return http
-            .csrf(AbstractHttpConfigurer::disable)
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/login", "/register", "/jwt-login", "/jwt-signup").permitAll()
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/admin/**").hasRole("ADMIN")
-                .requestMatchers("/user-profile").hasAnyRole("USER", "ADMIN")
-                .anyRequest().authenticated()
-            )
-            .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
-            .authenticationProvider(authenticationProvider())
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-            .addFilterBefore(jwtCookieAuthenticationFilter, JwtAuthenticationFilter.class)
-            .build();
-    }
-}
-```
-
-### Password Security
-- **Algorithm**: BCrypt with salt rounds
-- **Configuration**: 10 rounds (default)
-- **Storage**: Encrypted in database
-
-### Token Security
-- **Algorithm**: HMAC-SHA256
-- **Access Token Expiration**: 15 minutes
-- **Refresh Token Expiration**: 7 days
-- **Storage**: HttpOnly cookies for web, Authorization header for API
+### Role-based Access Control
+- **Admin Role**: Full access to all endpoints
+- **User Role**: Limited access to specific endpoints
+- **Anonymous**: Access to login and public endpoints only
 
 ## Testing Strategy
 
-### Unit Tests
-```bash
-# Run all unit tests
-mvn test
-
-# Run specific test class
-mvn test -Dtest=AuthServiceTest
-
-# Run tests with coverage
-mvn test jacoco:report
-```
-
-### Integration Tests
-```bash
-# Run integration tests
-mvn test -Dtest=*IntegrationTest
-
-# Run with test profile
-mvn test -Dspring.profiles.active=test
-```
-
 ### Test Coverage
-- **Controller Layer**: 95%+
-- **Service Layer**: 90%+
-- **Security Layer**: 85%+
-- **Overall Coverage**: 85%+
+- **Unit Tests**: Individual component testing
+- **Integration Tests**: API endpoint testing
+- **Security Tests**: Authentication and authorization testing
+- **UI Tests**: User interface testing
 
 ### Test Categories
 
-1. **Unit Tests**
-   - Service layer business logic
-   - Repository layer data access
-   - Security configuration
-   - JWT token service
+#### Unit Tests
+- Service layer business logic
+- Repository data access
+- Utility functions
+- Security components
 
-2. **Integration Tests**
-   - REST API endpoints
-   - Authentication flows
-   - Database operations
-   - Security filters
+#### Integration Tests
+- REST API endpoints
+- Database operations
+- Authentication flows
+- Error handling
 
-3. **End-to-End Tests**
-   - Complete user workflows
-   - Admin dashboard operations
-   - Registration processes
+#### Security Tests
+- JWT token validation
+- Role-based access control
+- Password encryption
+- Input validation
+
+### Running Tests
+```bash
+# Run all tests
+mvn test
+
+# Run with coverage
+mvn test jacoco:report
+
+# Run specific test category
+mvn test -Dtest=*ServiceTest
+```
+
+## Performance & Optimization
+
+### Frontend Optimizations
+- **Resource Preloading**: Critical CSS and JS files
+- **Lazy Loading**: Images and non-critical resources
+- **Minification**: CSS and JavaScript compression
+- **Caching**: Browser and server-side caching
+
+### Backend Optimizations
+- **Database Indexing**: Optimized query performance
+- **Connection Pooling**: Efficient database connections
+- **Caching**: Redis for session and data caching
+- **Compression**: Gzip response compression
+
+### Monitoring
+- **Application Metrics**: Custom business metrics
+- **Performance Monitoring**: Response time tracking
+- **Error Tracking**: Exception monitoring
+- **Health Checks**: System health monitoring
 
 ## Deployment Guide
 
-### Production Environment
-
-#### Environment Variables
-```bash
-# Database
-SPRING_DATA_MONGODB_URI=mongodb://production-mongo:27017/kitchensink
-
-# JWT Configuration
-JWT_SECRET_KEY=your-production-secret-key
-JWT_ACCESS_TOKEN_EXPIRATION=900000
-JWT_REFRESH_TOKEN_EXPIRATION=604800000
-
-# Server Configuration
-SERVER_PORT=8080
-```
+### Production Deployment
 
 #### Docker Deployment
-```dockerfile
-FROM openjdk:21-jdk-slim
+```bash
+# Build Docker image
+docker build -t kitchensink .
 
-WORKDIR /app
-
-COPY target/kitchensink-0.0.1-SNAPSHOT.jar app.jar
-
-EXPOSE 8080
-
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:8080/actuator/health || exit 1
-
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Run container
+docker run -p 8080:8080 -e SPRING_PROFILES_ACTIVE=prod kitchensink
 ```
 
 #### Kubernetes Deployment
@@ -494,48 +441,44 @@ spec:
         image: kitchensink:latest
         ports:
         - containerPort: 8080
-        env:
-        - name: SPRING_DATA_MONGODB_URI
-          valueFrom:
-            secretKeyRef:
-              name: mongodb-secret
-              key: uri
 ```
 
-### Monitoring and Logging
+#### Environment Variables
+```bash
+# Production configuration
+SPRING_PROFILES_ACTIVE=prod
+SPRING_DATA_MONGODB_URI=mongodb://prod-mongo:27017/kitchensink
+JWT_SECRET=your-production-secret-key
+JWT_EXPIRATION=86400000
+```
 
-#### Health Checks
-- **Endpoint**: `/actuator/health`
-- **Response**: Application health status
-- **Monitoring**: Kubernetes liveness/readiness probes
-
-#### Metrics
-- **Endpoint**: `/actuator/metrics`
-- **Available Metrics**:
-  - HTTP requests
-  - JVM metrics
-  - Database connections
-  - Authentication attempts
-
-#### Logging
+### CI/CD Pipeline
 ```yaml
-logging:
-  level:
-    com.example.kitchensink: INFO
-    org.springframework.security: WARN
-    org.springframework.web: INFO
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+# GitHub Actions workflow
+name: Deploy KitchenSink
+on:
+  push:
+    branches: [main]
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up JDK 21
+      uses: actions/setup-java@v2
+      with:
+        java-version: '21'
+    - name: Build with Maven
+      run: mvn clean package
+    - name: Deploy to production
+      run: ./deploy.sh
 ```
 
 ## Troubleshooting
 
 ### Common Issues
 
-#### 1. MongoDB Connection Issues
-**Symptoms**: Application fails to start, MongoDB connection errors
-**Solutions**:
+#### MongoDB Connection Issues
 ```bash
 # Check MongoDB status
 sudo systemctl status mongod
@@ -543,134 +486,102 @@ sudo systemctl status mongod
 # Check MongoDB logs
 sudo journalctl -u mongod
 
-# Verify connection
-mongo --eval "db.runCommand('ping')"
+# Test connection
+mongo --host localhost --port 27017
 ```
 
-#### 2. JWT Token Issues
-**Symptoms**: Authentication failures, 401 errors
-**Solutions**:
+#### JWT Token Issues
 ```bash
-# Check JWT secret configuration
-echo $JWT_SECRET_KEY
-
-# Verify token expiration
-# Check system clock synchronization
+# Check JWT configuration
+curl -X POST http://localhost:8080/jwt-login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@admin.com","password":"admin123"}'
 ```
 
-#### 3. Memory Issues
-**Symptoms**: OutOfMemoryError, slow performance
-**Solutions**:
+#### Application Startup Issues
 ```bash
-# Increase heap size
-java -Xmx2g -jar app.jar
+# Check application logs
+tail -f logs/application.log
 
-# Monitor memory usage
-jstat -gc <pid>
+# Check Java version
+java -version
+
+# Check Maven version
+mvn -version
 ```
 
-#### 4. Port Conflicts
-**Symptoms**: Application fails to start, port already in use
-**Solutions**:
-```bash
-# Check port usage
-netstat -tulpn | grep 8080
+### Performance Issues
 
-# Kill process using port
-sudo kill -9 <pid>
+#### Database Performance
+- Check MongoDB indexes
+- Monitor slow queries
+- Optimize database connections
 
-# Change port
-java -jar app.jar --server.port=8081
-```
+#### Memory Issues
+- Monitor JVM heap usage
+- Adjust memory settings
+- Check for memory leaks
 
-### Debug Mode
-```bash
-# Enable debug logging
-mvn spring-boot:run -Dlogging.level.com.example.kitchensink=DEBUG
-
-# Remote debugging
-mvn spring-boot:run -Dspring-boot.run.jvmArguments="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005"
-```
-
-### Performance Tuning
-
-#### JVM Options
-```bash
-java -Xms512m -Xmx2g -XX:+UseG1GC -jar app.jar
-```
-
-#### Database Optimization
-```javascript
-// Create indexes for better performance
-db.members.createIndex({ "email": 1 })
-db.members.createIndex({ "role": 1 })
-
-// Monitor slow queries
-db.setProfilingLevel(1, 100)
-```
+#### Network Issues
+- Check firewall settings
+- Verify port availability
+- Test network connectivity
 
 ## Contributing
 
 ### Development Workflow
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests for new functionality
+5. Update documentation
+6. Submit a pull request
 
-1. **Fork the Repository**
-2. **Create Feature Branch**
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-3. **Make Changes**
-4. **Write Tests**
-5. **Run Tests**
-   ```bash
-   mvn test
-   ```
-6. **Commit Changes**
-   ```bash
-   git commit -m "Add feature description"
-   ```
-7. **Push to Branch**
-   ```bash
-   git push origin feature/your-feature-name
-   ```
-8. **Create Pull Request**
+### Code Standards
+- **Java**: Follow Google Java Style Guide
+- **CSS**: Follow BEM methodology
+- **JavaScript**: Use ES6+ features
+- **Documentation**: Keep docs updated
 
-### Code Style
+### Testing Requirements
+- All new features must have tests
+- Maintain minimum 80% code coverage
+- Include integration tests for APIs
+- Test both positive and negative scenarios
 
-#### Java Code Style
-- Follow Google Java Style Guide
-- Use meaningful variable names
-- Add comprehensive JavaDoc comments
-- Keep methods small and focused
+### Documentation Updates
+- Update relevant documentation files
+- Include code examples
+- Add troubleshooting guides
+- Keep API documentation current
 
-#### Testing Requirements
-- Unit tests for all service methods
-- Integration tests for all endpoints
-- Test coverage minimum 85%
+---
 
-#### Documentation Requirements
-- Update API documentation for new endpoints
-- Update README for new features
-- Add inline comments for complex logic
+## Version History
 
-### Review Process
+### v1.0.0 (Current)
+- ✅ JWT Authentication with refresh tokens
+- ✅ Role-based access control
+- ✅ MongoDB integration
+- ✅ RESTful API with OpenAPI documentation
+- ✅ Modern responsive UI with theme support
+- ✅ Comprehensive test coverage (80%+ branch coverage)
+- ✅ Performance optimizations
+- ✅ Security best practices
+- ✅ Docker and Kubernetes support
+- ✅ CI/CD pipeline ready
 
-1. **Code Review Checklist**:
-   - [ ] Code follows style guidelines
-   - [ ] Tests are comprehensive
-   - [ ] Documentation is updated
-   - [ ] Security considerations addressed
-   - [ ] Performance impact assessed
+### Planned Features
+- 🔄 Real-time notifications
+- 🔄 Advanced search and filtering
+- 🔄 File upload capabilities
+- 🔄 Email notifications
+- 🔄 Advanced analytics dashboard
+- 🔄 Multi-language support
+- 🔄 Advanced security features
+- 🔄 Performance monitoring dashboard
 
-2. **Security Review**:
-   - [ ] Input validation implemented
-   - [ ] Authentication/authorization correct
-   - [ ] No sensitive data exposed
-   - [ ] SQL injection prevented
+---
 
-3. **Performance Review**:
-   - [ ] Database queries optimized
-   - [ ] Memory usage reasonable
-   - [ ] Response times acceptable
-   - [ ] Scalability considered
-
-This comprehensive project documentation provides all the information needed to understand, develop, deploy, and maintain the KitchenSink application. 
+*Last Updated: August 2024*
+*Version: 1.0.0* 
