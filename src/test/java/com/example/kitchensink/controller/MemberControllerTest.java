@@ -6,10 +6,10 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-import com.example.kitchensink.controller.strategy.RegistrationContext;
 import com.example.kitchensink.entity.MemberDocument;
 import com.example.kitchensink.model.Member;
 import com.example.kitchensink.service.MemberService;
+import com.example.kitchensink.repository.MemberRepository;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Optional;
@@ -21,6 +21,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.ui.Model;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -30,7 +31,10 @@ class MemberControllerTest {
   private MemberService memberService;
 
   @Mock
-  private RegistrationContext registrationContext;
+  private MemberRepository memberRepository;
+
+  @Mock
+  private BCryptPasswordEncoder passwordEncoder;
 
   @InjectMocks
   private MemberController memberController;
@@ -114,27 +118,94 @@ class MemberControllerTest {
   }
 
   @Test
-  void registerMember_WhenSourceIsIndex_ShouldUseAdminStrategy() {
+  void registerMember_WhenSourceIsIndex_AndUserExists_ShouldReturnError() {
     Member member = new Member();
-    when(registrationContext.register(eq(member), eq(redirectAttributes))).thenReturn("index");
+    member.setEmail("test@test.com");
+    
+    MemberDocument existingMember = new MemberDocument();
+    existingMember.setEmail("test@test.com");
+    existingMember.setPassword("encodedPassword");
+    
+    when(memberService.findByEmail("test@test.com")).thenReturn(Optional.of(existingMember));
 
     String viewName = memberController.registerMember(member, "index", redirectAttributes);
 
-    assertEquals("index", viewName);
-    verify(registrationContext).setStrategy("index");
-    verify(registrationContext).register(eq(member), eq(redirectAttributes));
+    assertEquals("redirect:/admin/home", viewName);
+    verify(redirectAttributes).addFlashAttribute("registrationError", true);
+    verify(redirectAttributes).addFlashAttribute("errorMessage", "Member already registered with this email!");
   }
 
   @Test
-  void registerMember_WhenSourceIsRegister_ShouldUseUserStrategy() {
+  void registerMember_WhenSourceIsIndex_AndNewUser_ShouldRegisterSuccessfully() {
     Member member = new Member();
-    when(registrationContext.register(eq(member), eq(redirectAttributes))).thenReturn("register");
+    member.setEmail("new@test.com");
+    
+    when(memberService.findByEmail("new@test.com")).thenReturn(Optional.empty());
+    when(memberService.registerMember(any(Member.class))).thenReturn(member);
+
+    String viewName = memberController.registerMember(member, "index", redirectAttributes);
+
+    assertEquals("redirect:/admin/home", viewName);
+    verify(memberService).registerMember(member);
+    verify(redirectAttributes).addFlashAttribute("registrationSuccess", true);
+    verify(redirectAttributes).addFlashAttribute("successMessage", "Member successfully registered!");
+  }
+
+  @Test
+  void registerMember_WhenSourceIsRegister_AndUserExistsWithoutPassword_ShouldUpdatePassword() {
+    Member member = new Member();
+    member.setEmail("test@test.com");
+    member.setPassword("newPassword");
+    
+    MemberDocument existingMember = new MemberDocument();
+    existingMember.setEmail("test@test.com");
+    existingMember.setPassword(null); // No password set
+    
+    when(memberService.findByEmail("test@test.com")).thenReturn(Optional.of(existingMember));
+    when(passwordEncoder.encode("newPassword")).thenReturn("encodedPassword");
 
     String viewName = memberController.registerMember(member, "register", redirectAttributes);
 
-    assertEquals("register", viewName);
-    verify(registrationContext).setStrategy("register");
-    verify(registrationContext).register(eq(member), eq(redirectAttributes));
+    assertEquals("redirect:/jwt-login", viewName);
+    verify(memberRepository).save(existingMember);
+    verify(redirectAttributes).addFlashAttribute("registrationSuccess", true);
+    verify(redirectAttributes).addFlashAttribute("successMessage", "Password updated successfully!");
+  }
+
+  @Test
+  void registerMember_WhenSourceIsRegister_AndUserExistsWithPassword_ShouldReturnError() {
+    Member member = new Member();
+    member.setEmail("test@test.com");
+    
+    MemberDocument existingMember = new MemberDocument();
+    existingMember.setEmail("test@test.com");
+    existingMember.setPassword("existingPassword");
+    
+    when(memberService.findByEmail("test@test.com")).thenReturn(Optional.of(existingMember));
+
+    String viewName = memberController.registerMember(member, "register", redirectAttributes);
+
+    assertEquals("redirect:/jwt-login", viewName);
+    verify(redirectAttributes).addFlashAttribute("registrationError", true);
+    verify(redirectAttributes).addFlashAttribute("errorMessage", "Account already exists with this email. Please log in.");
+  }
+
+  @Test
+  void registerMember_WhenSourceIsRegister_AndNewUser_ShouldRegisterSuccessfully() {
+    Member member = new Member();
+    member.setEmail("new@test.com");
+    member.setPassword("password");
+    
+    when(memberService.findByEmail("new@test.com")).thenReturn(Optional.empty());
+    when(passwordEncoder.encode("password")).thenReturn("encodedPassword");
+    when(memberService.registerMember(any(Member.class))).thenReturn(member);
+
+    String viewName = memberController.registerMember(member, "register", redirectAttributes);
+
+    assertEquals("redirect:/jwt-login", viewName);
+    verify(memberService).registerMember(any(Member.class));
+    verify(redirectAttributes).addFlashAttribute("registrationSuccess", true);
+    verify(redirectAttributes).addFlashAttribute("successMessage", "User successfully registered!");
   }
 
   @Test
@@ -192,18 +263,6 @@ class MemberControllerTest {
     verify(session).removeAttribute("refreshToken");
     verify(session).removeAttribute("userEmail");
     verify(session).removeAttribute("userRole");
-  }
-
-  @Test
-  void registerMember_WithInvalidData_ShouldReturnIndexView() {
-    Member invalidMember = new Member();
-    when(registrationContext.register(eq(invalidMember), eq(redirectAttributes))).thenReturn("index");
-
-    String viewName = memberController.registerMember(invalidMember, "index", redirectAttributes);
-
-    assertEquals("index", viewName);
-    verify(registrationContext).setStrategy("index");
-    verify(registrationContext).register(eq(invalidMember), eq(redirectAttributes));
   }
 
   @Test

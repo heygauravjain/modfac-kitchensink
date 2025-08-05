@@ -22,10 +22,9 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import java.util.List;
-import java.util.Objects;
 
 /**
- * The Class MemberController.
+ * REST API controller for member management operations.
  *
  * @author Gaurav Jain
  */
@@ -69,7 +68,7 @@ public class RestService {
   @GetMapping("/{id}")
   public ResponseEntity<Member> lookupMemberById(@PathVariable("id") String id) {
     Member member = memberService.findById(id);
-    if (Objects.isNull(member)) {
+    if (member == null) {
       throw new ResourceNotFoundException("Member with ID " + id + " not found.");
     }
     return ResponseEntity.ok(member);
@@ -89,7 +88,7 @@ public class RestService {
   @GetMapping("/search")
   public ResponseEntity<Member> lookupMemberByEmail(@RequestParam("email") String email) {
     Member member = memberService.findMemberByEmail(email);
-    if (Objects.isNull(member)) {
+    if (member == null) {
       throw new ResourceNotFoundException("Member with email " + email + " not found.");
     }
     return ResponseEntity.ok(member);
@@ -137,14 +136,13 @@ public class RestService {
   @DeleteMapping("/{id}")
   public ResponseEntity<String> deleteMemberById(@PathVariable("id") String id) {
     Member member = memberService.findById(id);
-    if (Objects.isNull(member)) {
+    if (member == null) {
       throw new ResourceNotFoundException("Member with ID " + id + " not found.");
     }
     
     // Check if user is trying to delete their own account
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    if (authentication != null && authentication.getName().equals(member.getEmail())) {
-      log.warn("User {} attempted to delete their own account", authentication.getName());
+    if (isCurrentUser(member.getEmail())) {
+      log.warn("User {} attempted to delete their own account", member.getEmail());
       return new ResponseEntity<>("Cannot delete your own account", HttpStatus.FORBIDDEN);
     }
     
@@ -172,14 +170,13 @@ public class RestService {
     try {
       // Check if the member exists before updating
       Member existingMember = memberService.findById(id);
-      if (Objects.isNull(existingMember)) {
+      if (existingMember == null) {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND); // Member not found
       }
       
       // Check if user is trying to edit their own account
-      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-      if (authentication != null && authentication.getName().equals(existingMember.getEmail())) {
-        log.warn("User {} attempted to edit their own account", authentication.getName());
+      if (isCurrentUser(existingMember.getEmail())) {
+        log.warn("User {} attempted to edit their own account", existingMember.getEmail());
         return new ResponseEntity<>(HttpStatus.FORBIDDEN); // Cannot edit own account
       }
       
@@ -219,5 +216,13 @@ public class RestService {
       log.error("Login error: {}", e.getMessage());
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Login failed");
     }
+  }
+
+  /**
+   * Helper method to check if the given email belongs to the current authenticated user
+   */
+  private boolean isCurrentUser(String email) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    return authentication != null && email.equals(authentication.getName());
   }
 }

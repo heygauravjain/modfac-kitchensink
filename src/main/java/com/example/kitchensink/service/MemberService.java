@@ -32,18 +32,9 @@ public class MemberService {
   public Member registerMember(Member member) {
     MemberDocument memberDocument = memberMapper.memberToMemberEntity(member);
     
-    // Ensure role has ROLE_ prefix for Spring Security compatibility
-    String role = memberDocument.getRole();
-    if (role != null && !role.startsWith("ROLE_")) {
-      role = "ROLE_" + role.toUpperCase();
-      memberDocument.setRole(role);
-    }
-    
-    // Encrypt the password before saving
-    if (memberDocument.getPassword() != null && !memberDocument.getPassword().isEmpty()) {
-      String encryptedPassword = passwordEncoder.encode(memberDocument.getPassword());
-      memberDocument.setPassword(encryptedPassword);
-    }
+    // Normalize role and encode password
+    normalizeRole(memberDocument);
+    encodePasswordIfPresent(memberDocument);
     
     memberRepository.save(memberDocument);
 
@@ -60,28 +51,18 @@ public class MemberService {
     existingMember.setEmail(updatedMember.getEmail());
     existingMember.setPhoneNumber(updatedMember.getPhoneNumber());
     
-    // Ensure role has ROLE_ prefix for Spring Security compatibility
-    String role = updatedMember.getRole();
-    if (role != null && !role.startsWith("ROLE_")) {
-      role = "ROLE_" + role.toUpperCase();
-    }
+    // Normalize role
+    String role = normalizeRole(updatedMember.getRole());
     existingMember.setRole(role);
     
-    // Preserve the existing encrypted password from database
-    // Only update password if a new password is explicitly provided
-    if (updatedMember.getPassword() != null && !updatedMember.getPassword().isEmpty()) {
-      existingMember.setPassword(updatedMember.getPassword());
-    } else {
-      // Keep the existing encrypted password from database
-      existingMember.setPassword(existingDocument.getPassword());
-    }
+    // Handle password update
+    handlePasswordUpdate(existingMember, updatedMember, existingDocument);
 
     MemberDocument memberDocument = memberMapper.memberToMemberEntity(existingMember);
     
     // Only encrypt the password if it was updated (new password provided)
     if (updatedMember.getPassword() != null && !updatedMember.getPassword().isEmpty()) {
-      String encryptedPassword = passwordEncoder.encode(memberDocument.getPassword());
-      memberDocument.setPassword(encryptedPassword);
+      encodePasswordIfPresent(memberDocument);
     } else {
       // Preserve the existing encrypted password
       memberDocument.setPassword(existingDocument.getPassword());
@@ -138,5 +119,48 @@ public class MemberService {
       throw new IllegalArgumentException("ID cannot be null or empty.");
     }
     memberRepository.deleteById(id);
+  }
+
+  /**
+   * Helper method to normalize role (ensure ROLE_ prefix)
+   */
+  private void normalizeRole(MemberDocument memberDocument) {
+    String role = memberDocument.getRole();
+    if (role != null && !role.startsWith("ROLE_")) {
+      role = "ROLE_" + role.toUpperCase();
+      memberDocument.setRole(role);
+    }
+  }
+
+  /**
+   * Helper method to normalize role (ensure ROLE_ prefix)
+   */
+  private String normalizeRole(String role) {
+    if (role != null && !role.startsWith("ROLE_")) {
+      return "ROLE_" + role.toUpperCase();
+    }
+    return role;
+  }
+
+  /**
+   * Helper method to encode password if present
+   */
+  private void encodePasswordIfPresent(MemberDocument memberDocument) {
+    if (memberDocument.getPassword() != null && !memberDocument.getPassword().isEmpty()) {
+      String encryptedPassword = passwordEncoder.encode(memberDocument.getPassword());
+      memberDocument.setPassword(encryptedPassword);
+    }
+  }
+
+  /**
+   * Helper method to handle password update logic
+   */
+  private void handlePasswordUpdate(Member existingMember, Member updatedMember, MemberDocument existingDocument) {
+    if (updatedMember.getPassword() != null && !updatedMember.getPassword().isEmpty()) {
+      existingMember.setPassword(updatedMember.getPassword());
+    } else {
+      // Keep the existing encrypted password from database
+      existingMember.setPassword(existingDocument.getPassword());
+    }
   }
 }
