@@ -85,7 +85,7 @@ class MemberMapperTest {
         assertEquals(memberDocument.getId(), result.get(0).getId());
         assertEquals(memberDocument.getName(), result.get(0).getName());
         assertEquals(memberDocument.getEmail(), result.get(0).getEmail());
-        assertEquals(memberDocument.getPassword(), result.get(0).getPassword());
+        assertNull(result.get(0).getPassword()); // Password should be null due to @Mapping(ignore = true)
         assertEquals(memberDocument.getPhoneNumber(), result.get(0).getPhoneNumber());
         assertEquals(memberDocument.getRole(), result.get(0).getRole());
     }
@@ -202,7 +202,7 @@ class MemberMapperTest {
         assertEquals(memberDocument.getId(), result.get(0).getId());
         assertEquals(memberDocument.getName(), result.get(0).getName());
         assertEquals(memberDocument.getEmail(), result.get(0).getEmail());
-        assertEquals(memberDocument.getPassword(), result.get(0).getPassword());
+        assertNull(result.get(0).getPassword()); // Password should be null due to @Mapping(ignore = true)
         assertEquals(memberDocument.getPhoneNumber(), result.get(0).getPhoneNumber());
         assertEquals(memberDocument.getRole(), result.get(0).getRole());
         
@@ -210,7 +210,7 @@ class MemberMapperTest {
         assertEquals(memberDocument2.getId(), result.get(1).getId());
         assertEquals(memberDocument2.getName(), result.get(1).getName());
         assertEquals(memberDocument2.getEmail(), result.get(1).getEmail());
-        assertEquals(memberDocument2.getPassword(), result.get(1).getPassword());
+        assertNull(result.get(1).getPassword()); // Password should be null due to @Mapping(ignore = true)
         assertEquals(memberDocument2.getPhoneNumber(), result.get(1).getPhoneNumber());
         assertEquals(memberDocument2.getRole(), result.get(1).getRole());
     }

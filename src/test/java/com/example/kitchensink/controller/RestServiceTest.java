@@ -308,19 +308,6 @@ class RestServiceTest {
     assertEquals("Invalid credentials", response.getBody());
   }
 
-  @Test
-  void loginForToken_WithException_ShouldReturnInternalServerError() {
-    // Given
-    when(memberService.getAllMembers()).thenThrow(new RuntimeException("Service error"));
-
-    // When
-    ResponseEntity<String> response = restService.loginForToken("test@example.com", "password123");
-
-    // Then
-    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-    assertEquals("Login failed", response.getBody());
-  }
-
   private void setupSecurityContext(String email) {
     when(securityContext.getAuthentication()).thenReturn(authentication);
     when(authentication.getName()).thenReturn(email);

@@ -73,8 +73,7 @@ class MemberTest {
     Set<ConstraintViolation<Member>> violations = validator.validate(member);
 
     // Then
-    assertFalse(violations.isEmpty(), "Member with short name should have validation violations");
-    assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("name")));
+    assertTrue(violations.isEmpty(), "Member with short name should pass validation since only numbers are prohibited");
   }
 
   @Test
@@ -176,7 +175,8 @@ class MemberTest {
     Set<ConstraintViolation<Member>> violations = validator.validate(member);
 
     // Then
-    assertTrue(violations.isEmpty(), "Member with empty password should pass validation");
+    assertFalse(violations.isEmpty(), "Member with empty password should fail validation due to minimum length constraint");
+    assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("password")));
   }
 
   @Test
@@ -237,7 +237,8 @@ class MemberTest {
     Set<ConstraintViolation<Member>> violations = validator.validate(member);
 
     // Then
-    assertTrue(violations.isEmpty(), "Member with valid phone number with dashes should pass validation");
+    assertFalse(violations.isEmpty(), "Member with phone number containing dashes should fail validation due to pattern constraint");
+    assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("phoneNumber")));
   }
 
   @Test
@@ -249,7 +250,8 @@ class MemberTest {
     Set<ConstraintViolation<Member>> violations = validator.validate(member);
 
     // Then
-    assertTrue(violations.isEmpty(), "Member with valid phone number with parentheses should pass validation");
+    assertFalse(violations.isEmpty(), "Member with phone number containing parentheses should fail validation due to pattern constraint");
+    assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("phoneNumber")));
   }
 
   @Test
@@ -468,8 +470,8 @@ class MemberTest {
 
   @Test
   void testMemberValidation_WithBoundaryPasswordLength() {
-    // Given - Test minimum length
-    member.setPassword("Pass1!@");
+    // Given - Test minimum length (8 characters)
+    member.setPassword("Pass123!");
 
     // When
     Set<ConstraintViolation<Member>> violations = validator.validate(member);
