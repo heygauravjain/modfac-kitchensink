@@ -1,4 +1,4 @@
-# Live Demo Presentation: JBoss Kitchensink Migration to Spring Boot
+# Adaptation Guide : JBoss Kitchensink Migration to Spring Boot
 
 ## Presentation Overview
 
